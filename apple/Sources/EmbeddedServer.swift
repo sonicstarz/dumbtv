@@ -1,0 +1,174 @@
+import Foundation
+import Network
+import dumbTVCore
+
+/// A tiny, dependency-free HTTP/1.1 server on Network.framework. It is the
+/// transport for the on-device config backend: it parses requests, dispatches
+/// `/api/*` to `ConfigAPI` (backed by the shared `Store`), and serves the web
+/// config UI for everything else. You reach it from a phone/laptop browser on
+/// the LAN — the same web UI every dumbTV device serves.
+final class EmbeddedServer {
+    private let api: ConfigAPI
+    private var listener: NWListener?
+    private let queue = DispatchQueue(label: "dumbtv.httpd", attributes: .concurrent)
+    let port: UInt16
+
+    init(store: Store, port: UInt16 = 8080) {
+        self.api = ConfigAPI(store: store)
+        self.port = port
+    }
+
+    func start() {
+        do {
+            let params = NWParameters.tcp
+            params.allowLocalEndpointReuse = true
+            listener = try NWListener(using: params, on: NWEndpoint.Port(rawValue: port)!)
+            listener?.newConnectionHandler = { [weak self] conn in
+                conn.start(queue: self?.queue ?? .global())
+                self?.receive(conn, buffer: Data())
+            }
+            listener?.start(queue: queue)
+            print("dumbTV config server on http://localhost:\(port)")
+        } catch {
+            print("dumbTV config server failed to start on \(port): \(error)")
+        }
+    }
+
+    func stop() { listener?.cancel(); listener = nil }
+
+    // MARK: - read a full request, then respond
+
+    private func receive(_ conn: NWConnection, buffer: Data) {
+        conn.receive(minimumIncompleteLength: 1, maximumLength: 1 << 16) { [weak self] data, _, isComplete, error in
+            guard let self else { return }
+            var buf = buffer
+            if let data { buf.append(data) }
+
+            if let req = HTTPRequest(buf) {
+                self.respond(conn, to: req)
+            } else if isComplete || error != nil {
+                conn.cancel()
+            } else {
+                self.receive(conn, buffer: buf)   // headers or body still incomplete
+            }
+        }
+    }
+
+    private func respond(_ conn: NWConnection, to req: HTTPRequest) {
+        let (status, contentType, body): (Int, String, Data)
+
+        if req.path.hasPrefix("/api/") {
+            let jsonBody = req.body.flatMap { try? JSONSerialization.jsonObject(with: $0) as? [String: Any] }
+            let apiReq = ConfigAPI.Request(method: req.method, path: req.path,
+                                           query: req.query, body: jsonBody)
+            let r = api.handle(apiReq)
+            let data = (try? JSONSerialization.data(withJSONObject: r.json)) ?? Data("{}".utf8)
+            (status, contentType, body) = (r.status, "application/json", data)
+        } else {
+            (status, contentType, body) = staticAsset(req.path)
+        }
+
+        var head = "HTTP/1.1 \(status) \(Self.reason(status))\r\n"
+        head += "Content-Type: \(contentType)\r\n"
+        head += "Content-Length: \(body.count)\r\n"
+        head += "Access-Control-Allow-Origin: *\r\n"
+        head += "Connection: close\r\n\r\n"
+        var out = Data(head.utf8); out.append(body)
+        conn.send(content: out, completion: .contentProcessed { _ in conn.cancel() })
+    }
+
+    // MARK: - static web UI (bundled). Falls back to a placeholder until the
+    // shared public/ assets are bundled (next Track G task).
+
+    private func staticAsset(_ path: String) -> (Int, String, Data) {
+        let name = (path == "/" ? "/index.html" : path)
+        let rel = String(name.drop(while: { $0 == "/" }))
+        if let url = Bundle.main.url(forResource: rel, withExtension: nil, subdirectory: "web"),
+           let data = try? Data(contentsOf: url) {
+            return (200, Self.mime(rel), data)
+        }
+        if path == "/" {
+            return (200, "text/html; charset=utf-8", Data(Self.placeholder.utf8))
+        }
+        return (404, "text/plain", Data("Not found".utf8))
+    }
+
+    private static func mime(_ p: String) -> String {
+        if p.hasSuffix(".html") { return "text/html; charset=utf-8" }
+        if p.hasSuffix(".js")   { return "application/javascript" }
+        if p.hasSuffix(".css")  { return "text/css" }
+        if p.hasSuffix(".json") { return "application/json" }
+        if p.hasSuffix(".svg")  { return "image/svg+xml" }
+        return "application/octet-stream"
+    }
+
+    private static func reason(_ s: Int) -> String {
+        switch s { case 200: return "OK"; case 400: return "Bad Request"
+        case 404: return "Not Found"; default: return "Error" }
+    }
+
+    private static let placeholder = """
+    <!doctype html><meta name=viewport content="width=device-width,initial-scale=1">
+    <title>dumbTV</title>
+    <body style="font:16px -apple-system,system-ui;background:#0a2a6b;color:#ffb000;
+      display:grid;place-items:center;height:100vh;margin:0;text-align:center">
+    <div><h1 style="letter-spacing:.1em">dumbTV</h1>
+    <p>Config server is running. The setup UI lands here next.</p>
+    <p style="opacity:.7">API is live at <code>/api/status</code>.</p></div>
+    """
+}
+
+/// A parsed HTTP request, or nil if the buffer doesn't yet hold a complete one
+/// (caller keeps reading). Handles the request line, headers, and a
+/// Content-Length body.
+struct HTTPRequest {
+    let method: String
+    let path: String
+    let query: [String: String]
+    let headers: [String: String]
+    let body: Data?
+
+    init?(_ buffer: Data) {
+        guard let sep = buffer.range(of: Data("\r\n\r\n".utf8)) else { return nil }  // headers incomplete
+        let headData = buffer.subdata(in: buffer.startIndex..<sep.lowerBound)
+        guard let headStr = String(data: headData, encoding: .utf8) else { return nil }
+        let lines = headStr.components(separatedBy: "\r\n")
+        guard let requestLine = lines.first else { return nil }
+        let rl = requestLine.split(separator: " ")
+        guard rl.count >= 2 else { return nil }
+        method = String(rl[0])
+
+        var headers: [String: String] = [:]
+        for line in lines.dropFirst() {
+            guard let c = line.firstIndex(of: ":") else { continue }
+            headers[line[..<c].lowercased()] =
+                line[line.index(after: c)...].trimmingCharacters(in: .whitespaces)
+        }
+        self.headers = headers
+
+        // Wait for the whole body if the request declares a Content-Length.
+        let bodyStart = sep.upperBound
+        let declared = Int(headers["content-length"] ?? "0") ?? 0
+        let available = buffer.distance(from: bodyStart, to: buffer.endIndex)
+        if declared > available { return nil }   // body incomplete — keep reading
+        body = declared > 0 ? buffer.subdata(in: bodyStart..<buffer.index(bodyStart, offsetBy: declared)) : nil
+
+        // Split path and query string.
+        let target = String(rl[1])
+        if let q = target.firstIndex(of: "?") {
+            path = String(target[..<q])
+            var params: [String: String] = [:]
+            for pair in target[target.index(after: q)...].split(separator: "&") {
+                let kv = pair.split(separator: "=", maxSplits: 1)
+                if let k = kv.first {
+                    params[String(k).removingPercentEncoding ?? String(k)] =
+                        kv.count > 1 ? (String(kv[1]).removingPercentEncoding ?? String(kv[1])) : ""
+                }
+            }
+            query = params
+        } else {
+            path = target
+            query = [:]
+        }
+    }
+}

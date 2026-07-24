@@ -166,6 +166,11 @@ const overlaps = (a, b) => a.start < b.end && b.start < a.end;
 // ---- rotation iterator (shared across every gap in one build) --------------
 
 function makeRotationIterator(channel) {
+  // Default: walk the ordered playlist with a monotonic cursor (deterministic,
+  // wraps at the end). With a repeat cooldown, switch to least-recently-aired
+  // selection instead — it maximises the gap before any item airs again, seeded
+  // from persisted airings so the spacing also holds across builds.
+  const cooldownMs = (channel.cooldown_days || 0) * DAY;
   const base = buildPlaylist(channel, 0);
   let cursor = channel.cursor || 0;
   let cachedCycle = -1;
@@ -178,10 +183,27 @@ function makeRotationIterator(channel) {
       cachedList = channel.ordering_mode === 'shuffle' ? buildPlaylist(channel, cycle) : base;
     }
   }
+  const lastAired = new Map();
+  if (cooldownMs > 0) {
+    for (const r of db.prepare('SELECT rating_key, last_aired FROM airings WHERE channel_id = ?').all(channel.id)) {
+      if (r.last_aired) lastAired.set(r.rating_key, r.last_aired);
+    }
+  }
   return {
     empty: base.length === 0,
-    peek() { refresh(); return cachedList[cursor % cachedList.length]; },
-    advance() { cursor++; },
+    pickAt() {
+      if (cooldownMs <= 0) { refresh(); return cachedList[cursor % cachedList.length]; }
+      let best = null, bestLA = Infinity;
+      for (const item of base) {
+        const la = lastAired.has(item.rating_key) ? lastAired.get(item.rating_key) : -Infinity;
+        if (la < bestLA) { bestLA = la; best = item; }
+      }
+      return best;
+    },
+    note(item, endTime) {
+      cursor += 1;
+      if (cooldownMs > 0 && item && item.rating_key) lastAired.set(item.rating_key, endTime);
+    },
     cursor: () => cursor,
   };
 }
@@ -247,13 +269,13 @@ function fillWindow(ctx, ruleId, start, end) {
   let t = start;
   let guard = 0;
   while (t < end && guard++ < 50000) {
-    const item = ctx.iter.peek();
-    if (!item || !item.duration_ms) { ctx.iter.advance(); continue; }
+    const item = ctx.iter.pickAt(t);
+    if (!item || !item.duration_ms) { ctx.iter.note(item, t); continue; }
     if (t + item.duration_ms > end) break; // won't fit before the hard end
-    ctx.iter.advance();
     const blockStart = t;
     pushProgram(ctx, item, t, blockStart, ruleId);
     t += item.duration_ms;
+    ctx.iter.note(item, t);
     for (const bi of buildAdBreak(ctx.channel, ctx.pool, `${ctx.channel.id}:${blockStart}`)) {
       if (t + bi.durationMs > end) break;
       pushSpan(ctx, bi.kind, t, t + bi.durationMs, bi.title, null, ruleId, bi.assetId);
@@ -308,21 +330,12 @@ const insertProgramV2 = db.prepare(`
 `);
 
 /**
- * Two-pass reserve-then-fill. Pass 1 places reservations (blackout, pinned,
- * recurring) highest priority first, reporting — never silently dropping —
- * anything that loses its slot. Pass 2 fills every gap with rotation.
+ * Two-pass reserve-then-fill, with no side effects. Pass 1 places reservations
+ * (blackout, pinned, recurring) highest priority first, reporting — never
+ * silently dropping — anything that loses its slot. Pass 2 fills every gap with
+ * rotation. Returns the rows + conflicts; the caller decides whether to commit.
  */
-export function generateChannel(channelId, until = Date.now() + config.scheduleWindowDays * DAY) {
-  const channel = db.prepare('SELECT * FROM channels WHERE id = ?').get(channelId);
-  if (!channel) throw new Error(`No channel ${channelId}`);
-  ensureChannelRules(channel);
-
-  const now = Date.now();
-  const from = channel.generated_thru && channel.generated_thru > now
-    ? channel.generated_thru
-    : now - staggerOffset(channel);
-  if (from >= until) return { added: 0, reason: 'already built', conflicts: [] };
-
+function buildChannelPrograms(channel, from, until) {
   const rules = db
     .prepare('SELECT * FROM schedule_rules WHERE channel_id = ? AND enabled = 1 ORDER BY priority DESC, id')
     .all(channel.id);
@@ -372,13 +385,28 @@ export function generateChannel(channelId, until = Date.now() + config.scheduleW
     ri++;
   }
 
-  // Commit atomically: insert programs, advance cursors, bump airings.
+  return { rows: ctx.rows, conflicts, cursor: ctx.iter.cursor(), airingBump: ctx.airingBump, through: t, rotationRuleId: rotationRule.id };
+}
+
+export function generateChannel(channelId, until = Date.now() + config.scheduleWindowDays * DAY) {
+  const channel = db.prepare('SELECT * FROM channels WHERE id = ?').get(channelId);
+  if (!channel) throw new Error(`No channel ${channelId}`);
+  ensureChannelRules(channel);
+
+  const now = Date.now();
+  const from = channel.generated_thru && channel.generated_thru > now
+    ? channel.generated_thru
+    : now - staggerOffset(channel);
+  if (from >= until) return { added: 0, reason: 'already built', conflicts: [] };
+
+  const built = buildChannelPrograms(channel, from, until);
+
   const commit = db.transaction(() => {
-    for (const r of ctx.rows) insertProgramV2.run(r);
+    for (const r of built.rows) insertProgramV2.run(r);
     db.prepare('UPDATE channels SET cursor = ?, generated_thru = ? WHERE id = ?')
-      .run(ctx.iter.cursor(), t, channel.id);
-    if (rotationRule.id) {
-      db.prepare('UPDATE schedule_rules SET cursor = ? WHERE id = ?').run(ctx.iter.cursor(), rotationRule.id);
+      .run(built.cursor, built.through, channel.id);
+    if (built.rotationRuleId) {
+      db.prepare('UPDATE schedule_rules SET cursor = ? WHERE id = ?').run(built.cursor, built.rotationRuleId);
     }
     const upAiring = db.prepare(`
       INSERT INTO airings (channel_id, rating_key, count, last_aired)
@@ -387,14 +415,32 @@ export function generateChannel(channelId, until = Date.now() + config.scheduleW
         count = count + excluded.count,
         last_aired = MAX(COALESCE(last_aired, 0), excluded.last_aired)
     `);
-    for (const [rk, n] of ctx.airingBump) {
-      const lastEnd = ctx.rows.filter((x) => x.ratingKey === rk).reduce((mx, x) => Math.max(mx, x.endUtc), 0);
+    for (const [rk, n] of built.airingBump) {
+      const lastEnd = built.rows.filter((x) => x.ratingKey === rk).reduce((mx, x) => Math.max(mx, x.endUtc), 0);
       upAiring.run(channel.id, rk, n, lastEnd);
     }
   });
   commit();
 
-  return { added: ctx.rows.length, through: t, conflicts };
+  return { added: built.rows.length, through: built.through, conflicts: built.conflicts };
+}
+
+/**
+ * Dry-run: what a regeneration would produce over the next `days`, without
+ * writing anything. Powers the preview-before-commit and conflict inspector.
+ */
+export function previewChannel(channelId, days = 7) {
+  const channel = db.prepare('SELECT * FROM channels WHERE id = ?').get(channelId);
+  if (!channel) throw new Error(`No channel ${channelId}`);
+  ensureChannelRules(channel);
+  const now = Date.now();
+  const last = db
+    .prepare('SELECT MAX(end_utc) AS e FROM programs WHERE channel_id = ? AND start_utc < ?')
+    .get(channelId, now);
+  const from = last && last.e && last.e > now ? last.e : now;
+  const until = from + days * DAY;
+  const built = buildChannelPrograms(channel, from, until);
+  return { from, until, conflicts: built.conflicts, programs: built.rows };
 }
 
 /** Throw away everything not yet aired and rebuild — atomically, so the engine

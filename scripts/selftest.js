@@ -339,6 +339,22 @@ const premiere = db
   .get(chSeq).m;
 check('premiere/rerun tracked (airing_no starts at 1)', premiere === 1, `(min ${premiere})`);
 
+// Repeat cooldown: a fresh channel with a big cooldown should not repeat an item
+// while others remain unaired within the window.
+// A shuffle channel would otherwise repeat an item across a cycle boundary;
+// with a cooldown it airs every episode once before any repeat. Window sized to
+// ~20 of the 26 episodes so uniqueness is achievable.
+const chCool = makeChannel(7, 'Cooldown', 'shuffle', 30);
+addSource.run(chCool, 'show-xmen', 'show', 'X-Men Evolution'); // 26 unique episodes
+db.prepare('UPDATE channels SET cooldown_days = 7 WHERE id = ?').run(chCool);
+generateChannel(chCool, Date.now() + 7 * HOUR); // ~19 episodes
+const airedKeys = db
+  .prepare("SELECT rating_key FROM programs WHERE channel_id = ? AND kind = 'episode'")
+  .all(chCool).map((r) => r.rating_key);
+const uniqueKeys = new Set(airedKeys);
+check('repeat cooldown airs everything once before repeating', airedKeys.length === uniqueKeys.size,
+  `(${airedKeys.length} aired, ${uniqueKeys.size} unique)`);
+
 const counts = db.prepare('SELECT COUNT(*) n FROM programs').get().n;
 console.log(`\n${counts} programs across 4 channels / 2 days`);
 console.log(`${pass} passed, ${fail} failed\n`);

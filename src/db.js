@@ -152,6 +152,8 @@ addColumnIfMissing('assets', 'part_key', 'TEXT');
 // Backend v2: which rule placed a program, and whether it's a premiere (1) or repeat.
 addColumnIfMissing('programs', 'rule_id', 'INTEGER');
 addColumnIfMissing('programs', 'airing_no', 'INTEGER DEFAULT 1');
+// Repeat cooldown: don't re-air an item within this many days of its last airing.
+addColumnIfMissing('channels', 'cooldown_days', 'INTEGER NOT NULL DEFAULT 0');
 
 // One-time data migration into the rule model, so an existing install keeps its
 // lineup. Each channel's sources become a rotation rule; dark hours become a

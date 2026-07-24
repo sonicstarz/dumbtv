@@ -30,7 +30,10 @@ import {
   ping,
   imageUrl,
 } from '../plex/client.js';
-import { generateChannel, regenerateChannel, ensureSchedule } from '../schedule/generator.js';
+import { generateChannel, regenerateChannel, ensureSchedule, previewChannel } from '../schedule/generator.js';
+import {
+  isConfigured, setPin, verifyPin, clearPin, tokenValid, cookieToken, sessionCookieHeader,
+} from '../auth.js';
 import { guide, nowOnAll, nowOn, upNext, publicChannel } from '../schedule/resolver.js';
 import { ORDERING_MODES } from '../schedule/ordering.js';
 import { scanAssets } from '../assets.js';
@@ -52,6 +55,47 @@ const CHANNEL_FIELDS = [
 ];
 
 export default async function api(fastify) {
+  // Gate mutations behind the household PIN. Reads (GET) and the auth endpoints
+  // stay open, so the TV never asks for a password. When no PIN is set, all open.
+  fastify.addHook('preHandler', async (req, reply) => {
+    const method = req.method.toUpperCase();
+    if (method === 'GET' || method === 'HEAD' || method === 'OPTIONS') return;
+    if (req.url.startsWith('/api/auth/')) return;
+    if (!isConfigured()) return;
+    if (tokenValid(cookieToken(req))) return;
+    return reply.code(401).send({ error: 'PIN required' });
+  });
+
+  fastify.get('/api/auth/status', async (req) => ({
+    configured: isConfigured(),
+    authed: !isConfigured() || tokenValid(cookieToken(req)),
+  }));
+
+  fastify.post('/api/auth/setup', async (req, reply) => {
+    if (isConfigured() && !tokenValid(cookieToken(req))) {
+      return reply.code(401).send({ error: 'Enter the current PIN first' });
+    }
+    const pin = String((req.body && req.body.pin) || '');
+    if (!/^\d{4,6}$/.test(pin)) return reply.code(400).send({ error: 'PIN must be 4–6 digits' });
+    setPin(pin);
+    reply.header('Set-Cookie', sessionCookieHeader());
+    return { ok: true };
+  });
+
+  fastify.post('/api/auth/login', async (req, reply) => {
+    if (!verifyPin((req.body && req.body.pin) || '')) {
+      return reply.code(401).send({ error: 'Wrong PIN' });
+    }
+    reply.header('Set-Cookie', sessionCookieHeader());
+    return { ok: true };
+  });
+
+  fastify.post('/api/auth/logout', async (req, reply) => {
+    // Rotate the secret via a no-op PIN reset is heavy; just clear the cookie.
+    reply.header('Set-Cookie', 'cathode_auth=; Path=/; HttpOnly; Max-Age=0');
+    return { ok: true };
+  });
+
   fastify.get('/api/status', async () => {
     const token = getToken();
     const server = getServer();
@@ -258,6 +302,71 @@ export default async function api(fastify) {
   });
 
   fastify.post('/api/schedule/ensure', async () => ({ results: ensureSchedule() }));
+
+  // Dry-run: what a regeneration would produce, without writing anything.
+  fastify.get('/api/channels/:id/preview', async (req) =>
+    previewChannel(Number(req.params.id), Number(req.query.days || 7))
+  );
+
+  // ---- Schedule rules ----------------------------------------------------
+
+  const DEFAULT_PRIORITY = { blackout: 1000, pinned: 800, recurring: 600, airdate: 400, rotation: 0 };
+  const RULE_FIELDS = [
+    'name', 'kind', 'priority', 'enabled', 'days_of_week', 'start_time', 'duration_min',
+    'starts_at_utc', 'source_type', 'rating_key', 'ordering_mode', 'effective_from',
+    'effective_to', 'ad_policy',
+  ];
+
+  fastify.get('/api/channels/:id/rules', async (req) => ({
+    rules: db.prepare('SELECT * FROM schedule_rules WHERE channel_id = ? ORDER BY priority DESC, id')
+      .all(Number(req.params.id)),
+  }));
+
+  fastify.post('/api/channels/:id/rules', async (req, reply) => {
+    const b = req.body || {};
+    if (!b.kind) return reply.code(400).send({ error: 'kind is required' });
+    const priority = b.priority ?? DEFAULT_PRIORITY[b.kind] ?? 0;
+    const info = db.prepare(`
+      INSERT INTO schedule_rules
+        (channel_id, name, kind, priority, enabled, days_of_week, start_time, duration_min,
+         starts_at_utc, source_type, rating_key, ordering_mode, effective_from, effective_to, ad_policy)
+      VALUES (@channelId,@name,@kind,@priority,1,@daysOfWeek,@startTime,@durationMin,
+              @startsAtUtc,@sourceType,@ratingKey,@orderingMode,@effectiveFrom,@effectiveTo,@adPolicy)
+    `).run({
+      channelId: Number(req.params.id), name: b.name || null, kind: b.kind, priority,
+      daysOfWeek: b.daysOfWeek || null, startTime: b.startTime || null, durationMin: b.durationMin ?? null,
+      startsAtUtc: b.startsAtUtc ?? null, sourceType: b.sourceType || null, ratingKey: b.ratingKey || null,
+      orderingMode: b.orderingMode || null, effectiveFrom: b.effectiveFrom || null,
+      effectiveTo: b.effectiveTo || null, adPolicy: b.adPolicy ? JSON.stringify(b.adPolicy) : null,
+    });
+    return { id: info.lastInsertRowid };
+  });
+
+  fastify.patch('/api/rules/:id', async (req) => {
+    const b = req.body || {};
+    const map = {
+      name: b.name, kind: b.kind, priority: b.priority,
+      enabled: b.enabled === undefined ? undefined : (b.enabled ? 1 : 0),
+      days_of_week: b.daysOfWeek, start_time: b.startTime, duration_min: b.durationMin,
+      starts_at_utc: b.startsAtUtc, source_type: b.sourceType, rating_key: b.ratingKey,
+      ordering_mode: b.orderingMode, effective_from: b.effectiveFrom, effective_to: b.effectiveTo,
+      ad_policy: b.adPolicy === undefined ? undefined : (b.adPolicy ? JSON.stringify(b.adPolicy) : null),
+    };
+    const sets = [], vals = [];
+    for (const f of RULE_FIELDS) {
+      if (map[f] !== undefined) { sets.push(`${f} = ?`); vals.push(map[f]); }
+    }
+    if (sets.length) {
+      vals.push(Number(req.params.id));
+      db.prepare(`UPDATE schedule_rules SET ${sets.join(', ')} WHERE id = ?`).run(...vals);
+    }
+    return { ok: true };
+  });
+
+  fastify.delete('/api/rules/:id', async (req) => {
+    db.prepare('DELETE FROM schedule_rules WHERE id = ?').run(Number(req.params.id));
+    return { ok: true };
+  });
 
   fastify.get('/api/guide', async (req) => {
     const from = req.query.from ? Number(req.query.from) : Date.now();

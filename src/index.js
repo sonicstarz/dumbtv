@@ -6,6 +6,7 @@ import { db } from './db.js';
 import api from './routes/api.js';
 import { ensureSchedule } from './schedule/generator.js';
 import { engine } from './player/engine.js';
+import { initFromEnv } from './auth.js';
 import { HOUR } from './util/time.js';
 
 const app = Fastify({ logger: false });
@@ -30,6 +31,7 @@ function lanAddress() {
 }
 
 async function main() {
+  initFromEnv();
   ensureSchedule();
 
   // Keep the rolling window topped up. Append-only, so nothing already

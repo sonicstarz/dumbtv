@@ -44,11 +44,13 @@ async function main() {
     }
   }, HOUR);
 
+  // Bind the port FIRST. If another Cathode is already running, fail here —
+  // before opening an mpv window that would be orphaned by the crash.
+  await app.listen({ port: config.port, host: config.host });
+
   engine.on('log', (m) => console.log(`  [player] ${m}`));
   engine.on('error', (err) => console.error(`  [player] ${err.message}`));
   await engine.start();
-
-  await app.listen({ port: config.port, host: config.host });
 
   const url = `http://${lanAddress()}:${config.port}`;
   const channels = db.prepare('SELECT COUNT(*) n FROM channels').get().n;

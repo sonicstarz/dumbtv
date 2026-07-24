@@ -48,6 +48,7 @@
       <div id="channelList"></div>
 
       <button class="primary" id="addChannel">Add a channel</button>
+      <button class="ghost" id="suggestChannel" title="Needs an LLM configured in Settings">✨ Suggest a channel</button>
       <button class="ghost" id="rebuildAll">Rebuild all schedules</button>
       <p class="hint">Rebuilding leaves whatever is currently airing alone and only changes what hasn't aired yet.</p>
     </section>
@@ -316,6 +317,18 @@
           </label>
         </div>
         <p class="hint">On the TV, <span class="mono">C</span> toggles captions and the picture setting drives mpv panscan. Browser captions depend on the file exposing subtitle tracks.</p>
+      </div>
+
+      <div class="card">
+        <h3>AI assist <span class="sub" id="llmState">—</span></h3>
+        <p class="sub">Optional. Point Cathode at a local Ollama or any OpenAI-compatible endpoint to get channel suggestions. It only proposes — you always review and apply.</p>
+        <div class="field"><label>BASE URL</label><input id="llmUrl" placeholder="http://localhost:11434/v1" style="width:100%"></div>
+        <div class="row" style="gap:10px">
+          <div class="field" style="flex:1"><label>MODEL</label><input id="llmModel" placeholder="llama3.1" style="width:100%"></div>
+          <div class="field" style="flex:1"><label>API KEY (optional)</label><input id="llmKey" type="password" placeholder="only for hosted endpoints" style="width:100%"></div>
+        </div>
+        <button class="primary" id="llmSave" style="margin-top:8px">Save</button>
+        <p class="hint">Nothing here is ever in the playback path — the TV works whether or not this is set.</p>
       </div>
 
       <div class="card">

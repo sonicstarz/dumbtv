@@ -356,7 +356,25 @@ async function loadSettings() {
   $('#tzInput').value = cfg.timezone || '';
   $('#dispFill').value = cfg.displayFill === 'fill' ? 'fill' : 'fit';
   $('#dispCaptions').checked = !!cfg.captions;
+
+  try {
+    const llm = await api('/api/llm/status');
+    $('#llmState').textContent = llm.configured ? `connected · ${llm.model}` : 'not configured';
+    $('#llmState').style.color = llm.configured ? 'var(--phosphor)' : 'var(--dim)';
+  } catch {}
 }
+
+$('#llmSave').addEventListener('click', async () => {
+  try {
+    await api('/api/llm/settings', {
+      method: 'POST',
+      body: { url: $('#llmUrl').value.trim(), model: $('#llmModel').value.trim(), key: $('#llmKey').value },
+    });
+    $('#llmKey').value = '';
+    toast('AI settings saved.');
+    loadSettings();
+  } catch (err) { toast(err.message, true); }
+});
 
 $('#dispFill').addEventListener('change', async (e) => {
   await api('/api/settings', { method: 'POST', body: { displayFill: e.target.value } });
@@ -686,6 +704,93 @@ $('#addChannel').addEventListener('click', async () => {
   const created = state.channels[state.channels.length - 1];
   openSettings(created.id);
 });
+
+// ---- AI: suggest a channel ----
+$('#suggestChannel').addEventListener('click', async () => {
+  const st = await api('/api/llm/status').catch(() => ({ configured: false }));
+  if (!st.configured) {
+    toast('Set up an AI endpoint in Settings first.', true);
+    return;
+  }
+  openSuggestChannel();
+});
+
+function openSuggestChannel() {
+  const back = modal(`
+    <h3>✨ Suggest a channel</h3>
+    <p class="sub" style="color:var(--dim);font-size:13px;margin:4px 0 14px">
+      Describe the channel you want. The AI picks matching shows from your library — you review before anything is created.
+    </p>
+    <div class="field"><label>WHAT'S THE CHANNEL?</label>
+      <input id="scBrief" placeholder="90s Saturday morning cartoons" style="width:100%">
+    </div>
+    <div id="scResult"></div>
+    <div class="row" style="margin-top:16px;justify-content:flex-end">
+      <button class="ghost" id="scCancel">Cancel</button>
+      <button class="primary" id="scGo">Suggest</button>
+    </div>
+  `);
+  $('#scCancel', back).addEventListener('click', () => back.remove());
+  $('#scBrief', back).focus();
+
+  $('#scGo', back).addEventListener('click', async () => {
+    const btn = $('#scGo', back);
+    const brief = $('#scBrief', back).value.trim();
+    if (!brief) return toast('Describe the channel first.', true);
+    btn.disabled = true; btn.textContent = 'Thinking…';
+    $('#scResult', back).innerHTML = '<p class="sub">Reading your library and composing…</p>';
+    try {
+      const { proposal } = await api('/api/llm/suggest-channel', { method: 'POST', body: { prompt: brief } });
+      renderProposal(back, proposal);
+    } catch (err) {
+      $('#scResult', back).innerHTML = `<p class="sub" style="color:var(--tally)">${escapeHtml(err.message)}</p>`;
+    }
+    btn.disabled = false; btn.textContent = 'Suggest again';
+  });
+}
+
+function renderProposal(back, p) {
+  const rows = p.sources
+    .map((s) => `<label class="ep-row"><input type="checkbox" data-sc="${escapeHtml(s.ratingKey)}" checked>
+      <span class="ep-title">${escapeHtml(s.title)}</span>
+      <span class="ep-no">${s.sourceType}</span></label>`)
+    .join('');
+  $('#scResult', back).innerHTML = `
+    <div class="card" style="margin-top:14px;background:var(--panel-2)">
+      <div class="row" style="gap:10px;align-items:flex-end">
+        <div class="field" style="flex:1"><label>NAME</label><input id="scName" value="${escapeHtml(p.name)}" style="width:100%"></div>
+        <div class="field"><label>CH #</label><input id="scNum" type="number" value="${p.number}" style="width:80px"></div>
+        <div class="field"><label>ORDER</label><input id="scMode" value="${escapeHtml(p.orderingMode)}" readonly style="width:130px"></div>
+      </div>
+      <p class="sub" style="margin:12px 0 4px">Picked ${p.sources.length} — uncheck any you don't want:</p>
+      <div class="ep-list" style="max-height:38vh;overflow-y:auto">${rows}</div>
+      <button class="primary" id="scCreate" style="margin-top:14px">Create this channel</button>
+    </div>`;
+  $('#scCreate', back).addEventListener('click', async () => {
+    const btn = $('#scCreate', back);
+    const keep = $$('[data-sc]', back).filter((b) => b.checked).map((b) => b.dataset.sc);
+    const sources = p.sources.filter((s) => keep.includes(s.ratingKey));
+    if (!sources.length) return toast('Keep at least one show.', true);
+    btn.disabled = true; btn.textContent = 'Creating…';
+    try {
+      const { id } = await api('/api/channels', {
+        method: 'POST',
+        body: { name: $('#scName', back).value.trim(), number: Number($('#scNum', back).value), orderingMode: p.orderingMode },
+      });
+      await api(`/api/channels/${id}/sources`, {
+        method: 'POST',
+        body: { items: sources.map((s) => ({ ratingKey: s.ratingKey, sourceType: s.sourceType, title: s.title })) },
+      });
+      back.remove();
+      toast('Channel created from the suggestion.');
+      loadChannels();
+      loadStatus();
+    } catch (err) {
+      toast(err.message, true);
+      btn.disabled = false; btn.textContent = 'Create this channel';
+    }
+  });
+}
 
 $('#rebuildAll').addEventListener('click', async () => {
   const btn = $('#rebuildAll');

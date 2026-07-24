@@ -32,6 +32,15 @@ export const config = {
   clientIdentifier: process.env.CATHODE_CLIENT_ID || 'cathode-retro-cable-box',
   productName: 'Cathode',
   productVersion: '0.1.0',
+
+  // Optional LLM assist. Off unless a base URL is set. OpenAI-compatible, so it
+  // works with Ollama (default host below), LM Studio, or any hosted endpoint.
+  // Never in the critical path — it only proposes; a human applies.
+  llm: {
+    baseUrl: process.env.CATHODE_LLM_URL || null, // e.g. http://localhost:11434/v1
+    model: process.env.CATHODE_LLM_MODEL || 'llama3.1',
+    apiKey: process.env.CATHODE_LLM_KEY || null,
+  },
 };
 
 export const PLEX_HEADERS = {

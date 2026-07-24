@@ -38,6 +38,7 @@ import {
   clearJf,
   jfConfigured,
 } from '../jellyfin/auth.js';
+import { completeJSON, llmConfigured, llmConfig } from '../llm/client.js';
 import { generateChannel, regenerateChannel, ensureSchedule, previewChannel } from '../schedule/generator.js';
 import {
   isConfigured, setPin, verifyPin, clearPin, tokenValid, cookieToken, sessionCookieHeader,
@@ -561,6 +562,82 @@ export default async function api(fastify) {
     run();
     ensureSchedule();
     return { ok: true, channels: cfg.channels.length, rules: (cfg.rules || []).length };
+  });
+
+  // ---- LLM assist (optional, proposes only — a human applies) ------------
+
+  fastify.get('/api/llm/status', async () => {
+    const c = llmConfig();
+    return { configured: llmConfigured(), model: llmConfigured() ? c.model : null };
+  });
+
+  fastify.post('/api/llm/settings', async (req) => {
+    const b = req.body || {};
+    if (b.url !== undefined) setSetting('llm_url', (b.url || '').trim() || null);
+    if (b.model !== undefined) setSetting('llm_model', (b.model || '').trim() || null);
+    if (b.key !== undefined) setSetting('llm_key', b.key || null);
+    return { ok: true, configured: llmConfigured() };
+  });
+
+  // Propose a themed channel from the library + a natural-language brief. Returns
+  // a proposal only; the client shows it and the user applies it with the normal
+  // create-channel + add-sources endpoints. Never mutates anything here.
+  fastify.post('/api/llm/suggest-channel', async (req, reply) => {
+    if (!llmConfigured()) return reply.code(400).send({ error: 'No LLM configured.' });
+    const brief = String(req.body?.prompt || '').slice(0, 500);
+    if (!brief) return reply.code(400).send({ error: 'Describe the channel you want.' });
+
+    // Gather the library (shows + movies) with rating keys, capped for the prompt.
+    let items = [];
+    try {
+      for (const sec of await getSections()) {
+        const type = sec.type === 'movie' ? 'movie' : 'show';
+        for (const it of await getSectionItems(sec.key, type)) {
+          items.push({ ratingKey: String(it.ratingKey), title: it.title, type });
+          if (items.length >= 400) break;
+        }
+        if (items.length >= 400) break;
+      }
+    } catch (err) {
+      return reply.code(502).send({ error: `Could not read the library: ${err.message}` });
+    }
+    if (items.length === 0) return reply.code(400).send({ error: 'No library items to choose from.' });
+
+    const modes = ORDERING_MODES.map((m) => m.id).join(', ');
+    const system =
+      `You program a retro cable channel from a media library. Reply ONLY with a JSON object: ` +
+      `{"name": string, "orderingMode": one of [${modes}], "ratingKeys": string[]}. ` +
+      `Pick ONLY ratingKeys that appear in the provided library. Choose items that fit the theme; ` +
+      `4–20 is a good channel. name is short and broadcast-style.`;
+    const user =
+      `Brief: ${brief}\n\nLibrary (JSON):\n${JSON.stringify(items)}`;
+
+    let out;
+    try {
+      out = await completeJSON(system, user);
+    } catch (err) {
+      return reply.code(502).send({ error: err.message });
+    }
+
+    // Validate & sanitise: keep only real rating keys; clamp the ordering mode.
+    const byKey = new Map(items.map((i) => [i.ratingKey, i]));
+    const chosen = (Array.isArray(out.ratingKeys) ? out.ratingKeys : [])
+      .map(String)
+      .filter((k) => byKey.has(k))
+      .map((k) => byKey.get(k));
+    const orderingMode = ORDERING_MODES.some((m) => m.id === out.orderingMode) ? out.orderingMode : 'sequential';
+    if (chosen.length === 0) {
+      return reply.code(422).send({ error: 'The model did not pick anything from your library. Try rephrasing.' });
+    }
+    const nextNumber = (db.prepare('SELECT MAX(number) m FROM channels').get().m || 1) + 1;
+    return {
+      proposal: {
+        name: (out.name && String(out.name).slice(0, 60)) || 'New Channel',
+        number: nextNumber,
+        orderingMode,
+        sources: chosen.map((c) => ({ ratingKey: c.ratingKey, title: c.title, sourceType: c.type })),
+      },
+    };
   });
 
   fastify.get('/api/guide', async (req) => {

@@ -1,0 +1,12 @@
+# XcodeGen generates this from project.yml — regenerate with `xcodegen generate`
+Cathode.xcodeproj/
+
+# Build output
+build/
+.build/
+DerivedData/
+*.xcuserstate
+*.xcresult
+
+# macOS
+.DS_Store

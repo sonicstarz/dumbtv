@@ -13,9 +13,12 @@ struct GuideView: View {
             ScrollView {
                 LazyVStack(spacing: 8) {
                     ForEach(engine.guideRows()) { row in
-                        GuideRowCard(row: row, isCurrent: row.id == engine.currentIndex)
-                            .contentShape(Rectangle())
-                            .onTapGesture { engine.tune(to: row.id) }
+                        // A Button so a channel is selectable with the Siri remote
+                        // on tvOS (focus + click), and tappable on iOS/macOS.
+                        Button { engine.tune(to: row.id) } label: {
+                            GuideRowCard(row: row, isCurrent: row.id == engine.currentIndex)
+                        }
+                        .buttonStyle(.plain)
                     }
                 }
                 .padding(16)

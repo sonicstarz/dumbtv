@@ -55,8 +55,144 @@ $$('.navlink[data-view]').forEach((btn) =>
     if (btn.dataset.view === 'guide') loadGuide();
     if (btn.dataset.view === 'commercials') { loadAssets(); loadAdSections(); }
     if (btn.dataset.view === 'setup') loadSetup();
+    if (btn.dataset.view === 'schedule') loadSchedule();
+    if (btn.dataset.view === 'settings') loadSettings();
   })
 );
+
+// ---------------------------------------------------------------- schedule
+
+const sched = { channelId: null };
+const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+const fmtTime = (ts) => new Date(ts).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+const fmtDay = (ts) => new Date(ts).toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' });
+
+async function loadSchedule() {
+  const { channels } = await api('/api/channels');
+  if (channels.length === 0) { $('#ruleList').innerHTML = '<p class="sub">No channels yet.</p>'; return; }
+  const sel = $('#schChannel');
+  sel.innerHTML = channels.map((c) => `<option value="${c.id}">${String(c.number).padStart(2, '0')} ${escapeHtml(c.name)}</option>`).join('');
+  if (!sched.channelId || !channels.some((c) => c.id === sched.channelId)) sched.channelId = channels[0].id;
+  sel.value = sched.channelId;
+  await loadRules();
+  await runPreview();
+}
+
+async function loadRules() {
+  const { rules } = await api(`/api/channels/${sched.channelId}/rules`);
+  $('#ruleList').innerHTML = rules.length
+    ? rules.map((r) => {
+        const when = r.kind === 'pinned'
+          ? new Date(r.starts_at_utc).toLocaleString()
+          : r.start_time
+            ? `${(r.days_of_week || '').split(',').map((d) => dayNames[d] || '').join(' ')} ${r.start_time} · ${r.duration_min}m`
+            : '';
+        return `<div class="ruleRow">
+          <span class="ruleKind k-${r.kind}">${r.kind}</span>
+          <b>${escapeHtml(r.name || r.kind)}</b>
+          <span class="sub">${escapeHtml(when)}</span>
+          <span style="flex:1"></span>
+          ${r.kind === 'rotation' ? '' : `<button class="sm danger" data-rule="${r.id}">Remove</button>`}
+        </div>`;
+      }).join('')
+    : '<p class="sub">Just the default rotation.</p>';
+  $$('[data-rule]').forEach((b) => b.addEventListener('click', async () => {
+    await api(`/api/rules/${b.dataset.rule}`, { method: 'DELETE' });
+    await loadRules(); await runPreview();
+  }));
+}
+
+async function runPreview() {
+  try {
+    const p = await api(`/api/channels/${sched.channelId}/preview?days=7`);
+    const rulesById = {};
+    (await api(`/api/channels/${sched.channelId}/rules`)).rules.forEach((r) => (rulesById[r.id] = r));
+    $('#schMeta').textContent = `${p.programs.length} blocks · ${fmtDay(p.from)} → ${fmtDay(p.until)}`;
+    $('#conflicts').innerHTML = (p.conflicts || []).length
+      ? `<div class="conflict">${p.conflicts.map((c) => `⚠ <b>${escapeHtml(c.rule)}</b> lost ${fmtDay(c.at)} ${fmtTime(c.at)} to ${escapeHtml(c.lostTo)}`).join('<br>')}</div>`
+      : '';
+    // group the show/movie/offair blocks by day (collapse ad/filler into the block)
+    const blocks = p.programs.filter((x) => ['episode', 'movie', 'offair'].includes(x.kind)).slice(0, 240);
+    let html = '', lastDay = '';
+    for (const b of blocks) {
+      const day = fmtDay(b.startUtc);
+      if (day !== lastDay) { html += `<div class="tlDay">${day}</div>`; lastDay = day; }
+      const rule = rulesById[b.ruleId];
+      const reserved = rule && rule.kind !== 'rotation';
+      const cls = b.kind === 'offair' ? 'tlBlk offair' : reserved ? 'tlBlk reserved' : 'tlBlk fill';
+      const tag = reserved ? `<span class="tlTag">${escapeHtml(rule.name || rule.kind)}</span>` : '';
+      html += `<div class="${cls}"><span class="tlTime">${fmtTime(b.startUtc)}</span> <span class="tlTitle">${escapeHtml(b.title)}${b.subtitle ? ' — ' + escapeHtml(b.subtitle) : ''}</span>${tag}</div>`;
+    }
+    $('#timeline').innerHTML = html || '<p class="sub">Nothing scheduled.</p>';
+  } catch (err) { $('#timeline').innerHTML = `<p class="sub" style="color:var(--tally)">${escapeHtml(err.message)}</p>`; }
+}
+
+$('#schChannel').addEventListener('change', async (e) => { sched.channelId = Number(e.target.value); await loadRules(); await runPreview(); });
+$('#schPreview').addEventListener('click', runPreview);
+$('#schApply').addEventListener('click', async () => {
+  try {
+    await api('/api/schedule/regenerate', { method: 'POST', body: { channelId: sched.channelId } });
+    toast('Schedule applied.'); await runPreview();
+  } catch (err) { toast(err.message, true); }
+});
+$('#rKind').addEventListener('change', (e) => {
+  $('#rRecurring').style.display = e.target.value === 'recurring' ? 'block' : 'none';
+  $('#rPinned').style.display = e.target.value === 'pinned' ? 'block' : 'none';
+  // blackout reuses the recurring day/time fields
+  if (e.target.value === 'blackout') $('#rRecurring').style.display = 'block';
+});
+$('#rAdd').addEventListener('click', async () => {
+  const kind = $('#rKind').value;
+  const body = { kind, name: $('#rName').value || null };
+  if (kind === 'recurring' || kind === 'blackout') {
+    body.daysOfWeek = $('#rDays').value.trim();
+    body.startTime = $('#rStart').value.trim();
+    body.durationMin = Number($('#rDur').value) || 0;
+  } else if (kind === 'pinned') {
+    const at = Date.parse($('#rPinAt').value.replace(' ', 'T'));
+    if (Number.isNaN(at)) return toast('Bad date — use YYYY-MM-DD HH:MM', true);
+    body.startsAtUtc = at;
+    body.ratingKey = $('#rPinKey').value.trim();
+    body.sourceType = 'episode';
+  }
+  try {
+    await api(`/api/channels/${sched.channelId}/rules`, { method: 'POST', body });
+    toast('Rule added — preview updated. Apply to make it air.');
+    $('#addRuleWrap').open = false;
+    await loadRules(); await runPreview();
+  } catch (err) { toast(err.message, true); }
+});
+
+// ---------------------------------------------------------------- settings
+
+async function loadSettings() {
+  const s = await api('/api/auth/status');
+  $('#pinStatus').textContent = s.configured
+    ? (s.authed ? 'A PIN is set and you are unlocked.' : 'A PIN is set. Enter it to unlock edits.')
+    : 'No PIN set — edits are open to anyone on the network.';
+  $('#pinLabel').textContent = s.configured ? (s.authed ? 'CHANGE PIN' : 'ENTER PIN') : 'SET A PIN (4–6 digits)';
+  $('#pinLogout').style.display = s.configured && s.authed ? 'inline-block' : 'none';
+  $('#pinSave').textContent = s.configured && !s.authed ? 'Unlock' : 'Save';
+}
+$('#pinSave').addEventListener('click', async () => {
+  const pin = $('#pinInput').value.trim();
+  const s = await api('/api/auth/status');
+  try {
+    if (s.configured && !s.authed) {
+      await api('/api/auth/login', { method: 'POST', body: { pin } });
+      toast('Unlocked.');
+    } else {
+      await api('/api/auth/setup', { method: 'POST', body: { pin } });
+      toast('PIN saved.');
+    }
+    $('#pinInput').value = '';
+    await loadSettings();
+  } catch (err) { toast(err.message, true); }
+});
+$('#pinLogout').addEventListener('click', async () => {
+  await api('/api/auth/logout', { method: 'POST' });
+  toast('Logged out.'); await loadSettings();
+});
 
 // ---------------------------------------------------------------- on air strip
 
@@ -823,6 +959,13 @@ async function boot() {
   await loadChannels().catch(() => {});
   await refreshOnAir();
   loadSetup();
+
+  // Deep-link a view via the URL hash, e.g. /#schedule.
+  const hv = location.hash.slice(1);
+  if (hv) {
+    const b = document.querySelector(`.navlink[data-view="${hv}"]`);
+    if (b) b.click();
+  }
 
   setInterval(refreshOnAir, 5000);
   setInterval(loadStatus, 15000);

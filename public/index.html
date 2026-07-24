@@ -26,7 +26,9 @@
     <h2>OPERATE</h2>
     <button class="navlink active" data-view="channels">Channels <span class="badge" id="navChannels"></span></button>
     <button class="navlink" data-view="guide">Guide</button>
+    <button class="navlink" data-view="schedule">Schedule</button>
     <button class="navlink" data-view="commercials">Commercials <span class="badge" id="navAssets"></span></button>
+    <button class="navlink" data-view="settings">Settings</button>
     <hr />
     <h2>CONNECT</h2>
     <button class="navlink" data-view="setup">Plex <span class="badge" id="navPlex"></span></button>
@@ -137,6 +139,71 @@
         <p class="sub">These are what you'll pick from when building channels.</p>
         <div id="libList"></div>
         <button class="ghost danger" id="unlink" style="margin-top:14px">Unlink this account</button>
+      </div>
+    </section>
+
+    <!-- ---------------- schedule ---------------- -->
+    <section class="view" id="view-schedule">
+      <h2 class="title">Schedule</h2>
+      <p class="lede">Content claims time with rules. Cathode places them highest-priority first, then fills the gaps. <b>Solid</b> = you placed it. <span class="hatched-key">Hatched</span> = Cathode filled it.</p>
+
+      <div class="card">
+        <div class="field" style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap">
+          <div><label>CHANNEL</label><select id="schChannel"></select></div>
+          <button class="sm" id="schPreview">Preview 7 days</button>
+          <button class="primary" id="schApply">Apply changes</button>
+        </div>
+        <p class="hint">Preview is a dry run — nothing airs until you Apply.</p>
+      </div>
+
+      <div class="card">
+        <h3>Rules</h3>
+        <div id="ruleList"></div>
+        <details id="addRuleWrap" style="margin-top:12px">
+          <summary style="cursor:pointer;color:var(--phosphor)">+ Add a rule</summary>
+          <div class="field" style="margin-top:10px">
+            <label>KIND</label>
+            <select id="rKind">
+              <option value="recurring">Recurring block</option>
+              <option value="blackout">Blackout (off air)</option>
+              <option value="pinned">Pinned event</option>
+            </select>
+          </div>
+          <div class="field"><label>NAME</label><input id="rName" placeholder="Saturday Morning Cartoons"></div>
+          <div id="rRecurring">
+            <div class="field"><label>DAYS (0=Sun … 6=Sat, comma separated)</label><input id="rDays" placeholder="6"></div>
+            <div class="field" style="display:flex;gap:10px">
+              <div><label>START (HH:MM)</label><input id="rStart" placeholder="08:00" style="width:120px"></div>
+              <div><label>DURATION (min)</label><input id="rDur" type="number" placeholder="180" style="width:140px"></div>
+            </div>
+          </div>
+          <div id="rPinned" style="display:none">
+            <div class="field"><label>STARTS AT (local, YYYY-MM-DD HH:MM)</label><input id="rPinAt" placeholder="2026-12-24 19:00"></div>
+            <div class="field"><label>CONTENT rating key (episode/movie)</label><input id="rPinKey" placeholder="601"></div>
+          </div>
+          <button class="primary" id="rAdd" style="margin-top:8px">Add rule</button>
+        </details>
+      </div>
+
+      <div class="card">
+        <h3>Timeline preview <span class="sub" id="schMeta"></span></h3>
+        <div id="conflicts"></div>
+        <div id="timeline" class="timeline"></div>
+      </div>
+    </section>
+
+    <!-- ---------------- settings ---------------- -->
+    <section class="view" id="view-settings">
+      <h2 class="title">Settings</h2>
+      <div class="card">
+        <h3>PIN</h3>
+        <p class="sub" id="pinStatus">—</p>
+        <div class="field" style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap">
+          <div><label id="pinLabel">SET A PIN (4–6 digits)</label><input id="pinInput" inputmode="numeric" maxlength="6" placeholder="••••" style="width:140px"></div>
+          <button class="primary" id="pinSave">Save</button>
+          <button class="sm" id="pinLogout" style="display:none">Log out</button>
+        </div>
+        <p class="hint">Gates channel and rule edits. The TV never asks for it. Forgot it? Delete the <span class="mono">pin_hash</span> row in the settings table.</p>
       </div>
     </section>
 

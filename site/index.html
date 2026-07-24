@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>dumbTV — your Plex library as a 1990s cable box</title>
+<meta name="description" content="dumbTV turns your Plex library into a 1990s cable box. There's always something on. No menus, no pausing — you flip channels and take what's playing.">
+<style>
+  :root { color-scheme: dark; --amber:#ffb000; --bg:#06132f; --ink:#e8ecf5; --dim:#9fb0cf; }
+  * { box-sizing: border-box; }
+  body { font: 18px/1.65 -apple-system, system-ui, sans-serif; background: var(--bg); color: var(--ink); margin: 0; }
+  .wrap { max-width: 52rem; margin: 0 auto; padding: 0 1.25rem; }
+  .bars { height: 8px; background: linear-gradient(90deg,#c0c0c0 0 14.2%,#c0c000 0 28.5%,#00c0c0 0 42.8%,#00c000 0 57.1%,#c000c0 0 71.4%,#c00000 0 85.7%,#0000c0 0); }
+  header { text-align: center; padding: 4rem 0 3rem; }
+  h1 { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: clamp(2.6rem,10vw,4.5rem);
+       letter-spacing: .04em; margin: 0; color: var(--amber); }
+  .tag { font-size: clamp(1.15rem,3.5vw,1.5rem); margin: .75rem 0 0; }
+  .sub { color: var(--dim); margin-top: .35rem; }
+  h2 { font-family: ui-monospace, monospace; color: var(--amber); font-size: 1.2rem; letter-spacing: .02em; margin-top: 3rem; }
+  ul { padding-left: 1.1rem; } li { margin: .4rem 0; }
+  ol { padding-left: 1.3rem; }
+  a { color: var(--amber); }
+  .cta { display: flex; gap: .75rem; flex-wrap: wrap; justify-content: center; margin-top: 1.75rem; }
+  .btn { display: inline-block; padding: .7rem 1.2rem; border-radius: 999px; text-decoration: none; font-weight: 600;
+         background: var(--amber); color: #1a1200; }
+  .btn.ghost { background: transparent; color: var(--amber); border: 1px solid var(--amber); }
+  footer { color: var(--dim); text-align: center; padding: 3rem 0; font-size: .9rem; }
+  code { color: #ffcf6b; }
+</style>
+</head>
+<body>
+  <div class="bars"></div>
+  <div class="wrap">
+    <header>
+      <h1>dumbTV</h1>
+      <p class="tag">Your Plex library, as a 1990s cable box.</p>
+      <p class="sub">There's always something on. Flip channels and take what's playing.</p>
+      <div class="cta">
+        <a class="btn" href="#">Download on the App Store <small>(soon)</small></a>
+        <a class="btn ghost" href="https://github.com/sonicstarz/dumbtv">GitHub</a>
+      </div>
+    </header>
+
+    <p>It's the anti-streaming app. No grid of thumbnails, no "are you still
+    watching," no endless choice. You build channels once — Saturday cartoons, a
+    movie channel, a marathon — and dumbTV runs them as continuous broadcasts,
+    whether anyone's watching or not. Tune in and you join the show already in
+    progress, exactly like real TV.</p>
+
+    <h2>What makes it dumbTV</h2>
+    <ul>
+      <li><strong>No menus.</strong> Turn it on, take what's on.</li>
+      <li><strong>Join in progress.</strong> Every channel is always mid-broadcast.</li>
+      <li><strong>No pausing, no skipping.</strong> It's live — that's the point.</li>
+      <li><strong>Never transcodes, never touches your watch state.</strong></li>
+      <li><strong>Self-contained.</strong> Runs on your device and your network. No cloud, no account, no tracking.</li>
+      <li><strong>iPhone, iPad, Apple TV, and Mac.</strong> Configure from any browser on your network.</li>
+    </ul>
+
+    <h2>How it works</h2>
+    <ol>
+      <li>Install dumbTV; it shows a setup URL + QR.</li>
+      <li>Open that on your phone, link Plex, build a channel.</li>
+      <li>Flip channels and watch. There's always something on.</li>
+    </ol>
+
+    <p class="sub">Requires a Plex Media Server on your network. Comes with a built-in
+    demo lineup so you can see it working first.</p>
+  </div>
+
+  <footer>
+    <a href="/support.html">Support</a> · <a href="/privacy.html">Privacy</a> ·
+    <a href="https://github.com/sonicstarz/dumbtv">Source</a>
+    <div>dumbTV — what's on is what's on.</div>
+  </footer>
+</body>
+</html>

@@ -487,6 +487,25 @@ const airedOther = db.prepare(
 check('filter: excluded episodes never air', airedBanned === 0 && airedOther > 0,
   `(${airedBanned} banned aired, ${airedOther} others)`);
 
+// ---- regression: a hole at "now" gets backfilled ---------------------------
+// If the box is off long enough, the sweep removes aged programs while
+// generated_thru stays far in the future — leaving nothing airing now and a
+// hole up to that stale pointer. generateChannel must detect the hole (nothing
+// on at now) and rebuild, not append past it.
+const chHole = makeChannel(15, 'Hole', 'sequential', 30);
+for (const s of shows) addSource.run(chHole, s.key, 'show', s.title);
+generateChannel(chHole, Date.now() + 3 * 24 * HOUR);
+// Simulate: wipe everything around now but keep generated_thru far ahead.
+db.prepare('DELETE FROM programs WHERE channel_id = ? AND end_utc > ?').run(chHole, Date.now() - HOUR);
+const holeThru = Date.now() + 3 * 24 * HOUR;
+db.prepare('UPDATE channels SET generated_thru = ? WHERE id = ?').run(holeThru, chHole);
+const onNowBefore = nowOn(chHole);
+generateChannel(chHole, Date.now() + 3 * 24 * HOUR); // hourly top-up would call this
+const onNowAfter = nowOn(chHole);
+check('hole: a schedule gap at now is backfilled, not skipped',
+  (!onNowBefore || onNowBefore.kind === 'offair') && onNowAfter && onNowAfter.kind === 'episode',
+  `(before: ${onNowBefore?.title || 'nothing'} → after: ${onNowAfter?.title || 'nothing'})`);
+
 const counts = db.prepare('SELECT COUNT(*) n FROM programs').get().n;
 console.log(`\n${counts} programs across 4 channels / 2 days`);
 console.log(`${pass} passed, ${fail} failed\n`);

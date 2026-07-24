@@ -547,9 +547,24 @@ export function generateChannel(channelId, until = Date.now() + config.scheduleW
   ensureChannelRules(channel);
 
   const now = Date.now();
-  const from = channel.generated_thru && channel.generated_thru > now
-    ? channel.generated_thru
-    : now - staggerOffset(channel);
+
+  // Where to append from. The stored generated_thru is only an optimisation and
+  // can outlive the programs it counted: if the box is off long enough, the
+  // sweep removes aged rows while generated_thru marches on, and a healthy-
+  // looking pointer ends up sitting past a hole with nothing airing now. Trust
+  // the programs table — if nothing is actually on at `now`, drop any stray
+  // future remnants and rebuild from the leading edge so the hole gets filled.
+  const onNow = db
+    .prepare('SELECT MAX(end_utc) e FROM programs WHERE channel_id = ? AND start_utc <= ? AND end_utc > ?')
+    .get(channelId, now, now)?.e;
+
+  let from;
+  if (onNow) {
+    from = channel.generated_thru && channel.generated_thru > now ? channel.generated_thru : onNow;
+  } else {
+    db.prepare('DELETE FROM programs WHERE channel_id = ? AND start_utc >= ?').run(channelId, now);
+    from = now - staggerOffset(channel);
+  }
   if (from >= until) return { added: 0, reason: 'already built', conflicts: [] };
 
   const built = buildChannelPrograms(channel, from, until);

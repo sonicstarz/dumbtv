@@ -27,6 +27,7 @@
     <button class="navlink active" data-view="channels">Channels <span class="badge" id="navChannels"></span></button>
     <button class="navlink" data-view="guide">Guide</button>
     <button class="navlink" data-view="schedule">Schedule</button>
+    <button class="navlink" data-view="calendar">Calendar</button>
     <button class="navlink" data-view="commercials">Commercials <span class="badge" id="navAssets"></span></button>
     <button class="navlink" data-view="settings">Settings</button>
     <hr />
@@ -217,6 +218,30 @@
         <h3>Timeline preview <span class="sub" id="schMeta"></span></h3>
         <div id="conflicts"></div>
         <div id="timeline" class="timeline"></div>
+      </div>
+    </section>
+
+    <!-- ---------------- calendar ---------------- -->
+    <section class="view" id="view-calendar">
+      <h2 class="title">Calendar</h2>
+      <p class="lede">Every show on a channel, laid out across the week exactly as it airs.</p>
+
+      <div class="row" style="margin-bottom:14px;align-items:flex-end">
+        <div class="field">
+          <label>CHANNEL</label>
+          <select id="calChannel"></select>
+        </div>
+        <button class="sm" id="calPrev">&larr; Week</button>
+        <button class="sm" id="calToday">This week</button>
+        <button class="sm" id="calNext">Week &rarr;</button>
+        <span class="sub" id="calRange">—</span>
+      </div>
+
+      <div class="cal-wrap">
+        <div class="cal-head" id="calHead"></div>
+        <div class="cal-scroll">
+          <div class="cal-body" id="calBody"></div>
+        </div>
       </div>
     </section>
 

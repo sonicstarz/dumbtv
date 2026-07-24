@@ -56,6 +56,7 @@ $$('.navlink[data-view]').forEach((btn) =>
     if (btn.dataset.view === 'commercials') { loadAssets(); loadAdSections(); }
     if (btn.dataset.view === 'setup') loadSetup();
     if (btn.dataset.view === 'schedule') loadSchedule();
+    if (btn.dataset.view === 'calendar') loadCalendar();
     if (btn.dataset.view === 'settings') loadSettings();
   })
 );
@@ -201,6 +202,113 @@ async function showNextOccurrences(ruleId) {
       : 'No occurrences in the next 30 days.';
   } catch { $('#rNext').textContent = ''; }
 }
+
+// ---------------------------------------------------------------- calendar
+
+const HOUR_MS = 3600_000;
+const DAY_MS = 86_400_000;
+const PX_PER_HOUR = 46;
+const cal = { channelId: null, weekStart: null };
+
+function localMidnight(ts) {
+  const d = new Date(ts);
+  d.setHours(0, 0, 0, 0);
+  return d.getTime();
+}
+
+async function loadCalendar() {
+  if (!state.channels.length) { try { state.channels = (await api('/api/channels')).channels; } catch {} }
+  const sel = $('#calChannel');
+  sel.innerHTML = state.channels
+    .map((c) => `<option value="${c.id}">${c.number} · ${escapeHtml(c.name)}</option>`)
+    .join('');
+  if (!cal.channelId || !state.channels.some((c) => c.id === cal.channelId)) {
+    cal.channelId = state.channels[0]?.id ?? null;
+  }
+  if (cal.channelId) sel.value = String(cal.channelId);
+  if (!cal.weekStart) cal.weekStart = localMidnight(Date.now());
+  await renderCalendar();
+}
+
+async function renderCalendar() {
+  const head = $('#calHead');
+  const body = $('#calBody');
+  if (!cal.channelId) { head.innerHTML = ''; body.innerHTML = '<p class="sub" style="padding:20px">No channels yet.</p>'; return; }
+
+  const from = cal.weekStart;
+  const days = [...Array(7)].map((_, i) => from + i * DAY_MS);
+  const today = localMidnight(Date.now());
+  $('#calRange').textContent = `${fmtDay(days[0])} – ${fmtDay(days[6])}`;
+
+  // Day headers (a spacer over the hour gutter, then 7 day columns).
+  head.innerHTML =
+    '<div class="cal-corner"></div>' +
+    days
+      .map((d) => {
+        const dt = new Date(d);
+        const isToday = d === today;
+        return `<div class="cal-daylabel${isToday ? ' today' : ''}">
+          <span class="dow">${dt.toLocaleDateString([], { weekday: 'short' })}</span>
+          <span class="dnum">${dt.getMonth() + 1}/${dt.getDate()}</span>
+        </div>`;
+      })
+      .join('');
+
+  let data;
+  try {
+    data = await api(`/api/schedule/calendar?channel=${cal.channelId}&from=${from}&days=7`);
+  } catch (err) { body.innerHTML = `<p class="sub" style="padding:20px">${escapeHtml(err.message)}</p>`; return; }
+
+  // Hour gutter + 7 day columns, each PX_PER_HOUR per hour tall.
+  const colHeight = 24 * PX_PER_HOUR;
+  const gutter =
+    '<div class="cal-gutter">' +
+    [...Array(24)].map((_, h) => `<div class="cal-hour" style="height:${PX_PER_HOUR}px"><span>${h === 0 ? '12a' : h < 12 ? h + 'a' : h === 12 ? '12p' : h - 12 + 'p'}</span></div>`).join('') +
+    '</div>';
+
+  const cols = days.map((dayStart, di) => {
+    const dayEnd = dayStart + DAY_MS;
+    // Split each program into per-day segments so overnight blocks render in
+    // both columns and nothing spills past midnight.
+    let blocks = '';
+    for (const p of data.programs) {
+      if (p.endUtc <= dayStart || p.startUtc >= dayEnd) continue;
+      const s = Math.max(p.startUtc, dayStart);
+      const e = Math.min(p.endUtc, dayEnd);
+      const top = ((s - dayStart) / HOUR_MS) * PX_PER_HOUR;
+      const height = Math.max(13, ((e - s) / HOUR_MS) * PX_PER_HOUR);
+      const off = p.kind === 'offair';
+      const se = p.seasonNo && p.episodeNo ? ` S${p.seasonNo}·E${p.episodeNo}` : '';
+      const label = off
+        ? escapeHtml(p.title || 'Off air')
+        : `${p.isPremiere ? '<span class="prem">NEW</span> ' : ''}${escapeHtml(p.title || 'Program')}`;
+      const sub = off ? '' : `<span class="cb-sub">${fmtTime(p.startUtc)}${se}</span>`;
+      blocks += `<div class="cal-block${off ? ' offair' : ''}" style="top:${top}px;height:${height}px"
+        title="${escapeHtml((p.title || '') + ' — ' + fmtTime(p.startUtc))}">
+        <span class="cb-title">${label}</span>${sub}</div>`;
+    }
+    // Now-line in today's column.
+    let now = '';
+    if (dayStart === today) {
+      const y = ((Date.now() - dayStart) / HOUR_MS) * PX_PER_HOUR;
+      now = `<div class="cal-now" style="top:${y}px"></div>`;
+    }
+    // Faint hour gridlines.
+    const lines = [...Array(24)].map((_, h) => `<div class="cal-line" style="top:${h * PX_PER_HOUR}px"></div>`).join('');
+    return `<div class="cal-col" style="height:${colHeight}px">${lines}${now}${blocks}</div>`;
+  });
+
+  body.innerHTML = gutter + cols.join('');
+  // Scroll to a sensible hour (now if today is in view, else 7am).
+  const scroll = $('.cal-scroll');
+  const focusHour = days.includes(today) ? new Date().getHours() : 7;
+  scroll.scrollTop = Math.max(0, (focusHour - 1) * PX_PER_HOUR);
+}
+
+$('#calChannel').addEventListener('change', (e) => { cal.channelId = Number(e.target.value); renderCalendar(); });
+$('#calPrev').addEventListener('click', () => { cal.weekStart -= 7 * DAY_MS; renderCalendar(); });
+$('#calNext').addEventListener('click', () => { cal.weekStart += 7 * DAY_MS; renderCalendar(); });
+$('#calToday').addEventListener('click', () => { cal.weekStart = localMidnight(Date.now()); renderCalendar(); });
 
 // ---------------------------------------------------------------- settings
 

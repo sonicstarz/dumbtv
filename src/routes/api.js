@@ -507,6 +507,40 @@ export default async function api(fastify) {
     return guide(from, hours);
   });
 
+  // A channel's real program blocks over a day range, for the calendar view.
+  // Unlike /api/guide this does not collapse to slot boundaries — it returns the
+  // actual episodes/movies/off-air as they air.
+  fastify.get('/api/schedule/calendar', async (req) => {
+    const channelId = Number(req.query.channel);
+    const from = req.query.from ? Number(req.query.from) : Date.now();
+    const days = Math.max(1, Math.min(14, Number(req.query.days || 7)));
+    const to = from + days * 24 * HOUR;
+    const rows = db
+      .prepare(
+        `SELECT start_utc, end_utc, kind, title, subtitle, season_no, episode_no, rating_key, airing_no
+         FROM programs
+         WHERE channel_id = ? AND end_utc > ? AND start_utc < ?
+           AND kind IN ('episode','movie','offair')
+         ORDER BY start_utc`
+      )
+      .all(channelId, from, to);
+    return {
+      from,
+      to,
+      programs: rows.map((r) => ({
+        startUtc: r.start_utc,
+        endUtc: r.end_utc,
+        kind: r.kind,
+        title: r.title,
+        subtitle: r.subtitle,
+        seasonNo: r.season_no,
+        episodeNo: r.episode_no,
+        ratingKey: r.rating_key,
+        isPremiere: r.airing_no === 1,
+      })),
+    };
+  });
+
   fastify.get('/api/onair', async () => ({ at: Date.now(), channels: nowOnAll() }));
 
   fastify.get('/api/channels/:id/upnext', async (req) => ({

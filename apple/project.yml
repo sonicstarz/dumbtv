@@ -6,6 +6,11 @@ options:
     iOS: "17.0"
     tvOS: "17.0"
 
+packages:
+  VLCKit:
+    url: https://github.com/tylerjonesio/vlckit-spm.git
+    branch: main
+
 settings:
   base:
     SWIFT_VERSION: "5.0"
@@ -23,6 +28,10 @@ targets:
     platform: iOS
     sources:
       - path: Sources
+      - path: Resources
+    dependencies:
+      - package: VLCKit
+        product: VLCKitSPM
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.cathode.app
@@ -37,6 +46,9 @@ targets:
     platform: tvOS
     sources:
       - path: Sources
+    dependencies:
+      - package: VLCKit
+        product: VLCKitSPM
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.cathode.app

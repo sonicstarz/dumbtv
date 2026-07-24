@@ -1,4 +1,4 @@
-# Cathode — notes for Claude Code
+# dumbTV — notes for Claude Code
 
 Turns a Plex library into a 1990s cable box. What's on is what's on.
 
@@ -9,7 +9,7 @@ limitations and are actually the product.
 
 ## The one idea
 
-Cathode does not stream. It **precomputes a schedule** into SQLite, two weeks
+dumbTV does not stream. It **precomputes a schedule** into SQLite, two weeks
 ahead. Tuning to a channel is one indexed query plus one seek:
 
 ```js
@@ -137,7 +137,7 @@ When any of these gets verified, say so in the commit message.
 
 ## Gotchas
 
-- `npm run doctor` is Cathode's. `claude doctor` is Claude Code's. Unrelated.
+- `npm run doctor` is dumbTV's. `claude doctor` is Claude Code's. Unrelated.
 - Slot alignment is anchored to **local midnight**, not UTC, so it stays on
   wall-clock :00/:30 in half-hour-offset timezones.
 - Dark windows wrap midnight (`20:00`–`07:00`). Test both sides.

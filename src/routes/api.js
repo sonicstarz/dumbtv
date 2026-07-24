@@ -106,7 +106,7 @@ export default async function api(fastify) {
 
   fastify.post('/api/auth/logout', async (req, reply) => {
     // Rotate the secret via a no-op PIN reset is heavy; just clear the cookie.
-    reply.header('Set-Cookie', 'cathode_auth=; Path=/; HttpOnly; Max-Age=0');
+    reply.header('Set-Cookie', 'dumbtv_auth=; Path=/; HttpOnly; Max-Age=0');
     return { ok: true };
   });
 
@@ -453,7 +453,7 @@ export default async function api(fastify) {
       ? String(req.query.channels).split(',').map(Number).filter(Boolean)
       : null;
     reply.header('Content-Type', 'application/pdf');
-    reply.header('Content-Disposition', 'inline; filename="cathode-guide.pdf"');
+    reply.header('Content-Disposition', 'inline; filename="dumbtv-guide.pdf"');
     return reply.send(buildSchedulePdf({ from, days, channelIds }));
   });
 
@@ -537,7 +537,7 @@ export default async function api(fastify) {
   fastify.post('/api/config/import', async (req, reply) => {
     const cfg = req.body;
     if (!cfg || !Array.isArray(cfg.channels)) {
-      return reply.code(400).send({ error: 'Not a Cathode config file' });
+      return reply.code(400).send({ error: 'Not a dumbTV config file' });
     }
     const insertRow = (table, obj, remap = {}) => {
       const row = { ...obj, ...remap };

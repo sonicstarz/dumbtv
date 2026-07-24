@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Cathode</title>
+<title>dumbTV</title>
 <link rel="stylesheet" href="/style.css" />
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect x='3' y='6' width='26' height='20' rx='3' fill='none' stroke='%23f2b134' stroke-width='3'/></svg>" />
 </head>
@@ -13,7 +13,7 @@
   <div class="brand">
     <div class="brand-mark"></div>
     <div>
-      <h1>CATHODE</h1>
+      <h1>dumbTV</h1>
       <span>CABLE HEADEND</span>
     </div>
   </div>
@@ -98,7 +98,7 @@
 
       <div class="card">
         <h3>Import from Plex</h3>
-        <p class="sub">Point Cathode at a Plex library of commercials and it pulls them straight into the ad pool — nothing to copy onto the device. Make a library of ad clips in Plex, pick it here, and enable “Run commercials” on your channels.</p>
+        <p class="sub">Point dumbTV at a Plex library of commercials and it pulls them straight into the ad pool — nothing to copy onto the device. Make a library of ad clips in Plex, pick it here, and enable “Run commercials” on your channels.</p>
         <div class="field" style="display:flex; gap:8px; align-items:flex-end; flex-wrap:wrap">
           <div style="flex:1; min-width:200px">
             <label>PLEX LIBRARY</label>
@@ -120,7 +120,7 @@
     <!-- ---------------- setup ---------------- -->
     <section class="view" id="view-setup">
       <h2 class="title">Media Server</h2>
-      <p class="lede">Cathode reads your library and plays files directly. It never transcodes and never marks anything as watched.</p>
+      <p class="lede">dumbTV reads your library and plays files directly. It never transcodes and never marks anything as watched.</p>
 
       <div class="card">
         <h3>Where your library lives</h3>
@@ -157,7 +157,7 @@
       <div id="jellyPanel" style="display:none">
         <div class="card">
           <h3>Connect to Jellyfin</h3>
-          <p class="sub" id="jellyStatus">Enter your server address and sign in. Cathode direct-plays every file — nothing is transcoded.</p>
+          <p class="sub" id="jellyStatus">Enter your server address and sign in. dumbTV direct-plays every file — nothing is transcoded.</p>
           <div class="field"><label>SERVER ADDRESS</label><input id="jfUrl" placeholder="http://192.168.1.50:8096" style="width:100%"></div>
           <div class="row" style="gap:10px">
             <div class="field" style="flex:1"><label>USERNAME</label><input id="jfUser" style="width:100%"></div>
@@ -175,7 +175,7 @@
     <!-- ---------------- schedule ---------------- -->
     <section class="view" id="view-schedule">
       <h2 class="title">Schedule</h2>
-      <p class="lede">Content claims time with rules. Cathode places them highest-priority first, then fills the gaps. <b>Solid</b> = you placed it. <span class="hatched-key">Hatched</span> = Cathode filled it.</p>
+      <p class="lede">Content claims time with rules. dumbTV places them highest-priority first, then fills the gaps. <b>Solid</b> = you placed it. <span class="hatched-key">Hatched</span> = dumbTV filled it.</p>
 
       <div class="card">
         <div class="field" style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap">
@@ -321,7 +321,7 @@
 
       <div class="card">
         <h3>AI assist <span class="sub" id="llmState">—</span></h3>
-        <p class="sub">Optional. Point Cathode at a local Ollama or any OpenAI-compatible endpoint to get channel suggestions. It only proposes — you always review and apply.</p>
+        <p class="sub">Optional. Point dumbTV at a local Ollama or any OpenAI-compatible endpoint to get channel suggestions. It only proposes — you always review and apply.</p>
         <div class="field"><label>BASE URL</label><input id="llmUrl" placeholder="http://localhost:11434/v1" style="width:100%"></div>
         <div class="row" style="gap:10px">
           <div class="field" style="flex:1"><label>MODEL</label><input id="llmModel" placeholder="llama3.1" style="width:100%"></div>

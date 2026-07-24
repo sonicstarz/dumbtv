@@ -1,7 +1,7 @@
 import SwiftUI
 
 @main
-struct CathodeApp: App {
+struct dumbTVApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView()

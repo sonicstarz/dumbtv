@@ -1,8 +1,8 @@
 import SwiftUI
-import CathodeCore
+import dumbTVCore
 
 /// The native Schedule / rule-editor screen — the counterpart of the web app's
-/// `loadSchedule` view. Content claims time with rules; Cathode places them
+/// `loadSchedule` view. Content claims time with rules; dumbTV places them
 /// highest-priority-first, then fills the gaps. Add/remove rules, preview a dry
 /// run (with conflicts surfaced, never dropped), then Apply to make it air.
 struct ScheduleView: View {

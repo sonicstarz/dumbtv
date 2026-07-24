@@ -1,5 +1,5 @@
 import XCTest
-@testable import CathodeCore
+@testable import dumbTVCore
 
 /// Mirrors the invariants in `scripts/selftest.js` against the ported v2
 /// reservation scheduler: no gaps, no overlaps, join-in-progress, ordering

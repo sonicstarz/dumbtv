@@ -1,6 +1,6 @@
 import Foundation
 import Combine
-import CathodeCore
+import dumbTVCore
 
 /// The app-side model behind the Schedule and Calendar screens. Owns a
 /// `ChannelScheduler` per channel — the ported v2 reservation engine — and

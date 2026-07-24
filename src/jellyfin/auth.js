@@ -1,9 +1,9 @@
 import { db, getSetting, setSetting, deleteSetting } from '../db.js';
 
 // Jellyfin identifies clients with this header on every request. DeviceId is
-// stable so Jellyfin shows one "Cathode" device rather than a new one each boot.
+// stable so Jellyfin shows one "dumbTV" device rather than a new one each boot.
 export const JF_AUTH_HEADER =
-  'MediaBrowser Client="Cathode", Device="Cathode", DeviceId="cathode-headend", Version="1.0"';
+  'MediaBrowser Client="dumbTV", Device="dumbTV", DeviceId="dumbtv-headend", Version="1.0"';
 
 function trimUrl(u) {
   return String(u || '').replace(/\/+$/, '');

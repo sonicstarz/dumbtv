@@ -1,5 +1,5 @@
 import XCTest
-@testable import CathodeCore
+@testable import dumbTVCore
 
 final class ScheduleTests: XCTestCase {
 

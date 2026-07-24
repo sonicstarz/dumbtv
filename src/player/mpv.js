@@ -58,7 +58,7 @@ export class MpvPlayer extends EventEmitter {
     this.proc.on('error', (err) => {
       this.lastError =
         err.code === 'ENOENT'
-          ? 'mpv is not installed or not on PATH. Install it, or run with CATHODE_PLAYER=none.'
+          ? 'mpv is not installed or not on PATH. Install it, or run with DUMBTV_PLAYER=none.'
           : err.message;
       this.emit('error', new Error(this.lastError));
     });
@@ -180,7 +180,7 @@ export class MpvPlayer extends EventEmitter {
    * has into the schedule, so it matters as much as the browser handler does.
    */
   async bindKeys() {
-    const msg = (...a) => `script-message cathode-key ${a.join(' ')}`;
+    const msg = (...a) => `script-message dumbtv-key ${a.join(' ')}`;
     const binds = [];
     // 0 and 2-9 tune; 1 opens the program guide.
     for (let d = 0; d <= 9; d++) binds.push([String(d), d === 1 ? msg('guide') : msg('digit', d)]);

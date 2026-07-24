@@ -1,5 +1,5 @@
 /**
- * Checks everything Cathode needs before you waste time debugging.
+ * Checks everything dumbTV needs before you waste time debugging.
  *   npm run doctor
  */
 import { execFile } from 'node:child_process';
@@ -16,7 +16,7 @@ function bad(name, detail) { results.push({ level: 'bad', name, detail }); }
 
 const major = Number(process.versions.node.split('.')[0]);
 if (major >= 20) ok('Node', `v${process.versions.node}`);
-else bad('Node', `v${process.versions.node} — Cathode needs 20 or newer`);
+else bad('Node', `v${process.versions.node} — dumbTV needs 20 or newer`);
 
 try {
   const { stdout } = await run(config.mpvBinary, ['--version']);
@@ -63,7 +63,7 @@ try {
 const width = Math.max(...results.map((r) => r.name.length));
 const mark = { ok: '  ok  ', warn: ' warn ', bad: ' FAIL ' };
 
-console.log('\nCathode environment check\n');
+console.log('\ndumbTV environment check\n');
 for (const r of results) {
   console.log(`${mark[r.level]} ${r.name.padEnd(width)}  ${r.detail}`);
 }
@@ -72,6 +72,6 @@ const fails = results.filter((r) => r.level === 'bad').length;
 console.log(
   fails === 0
     ? '\nGood to go. Run: npm start\n'
-    : `\n${fails} problem(s) will stop Cathode from starting.\n`
+    : `\n${fails} problem(s) will stop dumbTV from starting.\n`
 );
 process.exit(fails ? 1 : 0);

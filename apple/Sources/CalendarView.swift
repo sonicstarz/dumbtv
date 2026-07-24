@@ -1,5 +1,5 @@
 import SwiftUI
-import CathodeCore
+import dumbTVCore
 
 /// The native week-grid Calendar — the counterpart of the web app's calendar
 /// view. Every show on a channel, laid out across seven days exactly as it airs:

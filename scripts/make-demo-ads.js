@@ -20,7 +20,7 @@ const SPOTS = [
   { file: 'ads/demo-arcade-15.mp4', secs: 15, text: 'NOW AT YOUR LOCAL ARCADE', colour: '#8e44ad' },
   { file: 'ads/demo-soda-15.mp4', secs: 15, text: 'TASTE THE NINETIES', colour: '#16a085' },
   { file: 'ads/demo-cartoon-60.mp4', secs: 60, text: 'SATURDAY MORNINGS ONLY', colour: '#d35400' },
-  { file: 'bumpers/demo-id-05.mp4', secs: 5, text: 'YOU ARE WATCHING CATHODE', colour: '#1e1d28' },
+  { file: 'bumpers/demo-id-05.mp4', secs: 5, text: 'YOU ARE WATCHING DUMBTV', colour: '#1e1d28' },
   { file: 'bumpers/demo-backin-08.mp4', secs: 8, text: 'WE WILL BE RIGHT BACK', colour: '#1e1d28' },
 ];
 
@@ -73,5 +73,5 @@ for (const spot of SPOTS) {
 
 console.log(
   `\n${made} file(s) created in ${config.mediaDir}.\n` +
-    'Now open Cathode, go to Commercials, and hit "Scan for new files".\n'
+    'Now open dumbTV, go to Commercials, and hit "Scan for new files".\n'
 );

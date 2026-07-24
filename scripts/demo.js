@@ -4,7 +4,7 @@
  *   npm run demo
  *
  * Generates short stand-in "episodes" that burn a running timecode into the
- * picture, then wires up four channels on five minute slots. Start Cathode,
+ * picture, then wires up four channels on five minute slots. Start dumbTV,
  * open /tv, and you will land in the middle of something with the timecode
  * already running — which is the proof that joining in progress works.
  *

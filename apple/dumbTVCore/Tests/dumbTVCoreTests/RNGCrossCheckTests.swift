@@ -1,5 +1,5 @@
 import XCTest
-@testable import CathodeCore
+@testable import dumbTVCore
 
 /// Proves the Swift RNG is byte-for-byte identical to the JS one in
 /// `src/util/rng.js`. Reference values were produced by running that exact

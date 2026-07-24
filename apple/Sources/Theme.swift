@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// The Cathode retro palette — the same one the web TV and guide use.
+/// The dumbTV retro palette — the same one the web TV and guide use.
 enum Palette {
     static let amber = Color(red: 0.949, green: 0.694, blue: 0.204)   // #F2B134
     static let tape = Color(red: 0.910, green: 0.894, blue: 0.851)    // #E8E4D9

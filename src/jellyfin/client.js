@@ -31,7 +31,7 @@ export async function ping() {
   return res.ok;
 }
 
-/** Libraries, mapped to Cathode's show/movie section types. */
+/** Libraries, mapped to dumbTV's show/movie section types. */
 export async function getSections() {
   const s = requireServer();
   const data = await jfGet(`/Users/${s.userId}/Views`);

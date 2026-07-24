@@ -92,7 +92,7 @@ async function poll() {
   try {
     data = await api('/api/onair');
   } catch {
-    show('trouble', { message: 'Cannot reach the Cathode server' });
+    show('trouble', { message: 'Cannot reach the dumbTV server' });
     return;
   }
 

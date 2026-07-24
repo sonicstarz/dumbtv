@@ -1,6 +1,6 @@
 import Foundation
 
-/// Deterministic RNG, ported from `src/util/rng.js`. Every shuffle in Cathode
+/// Deterministic RNG, ported from `src/util/rng.js`. Every shuffle in dumbTV
 /// must be reproducible — if the printed guide says Spider-Man is on at 4:00,
 /// regenerating the schedule cannot move it.
 

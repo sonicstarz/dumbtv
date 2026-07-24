@@ -1,5 +1,5 @@
 /**
- * Deterministic RNG. Every shuffle in Cathode must be reproducible — if the
+ * Deterministic RNG. Every shuffle in dumbTV must be reproducible — if the
  * printed guide says Spider-Man is on at 4:00, regenerating the schedule
  * cannot move it.
  */

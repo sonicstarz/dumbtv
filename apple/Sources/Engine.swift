@@ -1,5 +1,5 @@
 import SwiftUI
-import CathodeCore
+import dumbTVCore
 
 /// One channel's precomputed schedule plus the media lookup for playback.
 struct ChannelRuntime {
@@ -47,9 +47,9 @@ final class Engine: ObservableObject {
     /// Dev/simulator: seed straight from env so we can play without the PIN link.
     func bootstrapFromEnvIfPresent() async {
         let env = ProcessInfo.processInfo.environment
-        guard let token = env["CATHODE_PLEX_TOKEN"], !token.isEmpty,
-              let uri = env["CATHODE_PLEX_URI"], !uri.isEmpty,
-              let access = env["CATHODE_PLEX_ACCESS"], !access.isEmpty else {
+        guard let token = env["DUMBTV_PLEX_TOKEN"], !token.isEmpty,
+              let uri = env["DUMBTV_PLEX_URI"], !uri.isEmpty,
+              let access = env["DUMBTV_PLEX_ACCESS"], !access.isEmpty else {
             status = "Link Plex to begin"
             return
         }
@@ -69,7 +69,7 @@ final class Engine: ObservableObject {
             await addChannel(id: id, number: number, name: name, mode: mode, showKey: showKey, seed: seed)
         }
         startTicking()
-        if env["CATHODE_START_GUIDE"] == "1" { guideOpen = true }
+        if env["DUMBTV_START_GUIDE"] == "1" { guideOpen = true }
     }
 
     private func addChannel(id: Int, number: Int, name: String, mode: OrderingMode, showKey: String, seed: UInt32) async {

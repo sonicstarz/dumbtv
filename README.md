@@ -1,4 +1,4 @@
-# Cathode
+# dumbTV
 
 **Turn a Plex library into a 1990s cable box. What's on is what's on.**
 
@@ -18,7 +18,7 @@ npm start         # open http://localhost:8080/tv
 
 ## How it works
 
-Cathode does not stream. It **precomputes a schedule** — a table of rows
+dumbTV does not stream. It **precomputes a schedule** — a table of rows
 saying "Channel 4, Mutant Academy S01E03, starts 14:30:00, runs 2m30s" — two
 weeks ahead, regenerated in the background.
 
@@ -190,14 +190,14 @@ All optional, all environment variables:
 
 | Variable | Default | |
 | --- | --- | --- |
-| `CATHODE_PORT` | `8080` | Web port |
-| `CATHODE_PLAYER` | `mpv` | `none` runs browser-only |
-| `CATHODE_MPV` | `mpv` | Path to the binary |
-| `CATHODE_FULLSCREEN` | `1` | `0` for a windowed player |
-| `CATHODE_WINDOW_DAYS` | `14` | How far ahead to schedule |
-| `CATHODE_DB` | `./data/cathode.db` | Database file |
-| `CATHODE_MEDIA` | `./media` | Commercials folder |
-| `CATHODE_TICK_MS` | `1000` | How often to re-check what's on |
+| `DUMBTV_PORT` | `8080` | Web port |
+| `DUMBTV_PLAYER` | `mpv` | `none` runs browser-only |
+| `DUMBTV_MPV` | `mpv` | Path to the binary |
+| `DUMBTV_FULLSCREEN` | `1` | `0` for a windowed player |
+| `DUMBTV_WINDOW_DAYS` | `14` | How far ahead to schedule |
+| `DUMBTV_DB` | `./data/dumbtv.db` | Database file |
+| `DUMBTV_MEDIA` | `./media` | Commercials folder |
+| `DUMBTV_TICK_MS` | `1000` | How often to re-check what's on |
 
 ---
 

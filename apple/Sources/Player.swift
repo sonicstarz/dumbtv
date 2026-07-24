@@ -28,7 +28,22 @@ final class Player: ObservableObject {
     func stop() { vlc.stop() }
 }
 
-/// A SwiftUI surface for a Player's video output.
+/// A SwiftUI surface for a Player's video output. VLCKit takes any platform
+/// view as its `drawable`, so the only per-platform code in the whole app is
+/// the representable wrapper below.
+#if os(macOS)
+struct VideoSurface: NSViewRepresentable {
+    let player: Player
+    func makeNSView(context: Context) -> NSView {
+        let v = NSView()
+        v.wantsLayer = true
+        v.layer?.backgroundColor = NSColor.black.cgColor
+        player.vlc.drawable = v
+        return v
+    }
+    func updateNSView(_ nsView: NSView, context: Context) {}
+}
+#else
 struct VideoSurface: UIViewRepresentable {
     let player: Player
     func makeUIView(context: Context) -> UIView {
@@ -39,3 +54,4 @@ struct VideoSurface: UIViewRepresentable {
     }
     func updateUIView(_ uiView: UIView, context: Context) {}
 }
+#endif

@@ -57,16 +57,16 @@ export function tokenValid(token) {
 
 export function cookieToken(req) {
   const raw = req.headers.cookie || '';
-  const m = raw.match(/(?:^|;\s*)cathode_auth=([^;]+)/);
+  const m = raw.match(/(?:^|;\s*)dumbtv_auth=([^;]+)/);
   return m ? decodeURIComponent(m[1]) : null;
 }
 
 export function sessionCookieHeader() {
-  return `cathode_auth=${sessionToken()}; Path=/; HttpOnly; SameSite=Lax; Max-Age=31536000`;
+  return `dumbtv_auth=${sessionToken()}; Path=/; HttpOnly; SameSite=Lax; Max-Age=31536000`;
 }
 
-/** Headless setup for the Pi image: CATHODE_PIN sets the PIN on first boot. */
+/** Headless setup for the Pi image: DUMBTV_PIN sets the PIN on first boot. */
 export function initFromEnv() {
-  const envPin = process.env.CATHODE_PIN;
+  const envPin = process.env.DUMBTV_PIN;
   if (envPin && /^\d{4,6}$/.test(envPin) && !isConfigured()) setPin(envPin);
 }

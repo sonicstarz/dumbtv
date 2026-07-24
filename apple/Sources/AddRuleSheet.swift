@@ -1,5 +1,5 @@
 import SwiftUI
-import CathodeCore
+import dumbTVCore
 
 /// The "add a rule" form — the native counterpart of the web app's rule builder
 /// (`#addRuleWrap`). Times and dates are typed as plain text (HH:MM,

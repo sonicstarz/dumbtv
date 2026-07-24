@@ -1,5 +1,5 @@
 import XCTest
-@testable import CathodeCore
+@testable import dumbTVCore
 
 /// Live checks against the user's real Plex, run only when the token env vars
 /// are present (so the suite still passes offline / in CI). Verifies the Swift
@@ -8,9 +8,9 @@ final class PlexLiveTests: XCTestCase {
 
     func testSectionsAndEpisodes() async throws {
         let env = ProcessInfo.processInfo.environment
-        guard let token = env["CATHODE_PLEX_TOKEN"], !token.isEmpty,
-              let uri = env["CATHODE_PLEX_URI"], !uri.isEmpty,
-              let access = env["CATHODE_PLEX_ACCESS"], !access.isEmpty else {
+        guard let token = env["DUMBTV_PLEX_TOKEN"], !token.isEmpty,
+              let uri = env["DUMBTV_PLEX_URI"], !uri.isEmpty,
+              let access = env["DUMBTV_PLEX_ACCESS"], !access.isEmpty else {
             throw XCTSkip("No Plex env vars set; skipping live test")
         }
 

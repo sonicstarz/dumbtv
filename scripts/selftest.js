@@ -9,9 +9,9 @@ import fs from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
 
-const tmp = path.join(os.tmpdir(), `cathode-selftest-${Date.now()}.db`);
-process.env.CATHODE_DB = tmp;
-process.env.CATHODE_PLAYER = 'none';
+const tmp = path.join(os.tmpdir(), `dumbtv-selftest-${Date.now()}.db`);
+process.env.DUMBTV_DB = tmp;
+process.env.DUMBTV_PLAYER = 'none';
 
 const { db } = await import('../src/db.js');
 const { generateChannel, regenerateChannel } = await import('../src/schedule/generator.js');

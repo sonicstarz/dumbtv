@@ -48,7 +48,7 @@ async function main() {
     }
   }, HOUR);
 
-  // Bind the port FIRST. If another Cathode is already running, fail here —
+  // Bind the port FIRST. If another dumbTV is already running, fail here —
   // before opening an mpv window that would be orphaned by the crash.
   await app.listen({ port: config.port, host: config.host });
 
@@ -60,7 +60,7 @@ async function main() {
   const channels = db.prepare('SELECT COUNT(*) n FROM channels').get().n;
 
   console.log('');
-  console.log('  ██████ CATHODE');
+  console.log('  ██████ dumbTV');
   console.log('  ────────────────────────────────────────────');
   console.log(`  Set up channels   ${url}`);
   console.log(`  Watch in browser  ${url}/tv`);
@@ -84,6 +84,6 @@ process.on('SIGINT', shutdown);
 process.on('SIGTERM', shutdown);
 
 main().catch((err) => {
-  console.error('Cathode could not start:', err);
+  console.error('dumbTV could not start:', err);
   process.exit(1);
 });

@@ -178,7 +178,7 @@ export class Engine extends EventEmitter {
 
   /** Dispatch a key from the mpv window (or a FLIRC remote pretending to be one). */
   async #onKey(args) {
-    if (args[0] !== 'cathode-key') return;
+    if (args[0] !== 'dumbtv-key') return;
     const [, action, value] = args;
     try {
       if (action === 'guide') {

@@ -47,7 +47,7 @@ public actor PlexClient {
     public private(set) var serverURI: String?
     public private(set) var accessToken: String?
 
-    public init(clientID: String = "cathode-apple", session: URLSession = .shared) {
+    public init(clientID: String = "dumbtv-apple", session: URLSession = .shared) {
         self.clientID = clientID
         self.session = session
     }
@@ -60,10 +60,10 @@ public actor PlexClient {
 
     private var headers: [String: String] {
         [
-            "X-Plex-Product": "Cathode",
+            "X-Plex-Product": "dumbTV",
             "X-Plex-Version": "0.1.0",
             "X-Plex-Client-Identifier": clientID,
-            "X-Plex-Device": "Cathode",
+            "X-Plex-Device": "dumbTV",
             "Accept": "application/json",
         ]
     }

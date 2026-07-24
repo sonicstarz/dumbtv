@@ -400,7 +400,7 @@ $('#cfgExport').addEventListener('click', async () => {
   const blob = new Blob([JSON.stringify(cfg, null, 2)], { type: 'application/json' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
-  a.download = `cathode-config-${new Date().toISOString().slice(0, 10)}.json`;
+  a.download = `dumbtv-config-${new Date().toISOString().slice(0, 10)}.json`;
   a.click();
 });
 $('#cfgImport').addEventListener('change', async (e) => {
@@ -1491,7 +1491,7 @@ $('#jfLogout').addEventListener('click', async () => {
 
 async function boot() {
   await loadStatus();
-  $('#mediaPath').textContent = 'media/ads and media/bumpers inside the Cathode folder';
+  $('#mediaPath').textContent = 'media/ads and media/bumpers inside the dumbTV folder';
   await loadChannels().catch(() => {});
   await refreshOnAir();
   loadSetup();

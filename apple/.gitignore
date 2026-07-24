@@ -1,5 +1,5 @@
 # XcodeGen generates this from project.yml — regenerate with `xcodegen generate`
-Cathode.xcodeproj/
+dumbTV.xcodeproj/
 
 # Build output
 build/

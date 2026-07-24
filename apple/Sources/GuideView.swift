@@ -1,5 +1,5 @@
 import SwiftUI
-import CathodeCore
+import dumbTVCore
 
 /// The program guide — the polished version of the ASS overlay. Channels down
 /// the page; each shows what's on now (with a live progress bar) and what's next.

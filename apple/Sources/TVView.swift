@@ -1,5 +1,5 @@
 import SwiftUI
-import CathodeCore
+import dumbTVCore
 
 struct TVView: View {
     @ObservedObject var engine: Engine

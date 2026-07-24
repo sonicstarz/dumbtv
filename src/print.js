@@ -38,7 +38,7 @@ export function buildSchedulePdf({ from = Date.now(), days = 7, channelIds = nul
     if (d > 0) doc.addPage();
     const dayStart = start + d * DAY;
 
-    doc.fillColor(AMBER).font('Helvetica-Bold').fontSize(18).text('CATHODE', mL, 22);
+    doc.fillColor(AMBER).font('Helvetica-Bold').fontSize(18).text('DUMBTV', mL, 22);
     doc.fillColor('#111').font('Helvetica-Bold').fontSize(12)
       .text(new Date(dayStart).toLocaleDateString([], { weekday: 'long', month: 'long', day: 'numeric' }), mL + 118, 28);
 
@@ -89,7 +89,7 @@ export function buildSchedulePdf({ from = Date.now(), days = 7, channelIds = nul
       doc.moveTo(x, headerY).lineTo(x, pageH - 22).strokeColor('#cfcfcf').lineWidth(0.5).stroke();
     });
     doc.fillColor(DIM).font('Helvetica').fontSize(7)
-      .text('Cathode — what’s on is what’s on', mL, pageH - 18);
+      .text('dumbTV — what’s on is what’s on', mL, pageH - 18);
   }
 
   doc.end();

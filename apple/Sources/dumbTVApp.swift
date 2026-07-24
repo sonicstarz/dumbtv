@@ -26,7 +26,16 @@ struct dumbTVApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView(store: store, configURL: configURL)
+                #if os(macOS)
+                .frame(minWidth: 640, minHeight: 360)
+                .background(Color.black)
+                #endif
         }
+        #if os(macOS)
+        .defaultSize(width: 1024, height: 576)          // 16:9
+        .windowStyle(.hiddenTitleBar)                    // immersive — it's a TV
+        .windowResizability(.contentMinSize)
+        #endif
     }
 
     /// Open (creating if needed) the persistent DB in Application Support.

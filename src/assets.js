@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
-import { db } from './db.js';
+import { db, getSetting } from './db.js';
 import { config } from './config.js';
 
 const execFileAsync = promisify(execFile);
@@ -30,6 +30,29 @@ async function probeDuration(file) {
     ]);
     const secs = parseFloat(stdout.trim());
     return Number.isFinite(secs) ? Math.round(secs * 1000) : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Measure how far a clip's loudness sits from the target, in dB, using ffmpeg
+ * loudnorm's analysis pass. Vintage ad rips are wildly hotter than show audio;
+ * storing this gain lets playback pull them down so kids don't get blasted at 2am.
+ * Returns the dB gain to apply (negative = quieter), or null if it can't measure.
+ */
+export async function measureGain(input, target = -23) {
+  try {
+    const { stderr } = await execFileAsync(
+      'ffmpeg',
+      ['-nostats', '-hide_banner', '-i', input, '-af', `loudnorm=I=${target}:print_format=json`, '-f', 'null', '-'],
+      { maxBuffer: 8 * 1024 * 1024, timeout: 45000 }
+    );
+    const m = stderr.match(/\{[\s\S]*?"input_i"[\s\S]*?\}/);
+    if (!m) return null;
+    const inputI = parseFloat(JSON.parse(m[0]).input_i);
+    if (!Number.isFinite(inputI) || inputI <= -70) return null; // silence / no reading
+    return Math.round((target - inputI) * 10) / 10;
   } catch {
     return null;
   }
@@ -68,9 +91,10 @@ export async function scanAssets() {
   );
 
   const insert = db.prepare(
-    `INSERT OR IGNORE INTO assets (path, title, kind, duration_ms, tags)
-     VALUES (?,?,?,?,?)`
+    `INSERT OR IGNORE INTO assets (path, title, kind, duration_ms, tags, gain_db)
+     VALUES (?,?,?,?,?,?)`
   );
+  const target = getSetting('loudness_target', -23);
 
   let added = 0;
   let skipped = 0;
@@ -98,7 +122,8 @@ export async function scanAssets() {
       .replace(/[._-]+/g, ' ')
       .trim();
 
-    insert.run(file, title, kind, duration, tags);
+    const gain = await measureGain(file, target);
+    insert.run(file, title, kind, duration, tags, gain);
     added++;
   }
 

@@ -74,6 +74,7 @@ function decorate(row, at) {
     }
   } else if (row.kind === 'ad' || row.kind === 'bumper') {
     const a = qAsset.get(row.asset_id);
+    if (a && a.gain_db != null) out.gainDb = a.gain_db; // loudness adjustment
     if (a && a.part_key) {
       // A commercial imported from Plex — direct-play, same as a show.
       try {
@@ -167,6 +168,7 @@ export function publicChannel(c) {
     timingMode: c.timing_mode || 'continuous',
     adsBetween: c.ads_between ?? 4,
     cooldownDays: c.cooldown_days ?? 0,
+    overrunPolicy: c.overrun_policy || 'protect',
     enabled: !!c.enabled,
     generatedThru: c.generated_thru,
   };

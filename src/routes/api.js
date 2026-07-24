@@ -54,6 +54,7 @@ const CHANNEL_FIELDS = [
   'timing_mode',
   'ads_between',
   'cooldown_days',
+  'overrun_policy',
   'enabled',
 ];
 
@@ -228,6 +229,7 @@ export default async function api(fastify) {
       timing_mode: b.timingMode,
       ads_between: b.adsBetween,
       cooldown_days: b.cooldownDays,
+      overrun_policy: b.overrunPolicy,
       enabled: b.enabled === undefined ? undefined : b.enabled ? 1 : 0,
     };
     const sets = [];
@@ -320,7 +322,7 @@ export default async function api(fastify) {
   const RULE_FIELDS = [
     'name', 'kind', 'priority', 'enabled', 'days_of_week', 'start_time', 'duration_min',
     'starts_at_utc', 'source_type', 'rating_key', 'ordering_mode', 'effective_from',
-    'effective_to', 'ad_policy',
+    'effective_to', 'ad_policy', 'airdate_mode', 'cadence_compress',
   ];
 
   fastify.get('/api/channels/:id/rules', async (req) => ({
@@ -335,15 +337,18 @@ export default async function api(fastify) {
     const info = db.prepare(`
       INSERT INTO schedule_rules
         (channel_id, name, kind, priority, enabled, days_of_week, start_time, duration_min,
-         starts_at_utc, source_type, rating_key, ordering_mode, effective_from, effective_to, ad_policy)
+         starts_at_utc, source_type, rating_key, ordering_mode, effective_from, effective_to,
+         ad_policy, airdate_mode, cadence_compress)
       VALUES (@channelId,@name,@kind,@priority,1,@daysOfWeek,@startTime,@durationMin,
-              @startsAtUtc,@sourceType,@ratingKey,@orderingMode,@effectiveFrom,@effectiveTo,@adPolicy)
+              @startsAtUtc,@sourceType,@ratingKey,@orderingMode,@effectiveFrom,@effectiveTo,
+              @adPolicy,@airdateMode,@cadenceCompress)
     `).run({
       channelId: Number(req.params.id), name: b.name || null, kind: b.kind, priority,
       daysOfWeek: b.daysOfWeek || null, startTime: b.startTime || null, durationMin: b.durationMin ?? null,
       startsAtUtc: b.startsAtUtc ?? null, sourceType: b.sourceType || null, ratingKey: b.ratingKey || null,
       orderingMode: b.orderingMode || null, effectiveFrom: b.effectiveFrom || null,
       effectiveTo: b.effectiveTo || null, adPolicy: b.adPolicy ? JSON.stringify(b.adPolicy) : null,
+      airdateMode: b.airdateMode || null, cadenceCompress: b.cadenceCompress ?? 1,
     });
     return { id: info.lastInsertRowid };
   });
@@ -357,6 +362,7 @@ export default async function api(fastify) {
       starts_at_utc: b.startsAtUtc, source_type: b.sourceType, rating_key: b.ratingKey,
       ordering_mode: b.orderingMode, effective_from: b.effectiveFrom, effective_to: b.effectiveTo,
       ad_policy: b.adPolicy === undefined ? undefined : (b.adPolicy ? JSON.stringify(b.adPolicy) : null),
+      airdate_mode: b.airdateMode, cadence_compress: b.cadenceCompress,
     };
     const sets = [], vals = [];
     for (const f of RULE_FIELDS) {

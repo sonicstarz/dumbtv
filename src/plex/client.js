@@ -1,6 +1,7 @@
 import { PLEX_HEADERS } from '../config.js';
-import { db } from '../db.js';
+import { db, getSetting } from '../db.js';
 import { getServer } from './auth.js';
+import { measureGain } from '../assets.js';
 
 function requireServer() {
   const server = getServer();
@@ -178,12 +179,13 @@ export async function getSectionAds(sectionKey) {
 }
 
 const upsertAdAsset = db.prepare(`
-  INSERT INTO assets (path, title, kind, duration_ms, tags, rating_key, part_key)
-  VALUES (@path, @title, 'ad', @durationMs, '', @ratingKey, @partKey)
+  INSERT INTO assets (path, title, kind, duration_ms, tags, rating_key, part_key, gain_db)
+  VALUES (@path, @title, 'ad', @durationMs, '', @ratingKey, @partKey, @gainDb)
   ON CONFLICT(path) DO UPDATE SET
     title       = excluded.title,
     duration_ms = excluded.duration_ms,
-    part_key    = excluded.part_key
+    part_key    = excluded.part_key,
+    gain_db     = COALESCE(excluded.gain_db, assets.gain_db)
 `);
 
 /**
@@ -193,6 +195,12 @@ const upsertAdAsset = db.prepare(`
  */
 export async function importPlexAds(sectionKey) {
   const spots = await getSectionAds(sectionKey);
+  const target = getSetting('loudness_target', -23);
+  // Measure loudness up front (async — can't run inside the write transaction).
+  // Over the WAN this is the slow part of an import; best-effort per spot.
+  for (const s of spots) {
+    try { s.gainDb = await measureGain(streamUrl(s.partKey), target); } catch { s.gainDb = null; }
+  }
   const run = db.transaction((rows) => {
     for (const s of rows) {
       upsertAdAsset.run({
@@ -201,6 +209,7 @@ export async function importPlexAds(sectionKey) {
         durationMs: s.durationMs,
         ratingKey: s.ratingKey,
         partKey: s.partKey,
+        gainDb: s.gainDb ?? null,
       });
     }
   });

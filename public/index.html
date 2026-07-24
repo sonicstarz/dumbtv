@@ -184,8 +184,10 @@
               <div><label>MODE</label><select id="rMode">
                 <option value="original_weekday">Its original weekday (weekly)</option>
                 <option value="anniversary">On its original date (anniversary)</option>
+                <option value="original_cadence">Original cadence (replay pacing)</option>
               </select></div>
               <div><label>TIME (HH:MM)</label><input id="rAirStart" placeholder="08:00" style="width:120px"></div>
+              <div id="rCadenceWrap" style="display:none"><label>SPEED-UP ×</label><input id="rCadence" type="number" min="1" value="7" style="width:90px"></div>
             </div>
             <p class="hint">Weekday mode airs one episode a week, in order, on the show's most common original weekday.</p>
           </div>

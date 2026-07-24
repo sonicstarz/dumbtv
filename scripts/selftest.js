@@ -414,6 +414,41 @@ let notFive = 0;
 for (const r of autoSlots) { if ((r.e - r.slot_start) % (5 * MINUTE) !== 0) notFive++; }
 check('auto mode: slots round to 5 minutes', notFive === 0, `(${notFive} off)`);
 
+console.log('\nOverrun + cadence');
+
+// cut-in: a pinned event hard-cuts the show it interrupts.
+const chCut = makeChannel(11, 'CutIn', 'sequential', 30);
+for (const s of shows) addSource.run(chCut, s.key, 'show', s.title);
+db.prepare("UPDATE channels SET overrun_policy = 'cutin' WHERE id = ?").run(chCut);
+const pinAt = Date.now() + 5 * HOUR;
+db.prepare(
+  `INSERT INTO schedule_rules (channel_id, name, kind, priority, enabled, starts_at_utc, source_type, rating_key)
+   VALUES (?,?,?,?,1,?,?,?)`
+).run(chCut, 'Breaking Special', 'pinned', 800, pinAt, 'episode', 'show-spidey-e5');
+regenerateChannel(chCut);
+const cutProg = db.prepare(
+  "SELECT p.duration_ms pd, m.duration_ms md FROM programs p JOIN media m ON m.rating_key = p.rating_key WHERE p.channel_id = ? AND p.kind = 'episode' AND p.end_utc = ? AND p.duration_ms < m.duration_ms"
+).get(chCut, pinAt);
+check('cut-in: a show is hard-cut at the pinned start', !!cutProg,
+  cutProg ? `(cut ${Math.round(cutProg.pd / 1000)}s of ${Math.round(cutProg.md / 1000)}s)` : '(none cut)');
+
+// original_cadence: replays the show's spacing, compressed.
+const chCad = makeChannel(12, 'Cadence', 'sequential', 30);
+addSource.run(chCad, 'airdate-show', 'show', 'Airdate Show');
+generateChannel(chCad, Date.now() + 2 * 24 * HOUR);
+db.prepare(
+  `INSERT INTO schedule_rules (channel_id, name, kind, priority, enabled, start_time, source_type, rating_key, airdate_mode, cadence_compress)
+   VALUES (?,?,?,?,1,?,?,?,?,?)`
+).run(chCad, 'Cadence run', 'airdate', 500, '08:00', 'show', 'airdate-show', 'original_cadence', 7);
+regenerateChannel(chCad);
+const cadProgs = db.prepare(
+  "SELECT p.start_utc FROM programs p JOIN schedule_rules r ON r.id = p.rule_id WHERE r.kind = 'airdate' AND p.channel_id = ? ORDER BY p.start_utc"
+).all(chCad);
+const spanDays = cadProgs.length > 1
+  ? (cadProgs[cadProgs.length - 1].start_utc - cadProgs[0].start_utc) / (24 * 3600 * 1000) : 0;
+check('cadence: replays the show at compressed spacing', cadProgs.length >= 2 && spanDays > 7 && spanDays < 14,
+  `(${cadProgs.length} eps over ${spanDays.toFixed(1)}d, original 77d ÷ 7)`);
+
 const counts = db.prepare('SELECT COUNT(*) n FROM programs').get().n;
 console.log(`\n${counts} programs across 4 channels / 2 days`);
 console.log(`${pass} passed, ${fail} failed\n`);

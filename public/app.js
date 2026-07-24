@@ -153,6 +153,9 @@ $('#rKind').addEventListener('change', (e) => {
   $('#rAirdate').style.display = k === 'airdate' ? 'block' : 'none';
   $('#rPinned').style.display = k === 'pinned' ? 'block' : 'none';
 });
+$('#rMode').addEventListener('change', (e) => {
+  $('#rCadenceWrap').style.display = e.target.value === 'original_cadence' ? 'block' : 'none';
+});
 $('#rAdd').addEventListener('click', async () => {
   const kind = $('#rKind').value;
   const body = { kind, name: $('#rName').value || null };
@@ -167,6 +170,7 @@ $('#rAdd').addEventListener('click', async () => {
     body.sourceType = 'show';
     body.airdateMode = $('#rMode').value;
     body.startTime = $('#rAirStart').value.trim() || '08:00';
+    if (body.airdateMode === 'original_cadence') body.cadenceCompress = Number($('#rCadence').value) || 1;
     if (!body.ratingKey) return toast('Pick a show for the airdate rule.', true);
   } else if (kind === 'pinned') {
     const at = Date.parse($('#rPinAt').value.replace(' ', 'T'));
@@ -484,6 +488,12 @@ function openSettings(channelId) {
       </div>
       <div class="field"><label>ADS BETWEEN SHOWS</label><input id="fAdsBetween" type="number" min="0" max="20" value="${c.adsBetween ?? 4}" style="width:120px"></div>
       <div class="field"><label>REPEAT COOLDOWN (days)</label><input id="fCooldown" type="number" min="0" max="30" value="${c.cooldownDays ?? 0}" style="width:130px"></div>
+      <div class="field"><label>WHEN A PINNED EVENT HITS</label>
+        <select id="fOverrun">
+          <option value="protect" ${c.overrunPolicy === 'protect' ? 'selected' : ''}>Protect — finish the show first</option>
+          <option value="cutin" ${c.overrunPolicy === 'cutin' ? 'selected' : ''}>Cut in — hard cut to the event</option>
+        </select>
+      </div>
     </div>
 
     <div class="row" style="margin-top:18px">
@@ -545,6 +555,7 @@ function openSettings(channelId) {
           timingMode: $('#fTiming', back).value,
           adsBetween: Number($('#fAdsBetween', back).value),
           cooldownDays: Number($('#fCooldown', back).value),
+          overrunPolicy: $('#fOverrun', back).value,
           darkStart: $('#fDarkStart', back).value,
           darkEnd: $('#fDarkEnd', back).value,
         },

@@ -159,6 +159,12 @@ addColumnIfMissing('schedule_rules', 'airdate_mode', 'TEXT'); // original_weekda
 // Ad-break timing: how the gap between programs is shaped.
 addColumnIfMissing('channels', 'timing_mode', "TEXT NOT NULL DEFAULT 'continuous'"); // continuous|grid|auto
 addColumnIfMissing('channels', 'ads_between', 'INTEGER NOT NULL DEFAULT 4');
+// What happens to a program a pinned/reserved event would interrupt.
+addColumnIfMissing('channels', 'overrun_policy', "TEXT NOT NULL DEFAULT 'protect'"); // protect|cutin
+// original_cadence airdate replay speed (1 = original pacing).
+addColumnIfMissing('schedule_rules', 'cadence_compress', 'REAL NOT NULL DEFAULT 1');
+// Loudness: gain (dB) toward the target, measured at import, applied at playback.
+addColumnIfMissing('assets', 'gain_db', 'REAL');
 
 // One-time data migration into the rule model, so an existing install keeps its
 // lineup. Each channel's sources become a rotation rule; dark hours become a

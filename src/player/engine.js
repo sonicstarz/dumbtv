@@ -371,6 +371,10 @@ export class Engine extends EventEmitter {
       await this.mpv.play(src, program.offsetMs / 1000).catch((err) => {
         this.lastError = err.message;
       });
+      // Loudness: pull a hot commercial down (or a quiet one up) to match shows.
+      await this.mpv
+        .setProperty('af', program.gainDb ? `volume=${program.gainDb}dB` : '')
+        .catch(() => {});
       // A show starting is worth announcing, same as cable did.
       if (program.offsetMs < 3000 && (program.kind === 'episode' || program.kind === 'movie')) {
         this.bannerUntil = Date.now() + BANNER_MS;

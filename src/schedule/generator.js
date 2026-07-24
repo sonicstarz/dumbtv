@@ -216,6 +216,24 @@ function expandAirdate(rule, from, until) {
     return out;
   }
 
+  if (mode === 'original_cadence') {
+    // Replay the show preserving the gaps between original airdates, from a start
+    // date, optionally sped up (compress = 7 → a week of spacing becomes a day).
+    if (dated.length === 0) return [];
+    const compress = rule.cadence_compress || 1;
+    const base = Date.parse(`${dated[0].aired}T00:00:00`);
+    const anchor = new Date(rule.effective_from ? `${rule.effective_from}T00:00:00` : new Date(from));
+    anchor.setHours(sh, sm, 0, 0);
+    const anchorMs = Math.max(from, anchor.getTime());
+    for (const e of dated) {
+      const origOffset = Date.parse(`${e.aired}T00:00:00`) - base;
+      const start = anchorMs + Math.round(origOffset / compress);
+      const end = start + e.duration_ms;
+      if (end > from && start < until) out.push({ start, end, rule, ratingKey: e.rating_key });
+    }
+    return out;
+  }
+
   // original_weekday
   let weekday = 6;
   if (dated.length) {
@@ -382,13 +400,22 @@ function pushSpan(ctx, kind, start, end, title, subtitle, ruleId, assetId = null
  * and for recurring blocks — filling a reserved 3-hour Saturday and an unclaimed
  * Tuesday afternoon are the same operation with different bounds.
  */
-function fillWindow(ctx, ruleId, start, end) {
+function fillWindow(ctx, ruleId, start, end, cut = false) {
   let t = start;
   let guard = 0;
   while (t < end && guard++ < 50000) {
     const item = ctx.iter.pickAt(t);
     if (!item || !item.duration_ms) { ctx.iter.note(item, t); continue; }
-    if (t + item.duration_ms > end) break; // won't fit before the hard end
+    if (t + item.duration_ms > end) {
+      // Won't fit before the hard end. protect (default) leaves it for later and
+      // pads filler; cutin airs it anyway and hard-cuts at the boundary.
+      if (cut && item.rating_key) {
+        ctx.iter.note(item, end);
+        pushProgram(ctx, { ...item, duration_ms: end - t }, t, t, ruleId);
+        t = end;
+      }
+      break;
+    }
     const blockStart = t;
     const programEnd = t + item.duration_ms;
     pushProgram(ctx, item, t, blockStart, ruleId);
@@ -406,13 +433,13 @@ function fillWindow(ctx, ruleId, start, end) {
   return end;
 }
 
-function fillRange(ctx, ruleId, start, end) {
+function fillRange(ctx, ruleId, start, end, cut = false) {
   if (start >= end) return end;
   if (ctx.iter.empty) {
     pushSpan(ctx, 'offair', start, end, 'No content selected', 'Add shows or movies to this channel', ruleId);
     return end;
   }
-  return fillWindow(ctx, ruleId, start, end);
+  return fillWindow(ctx, ruleId, start, end, cut);
 }
 
 function emitReservation(ctx, res, until) {
@@ -501,7 +528,9 @@ function buildChannelPrograms(channel, from, until) {
       break;
     }
     if (t < res.start) {
-      fillRange(ctx, rotationRule.id, t, res.start);
+      const cut = channel.overrun_policy === 'cutin' &&
+        ['pinned', 'blackout', 'airdate'].includes(res.rule.kind);
+      fillRange(ctx, rotationRule.id, t, res.start, cut);
       t = res.start;
     }
     emitReservation(ctx, res, until);

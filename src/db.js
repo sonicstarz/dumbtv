@@ -141,7 +141,7 @@ CREATE TABLE IF NOT EXISTS airings (
 -- Episodes (or movies) the user has filtered out of a channel's rotation.
 -- The media stays cached; it's just skipped when the playlist is built.
 CREATE TABLE IF NOT EXISTS channel_excludes (
-  channel_id  INTEGER NOT NULL,
+  channel_id  INTEGER NOT NULL REFERENCES channels(id) ON DELETE CASCADE,
   rating_key  TEXT NOT NULL,
   PRIMARY KEY (channel_id, rating_key)
 );
@@ -173,6 +173,28 @@ addColumnIfMissing('channels', 'overrun_policy', "TEXT NOT NULL DEFAULT 'protect
 addColumnIfMissing('schedule_rules', 'cadence_compress', 'REAL NOT NULL DEFAULT 1');
 // Loudness: gain (dB) toward the target, measured at import, applied at playback.
 addColumnIfMissing('assets', 'gain_db', 'REAL');
+
+// channel_excludes originally shipped without the ON DELETE CASCADE foreign key,
+// so deleting a channel orphaned its filter rows. Rebuild the table with the FK
+// if it's missing, keeping only exclusions that still point at a real channel.
+(function ensureExcludeCascade() {
+  const fks = db.prepare('PRAGMA foreign_key_list(channel_excludes)').all();
+  if (fks.length === 0) {
+    db.pragma('foreign_keys = OFF');
+    db.exec(`
+      CREATE TABLE channel_excludes_new (
+        channel_id  INTEGER NOT NULL REFERENCES channels(id) ON DELETE CASCADE,
+        rating_key  TEXT NOT NULL,
+        PRIMARY KEY (channel_id, rating_key)
+      );
+      INSERT INTO channel_excludes_new
+        SELECT * FROM channel_excludes WHERE channel_id IN (SELECT id FROM channels);
+      DROP TABLE channel_excludes;
+      ALTER TABLE channel_excludes_new RENAME TO channel_excludes;
+    `);
+    db.pragma('foreign_keys = ON');
+  }
+})();
 
 // One-time data migration into the rule model, so an existing install keeps its
 // lineup. Each channel's sources become a rotation rule; dark hours become a

@@ -471,6 +471,7 @@ function renderChannels() {
             .map(
               (s) => `<span class="chip">${escapeHtml(s.title)}
                 <span class="n">${s.itemCount}</span>
+                ${s.sourceType === 'show' ? `<button class="chip-filter" data-filter="${c.id}:${s.id}" title="Choose which episodes air">⛃</button>` : ''}
                 <button data-rm="${c.id}:${s.id}" title="Remove">&times;</button></span>`
             )
             .join('')
@@ -529,6 +530,108 @@ function renderChannels() {
       loadChannels();
     })
   );
+  $$('[data-filter]', host).forEach((b) =>
+    b.addEventListener('click', () => {
+      const [ch, src] = b.dataset.filter.split(':').map(Number);
+      const chan = state.channels.find((x) => x.id === ch);
+      const source = chan?.sources.find((s) => s.id === src);
+      if (source) openEpisodeFilter(ch, source);
+    })
+  );
+}
+
+// ---------------------------------------------------------------- episode filter
+
+async function openEpisodeFilter(channelId, source) {
+  const back = modal(`
+    <h3>Choose episodes — ${escapeHtml(source.title)}</h3>
+    <p class="sub" style="color:var(--dim);font-size:13px;margin:4px 0 14px">
+      Unchecked episodes are filtered out of this channel. What's on air now finishes; it just won't come back.
+    </p>
+    <div class="row" style="margin-bottom:12px;align-items:center">
+      <button class="sm" id="epAll">Check all</button>
+      <button class="sm" id="epNone">Uncheck all</button>
+      <span class="sub" id="epCount" style="margin-left:auto">Loading…</span>
+    </div>
+    <div id="epList" class="ep-list" style="max-height:52vh;overflow-y:auto">Loading episodes…</div>
+    <div class="row" style="margin-top:20px;justify-content:flex-end">
+      <button class="ghost" id="epCancel">Cancel</button>
+      <button class="primary" id="epSave">Save &amp; rebuild</button>
+    </div>
+  `);
+
+  $('#epCancel', back).addEventListener('click', () => back.remove());
+
+  let episodes = [];
+  let otherExcludes = [];
+  try {
+    const [eps, exc] = await Promise.all([
+      api(`/api/library/show/${source.ratingKey}/episodes?channel=${channelId}`),
+      api(`/api/channels/${channelId}/excludes`),
+    ]);
+    episodes = eps.episodes || [];
+    const showKeys = new Set(episodes.map((e) => e.ratingKey));
+    otherExcludes = (exc.excludes || []).filter((k) => !showKeys.has(k)); // keep other shows' filters
+  } catch (err) {
+    $('#epList', back).innerHTML = `<p class="sub">${escapeHtml(err.message)}</p>`;
+    return;
+  }
+
+  if (!episodes.length) {
+    $('#epList', back).innerHTML = '<p class="sub">No episodes cached for this show yet.</p>';
+    $('#epCount', back).textContent = '';
+    return;
+  }
+
+  // Group by season for a scannable list.
+  const bySeason = {};
+  for (const e of episodes) (bySeason[e.seasonNo ?? 0] ||= []).push(e);
+  const seasons = Object.keys(bySeason).map(Number).sort((a, b) => a - b);
+
+  $('#epList', back).innerHTML = seasons
+    .map((sn) => {
+      const rows = bySeason[sn]
+        .map(
+          (e) => `<label class="ep-row">
+            <input type="checkbox" data-ep="${e.ratingKey}" ${e.excluded ? '' : 'checked'}>
+            <span class="ep-no">${e.seasonNo ?? '?'}·${String(e.episodeNo ?? '?').padStart(2, '0')}</span>
+            <span class="ep-title">${escapeHtml(e.title || 'Untitled')}</span>
+          </label>`
+        )
+        .join('');
+      return `<div class="ep-season"><div class="ep-season-h">Season ${sn || '—'}</div>${rows}</div>`;
+    })
+    .join('');
+
+  const boxes = () => $$('[data-ep]', back);
+  const updateCount = () => {
+    const on = boxes().filter((b) => b.checked).length;
+    $('#epCount', back).textContent = `${on} of ${episodes.length} airing`;
+  };
+  updateCount();
+  back.addEventListener('change', (e) => { if (e.target.matches('[data-ep]')) updateCount(); });
+  $('#epAll', back).addEventListener('click', () => { boxes().forEach((b) => (b.checked = true)); updateCount(); });
+  $('#epNone', back).addEventListener('click', () => { boxes().forEach((b) => (b.checked = false)); updateCount(); });
+
+  $('#epSave', back).addEventListener('click', async () => {
+    const btn = $('#epSave', back);
+    btn.disabled = true;
+    btn.textContent = 'Rebuilding…';
+    const excludedNow = boxes().filter((b) => !b.checked).map((b) => b.dataset.ep);
+    try {
+      await api(`/api/channels/${channelId}/excludes`, {
+        method: 'PUT',
+        body: { ratingKeys: [...otherExcludes, ...excludedNow] },
+      });
+      back.remove();
+      toast(`Filtered. ${excludedNow.length} episode${excludedNow.length === 1 ? '' : 's'} off this channel.`);
+      loadChannels();
+    } catch (err) {
+      toast(err.message, true);
+      btn.disabled = false;
+      btn.textContent = 'Save & rebuild';
+    }
+  });
 }
 
 $('#addChannel').addEventListener('click', async () => {

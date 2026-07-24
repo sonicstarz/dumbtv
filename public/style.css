@@ -327,7 +327,19 @@ button:disabled { opacity: 0.45; cursor: not-allowed; }
   padding: 0 5px; line-height: 1; font-size: 15px;
 }
 .chip button:hover { color: var(--tally); }
+.chip .chip-filter { font-size: 13px; }
+.chip .chip-filter:hover { color: var(--amber); }
 .chip.empty { border-style: dashed; color: var(--dim); padding: 4px 12px; }
+
+/* episode filter modal */
+.ep-list { border: 1px solid var(--line); border-radius: 6px; }
+.ep-season + .ep-season { border-top: 1px solid var(--line); }
+.ep-season-h { position: sticky; top: 0; background: var(--panel-2); padding: 6px 12px; font: 700 11px var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--amber); z-index: 1; }
+.ep-row { display: flex; align-items: center; gap: 10px; padding: 6px 12px; cursor: pointer; font-size: 13px; color: var(--tape); }
+.ep-row:hover { background: var(--panel-2); }
+.ep-row input { accent-color: var(--phosphor); width: 15px; height: 15px; }
+.ep-row .ep-no { font: 600 11px var(--mono); color: var(--dim); min-width: 42px; }
+.ep-row .ep-title { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
 .chan-actions { display: flex; flex-direction: column; gap: 7px; align-items: stretch; }
 

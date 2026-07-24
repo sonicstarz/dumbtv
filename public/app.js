@@ -70,12 +70,22 @@ const fmtDay = (ts) => new Date(ts).toLocaleDateString([], { weekday: 'short', m
 async function loadSchedule() {
   const { channels } = await api('/api/channels');
   if (channels.length === 0) { $('#ruleList').innerHTML = '<p class="sub">No channels yet.</p>'; return; }
+  sched.channels = channels;
   const sel = $('#schChannel');
   sel.innerHTML = channels.map((c) => `<option value="${c.id}">${String(c.number).padStart(2, '0')} ${escapeHtml(c.name)}</option>`).join('');
   if (!sched.channelId || !channels.some((c) => c.id === sched.channelId)) sched.channelId = channels[0].id;
   sel.value = sched.channelId;
+  populateSources();
   await loadRules();
   await runPreview();
+}
+
+function populateSources() {
+  const ch = (sched.channels || []).find((c) => c.id === sched.channelId);
+  const opts = (ch && ch.sources || []).map((s) => `<option value="${s.ratingKey}">${escapeHtml(s.title || s.ratingKey)}</option>`).join('')
+    || '<option value="">(no sources on this channel)</option>';
+  $('#rAirSource').innerHTML = opts;
+  $('#rPinSource').innerHTML = opts;
 }
 
 async function loadRules() {
@@ -84,9 +94,11 @@ async function loadRules() {
     ? rules.map((r) => {
         const when = r.kind === 'pinned'
           ? new Date(r.starts_at_utc).toLocaleString()
-          : r.start_time
-            ? `${(r.days_of_week || '').split(',').map((d) => dayNames[d] || '').join(' ')} ${r.start_time} · ${r.duration_min}m`
-            : '';
+          : r.kind === 'airdate'
+            ? `${r.airdate_mode === 'anniversary' ? 'on its original date' : 'weekly, original weekday'}${r.start_time ? ' · ' + r.start_time : ''}`
+            : r.start_time
+              ? `${(r.days_of_week || '').split(',').map((d) => dayNames[d] || '').join(' ')} ${r.start_time} · ${r.duration_min}m`
+              : '';
         return `<div class="ruleRow">
           <span class="ruleKind k-${r.kind}">${r.kind}</span>
           <b>${escapeHtml(r.name || r.kind)}</b>
@@ -127,7 +139,7 @@ async function runPreview() {
   } catch (err) { $('#timeline').innerHTML = `<p class="sub" style="color:var(--tally)">${escapeHtml(err.message)}</p>`; }
 }
 
-$('#schChannel').addEventListener('change', async (e) => { sched.channelId = Number(e.target.value); await loadRules(); await runPreview(); });
+$('#schChannel').addEventListener('change', async (e) => { sched.channelId = Number(e.target.value); populateSources(); await loadRules(); await runPreview(); });
 $('#schPreview').addEventListener('click', runPreview);
 $('#schApply').addEventListener('click', async () => {
   try {
@@ -136,32 +148,51 @@ $('#schApply').addEventListener('click', async () => {
   } catch (err) { toast(err.message, true); }
 });
 $('#rKind').addEventListener('change', (e) => {
-  $('#rRecurring').style.display = e.target.value === 'recurring' ? 'block' : 'none';
-  $('#rPinned').style.display = e.target.value === 'pinned' ? 'block' : 'none';
-  // blackout reuses the recurring day/time fields
-  if (e.target.value === 'blackout') $('#rRecurring').style.display = 'block';
+  const k = e.target.value;
+  $('#rRecurring').style.display = (k === 'recurring' || k === 'blackout') ? 'block' : 'none';
+  $('#rAirdate').style.display = k === 'airdate' ? 'block' : 'none';
+  $('#rPinned').style.display = k === 'pinned' ? 'block' : 'none';
 });
 $('#rAdd').addEventListener('click', async () => {
   const kind = $('#rKind').value;
   const body = { kind, name: $('#rName').value || null };
+  if ($('#rEffFrom').value) body.effectiveFrom = $('#rEffFrom').value;
+  if ($('#rEffTo').value) body.effectiveTo = $('#rEffTo').value;
   if (kind === 'recurring' || kind === 'blackout') {
     body.daysOfWeek = $('#rDays').value.trim();
     body.startTime = $('#rStart').value.trim();
     body.durationMin = Number($('#rDur').value) || 0;
+  } else if (kind === 'airdate') {
+    body.ratingKey = $('#rAirSource').value;
+    body.sourceType = 'show';
+    body.airdateMode = $('#rMode').value;
+    body.startTime = $('#rAirStart').value.trim() || '08:00';
+    if (!body.ratingKey) return toast('Pick a show for the airdate rule.', true);
   } else if (kind === 'pinned') {
     const at = Date.parse($('#rPinAt').value.replace(' ', 'T'));
     if (Number.isNaN(at)) return toast('Bad date — use YYYY-MM-DD HH:MM', true);
     body.startsAtUtc = at;
-    body.ratingKey = $('#rPinKey').value.trim();
+    body.ratingKey = $('#rPinSource').value;
     body.sourceType = 'episode';
   }
   try {
-    await api(`/api/channels/${sched.channelId}/rules`, { method: 'POST', body });
+    const { id } = await api(`/api/channels/${sched.channelId}/rules`, { method: 'POST', body });
     toast('Rule added — preview updated. Apply to make it air.');
-    $('#addRuleWrap').open = false;
     await loadRules(); await runPreview();
+    showNextOccurrences(id);
   } catch (err) { toast(err.message, true); }
 });
+
+// After adding a rule, list its next few occurrences from the dry-run preview.
+async function showNextOccurrences(ruleId) {
+  try {
+    const p = await api(`/api/channels/${sched.channelId}/preview?days=30`);
+    const mine = p.programs.filter((x) => x.ruleId === ruleId && ['episode', 'movie', 'offair'].includes(x.kind)).slice(0, 3);
+    $('#rNext').innerHTML = mine.length
+      ? 'Next: ' + mine.map((m) => `${fmtDay(m.startUtc)} ${fmtTime(m.startUtc)}${m.title ? ' · ' + escapeHtml(m.title) : ''}`).join('  ·  ')
+      : 'No occurrences in the next 30 days.';
+  } catch { $('#rNext').textContent = ''; }
+}
 
 // ---------------------------------------------------------------- settings
 

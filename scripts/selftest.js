@@ -355,6 +355,35 @@ const uniqueKeys = new Set(airedKeys);
 check('repeat cooldown airs everything once before repeating', airedKeys.length === uniqueKeys.size,
   `(${airedKeys.length} aired, ${uniqueKeys.size} unique)`);
 
+console.log('\nAirdate scheduling');
+
+// A show whose episodes originally aired on consecutive Saturdays.
+const satBase = Date.UTC(1994, 8, 3); // Sat 1994-09-03
+for (let i = 1; i <= 12; i++) {
+  const iso = new Date(satBase + (i - 1) * 7 * 24 * 3600 * 1000).toISOString().slice(0, 10);
+  insertMedia.run(`airdate-e${i}`, 'airdate-show', 'episode', `AD Ep ${i}`, 'Airdate Show',
+    1, i, iso, 22 * 60_000, `/library/parts/ad-${i}/file.mkv`, null, Date.now());
+}
+const chAir = makeChannel(8, 'Airdate Test', 'sequential', 30);
+addSource.run(chAir, 'airdate-show', 'show', 'Airdate Show');
+generateChannel(chAir, Date.now() + 2 * 24 * HOUR); // baseline (creates rotation rule)
+db.prepare(
+  `INSERT INTO schedule_rules (channel_id, name, kind, priority, enabled, start_time, source_type, rating_key, airdate_mode)
+   VALUES (?,?,?,?,1,?,?,?,?)`
+).run(chAir, 'Saturday Mornings', 'airdate', 500, '08:00', 'show', 'airdate-show', 'original_weekday');
+regenerateChannel(chAir);
+
+const airProgs = db.prepare(
+  "SELECT p.start_utc, p.rating_key FROM programs p JOIN schedule_rules r ON r.id = p.rule_id WHERE r.kind = 'airdate' AND p.channel_id = ?"
+).all(chAir);
+const allSat8 = airProgs.length > 0 && airProgs.every((p) => {
+  const d = new Date(p.start_utc);
+  return d.getDay() === 6 && d.getHours() === 8;
+});
+check('airdate: episodes air on the original weekday at the set time', allSat8, `(${airProgs.length} placed)`);
+check('airdate: consecutive weeks advance through the show', airProgs.length < 2 ||
+  airProgs[0].rating_key !== airProgs[1].rating_key, `(${airProgs.map((p) => p.rating_key).join(', ')})`);
+
 const counts = db.prepare('SELECT COUNT(*) n FROM programs').get().n;
 console.log(`\n${counts} programs across 4 channels / 2 days`);
 console.log(`${pass} passed, ${fail} failed\n`);

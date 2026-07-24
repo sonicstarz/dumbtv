@@ -137,6 +137,86 @@ function dayTimeOccurrences(daysCsv, startTime, durationMin, from, until) {
   return out;
 }
 
+const WEEK = 7 * DAY;
+
+/** A show's episodes, in original-airdate order (undated fall to the back). */
+function showEpisodes(ratingKey) {
+  return db.prepare(
+    `SELECT rating_key, aired, duration_ms, season_no, episode_no, title, show_title
+     FROM media WHERE (parent_key = ? OR rating_key = ?) AND duration_ms > 0
+     ORDER BY COALESCE(aired, '9999-99-99'), COALESCE(season_no, 0), COALESCE(episode_no, 0)`
+  ).all(ratingKey, ratingKey);
+}
+
+/**
+ * Air a show by its original release dates. Three strategies, all reading
+ * media.aired (already cached from Plex), each occurrence tied to a specific
+ * episode. Falls back to sequential order where dates are missing.
+ *   original_weekday — one episode a week, in order, on the show's most common
+ *                      original weekday (Batman aired Saturdays → airs Saturdays).
+ *   anniversary      — each episode on its original month/day (holiday specials).
+ */
+function expandAirdate(rule, from, until) {
+  const eps = showEpisodes(rule.rating_key);
+  if (eps.length === 0) return [];
+  const dated = eps.filter((e) => e.aired && /^\d{4}-\d{2}-\d{2}/.test(e.aired));
+  const mode = rule.airdate_mode || 'original_weekday';
+  const [sh, sm] = String(rule.start_time || '19:00').split(':').map(Number);
+  const out = [];
+
+  if (mode === 'anniversary') {
+    const y0 = new Date(from).getFullYear();
+    const y1 = new Date(until).getFullYear();
+    for (const e of dated) {
+      const m = e.aired.match(/^(\d{4})-(\d{2})-(\d{2})/);
+      const mm = Number(m[2]) - 1, dd = Number(m[3]);
+      for (let y = y0; y <= y1; y++) {
+        const start = new Date(y, mm, dd, sh, sm, 0, 0).getTime();
+        const end = start + e.duration_ms;
+        if (end > from && start < until) out.push({ start, end, rule, ratingKey: e.rating_key });
+      }
+    }
+    return out;
+  }
+
+  // original_weekday
+  let weekday = 6;
+  if (dated.length) {
+    const counts = new Array(7).fill(0);
+    for (const e of dated) counts[new Date(`${e.aired}T12:00:00`).getDay()]++;
+    weekday = counts.indexOf(Math.max(...counts));
+  } else if (rule.days_of_week) {
+    weekday = parseInt(String(rule.days_of_week).split(',')[0], 10) || 6;
+  }
+  const seq = dated.length ? dated.concat(eps.filter((e) => !e.aired)) : eps;
+
+  // Episode index is a stable function of the calendar week, anchored to
+  // effective_from (so the series starts from the top when the rule takes hold).
+  const anchor = new Date(rule.effective_from ? `${rule.effective_from}T00:00:00` : '2020-01-06T00:00:00');
+  anchor.setHours(0, 0, 0, 0);
+  while (anchor.getDay() !== weekday) anchor.setDate(anchor.getDate() + 1);
+  const anchorMs = anchor.getTime();
+
+  const cur = new Date(Math.max(from - WEEK, anchorMs));
+  cur.setHours(0, 0, 0, 0);
+  while (cur.getDay() !== weekday) cur.setDate(cur.getDate() + 1);
+  for (let i = 0; i < 800; i++) {
+    const slot = new Date(cur);
+    slot.setHours(sh, sm, 0, 0);
+    const start = slot.getTime();
+    if (start >= until) break;
+    const midnight = new Date(cur); midnight.setHours(0, 0, 0, 0);
+    const idx = Math.round((midnight.getTime() - anchorMs) / WEEK);
+    if (idx >= 0) {
+      const ep = seq[((idx % seq.length) + seq.length) % seq.length];
+      const end = start + ep.duration_ms;
+      if (end > from && start < until) out.push({ start, end, rule, ratingKey: ep.rating_key });
+    }
+    cur.setDate(cur.getDate() + 7);
+  }
+  return out;
+}
+
 /** Expand one rule into concrete [start, end) occurrences inside the window. */
 function expandRule(rule, from, until) {
   const effFrom = rule.effective_from ? Date.parse(`${rule.effective_from}T00:00:00`) : -Infinity;
@@ -155,9 +235,9 @@ function expandRule(rule, from, until) {
     if (dur <= 0) return [];
     const s = rule.starts_at_utc;
     const e = s + dur;
-    if (e > lo && s < hi) return [{ start: s, end: e, rule }];
+    if (e > lo && s < hi) return [{ start: s, end: e, rule, ratingKey: rule.rating_key }];
   }
-  // airdate modes arrive in Phase 3.
+  if (rule.kind === 'airdate') return expandAirdate(rule, lo, hi);
   return [];
 }
 
@@ -301,8 +381,12 @@ function emitReservation(ctx, res, until) {
   const rule = res.rule;
   if (rule.kind === 'blackout') {
     pushSpan(ctx, 'offair', res.start, end, 'Off air', null, rule.id);
-  } else if (rule.kind === 'pinned') {
-    const m = db.prepare('SELECT * FROM media WHERE rating_key = ?').get(rule.rating_key);
+    return;
+  }
+  // A reservation that names a specific episode (pinned, airdate) plays exactly it.
+  const rk = res.ratingKey || (rule.kind === 'pinned' ? rule.rating_key : null);
+  if (rk) {
+    const m = db.prepare('SELECT * FROM media WHERE rating_key = ?').get(rk);
     if (m) {
       pushProgram(ctx, {
         rating_key: m.rating_key, kind: m.kind, title: m.title, show_title: m.show_title,
@@ -314,10 +398,10 @@ function emitReservation(ctx, res, until) {
     } else {
       pushSpan(ctx, 'offair', res.start, end, rule.name || 'Scheduled', null, rule.id);
     }
-  } else {
-    // recurring (and later airdate): fill the reserved block with content.
-    fillRange(ctx, rule.id, res.start, end);
+    return;
   }
+  // recurring: fill the reserved block with rotation content.
+  fillRange(ctx, rule.id, res.start, end);
 }
 
 const insertProgramV2 = db.prepare(`

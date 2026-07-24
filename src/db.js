@@ -154,6 +154,8 @@ addColumnIfMissing('programs', 'rule_id', 'INTEGER');
 addColumnIfMissing('programs', 'airing_no', 'INTEGER DEFAULT 1');
 // Repeat cooldown: don't re-air an item within this many days of its last airing.
 addColumnIfMissing('channels', 'cooldown_days', 'INTEGER NOT NULL DEFAULT 0');
+// Airdate rules: which of the original-airdate strategies to use.
+addColumnIfMissing('schedule_rules', 'airdate_mode', 'TEXT'); // original_weekday|anniversary|original_cadence
 
 // One-time data migration into the rule model, so an existing install keeps its
 // lineup. Each channel's sources become a rotation rule; dark hours become a

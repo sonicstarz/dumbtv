@@ -165,6 +165,7 @@
             <label>KIND</label>
             <select id="rKind">
               <option value="recurring">Recurring block</option>
+              <option value="airdate">Original airdate</option>
               <option value="blackout">Blackout (off air)</option>
               <option value="pinned">Pinned event</option>
             </select>
@@ -177,11 +178,27 @@
               <div><label>DURATION (min)</label><input id="rDur" type="number" placeholder="180" style="width:140px"></div>
             </div>
           </div>
+          <div id="rAirdate" style="display:none">
+            <div class="field"><label>SHOW</label><select id="rAirSource"></select></div>
+            <div class="field" style="display:flex;gap:10px">
+              <div><label>MODE</label><select id="rMode">
+                <option value="original_weekday">Its original weekday (weekly)</option>
+                <option value="anniversary">On its original date (anniversary)</option>
+              </select></div>
+              <div><label>TIME (HH:MM)</label><input id="rAirStart" placeholder="08:00" style="width:120px"></div>
+            </div>
+            <p class="hint">Weekday mode airs one episode a week, in order, on the show's most common original weekday.</p>
+          </div>
           <div id="rPinned" style="display:none">
             <div class="field"><label>STARTS AT (local, YYYY-MM-DD HH:MM)</label><input id="rPinAt" placeholder="2026-12-24 19:00"></div>
-            <div class="field"><label>CONTENT rating key (episode/movie)</label><input id="rPinKey" placeholder="601"></div>
+            <div class="field"><label>CONTENT</label><select id="rPinSource"></select></div>
+          </div>
+          <div class="field" style="display:flex;gap:10px">
+            <div><label>ACTIVE FROM (optional)</label><input id="rEffFrom" type="date" style="width:170px"></div>
+            <div><label>ACTIVE TO (optional)</label><input id="rEffTo" type="date" style="width:170px"></div>
           </div>
           <button class="primary" id="rAdd" style="margin-top:8px">Add rule</button>
+          <p class="sub" id="rNext" style="margin-top:8px"></p>
         </details>
       </div>
 

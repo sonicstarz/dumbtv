@@ -1,0 +1,49 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  node:
+    name: Node engine — selftest
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22          # better-sqlite3 builds cleanly here
+      - run: npm install
+      - name: Engine invariants (selftest)
+        run: npm run selftest
+
+  swift:
+    name: dumbTVCore tests + Apple build
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: dumbTVCore unit tests
+        working-directory: apple/dumbTVCore
+        run: swift test
+
+      - name: Generate Xcode project
+        run: |
+          brew install xcodegen
+          cd apple && xcodegen generate
+
+      - name: Build macOS app
+        working-directory: apple
+        run: >
+          xcodebuild build
+          -project dumbTV.xcodeproj -scheme dumbTV-macOS
+          -destination 'platform=macOS'
+          CODE_SIGNING_ALLOWED=NO -quiet
+
+      - name: Sanity — VLCKit is a dynamic framework (LGPL gate #1)
+        working-directory: apple
+        run: |
+          FW=$(find build -name VLCKit -type f -path '*macos*/VLCKit.framework/*' | head -1)
+          file "$FW" | grep -q "dynamically linked shared library" \
+            && echo "OK: VLCKit is dynamically linked" \
+            || { echo "FAIL: VLCKit is not a dynamic library (LGPL relink requirement)"; exit 1; }

@@ -137,6 +137,14 @@ CREATE TABLE IF NOT EXISTS airings (
   last_aired  INTEGER,
   PRIMARY KEY (channel_id, rating_key)
 );
+
+-- Episodes (or movies) the user has filtered out of a channel's rotation.
+-- The media stays cached; it's just skipped when the playlist is built.
+CREATE TABLE IF NOT EXISTS channel_excludes (
+  channel_id  INTEGER NOT NULL,
+  rating_key  TEXT NOT NULL,
+  PRIMARY KEY (channel_id, rating_key)
+);
 `);
 
 // Add columns to tables that predate them. SQLite has no ADD COLUMN IF NOT

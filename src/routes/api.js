@@ -164,6 +164,49 @@ export default async function api(fastify) {
     };
   });
 
+  // Episodes of a show, for the pin-an-episode and filter-out-episodes UIs.
+  // Reads the local cache first (populated when the show is added as a source);
+  // if the show has never been cached, pulls it from Plex once. Pass ?channel=
+  // to get each episode's excluded flag for that channel.
+  fastify.get('/api/library/show/:ratingKey/episodes', async (req) => {
+    const showKey = String(req.params.ratingKey);
+    const read = db.prepare(
+      `SELECT rating_key, title, show_title, season_no, episode_no, aired, duration_ms, thumb
+       FROM media WHERE parent_key = ? AND duration_ms > 0
+       ORDER BY COALESCE(season_no, 0), COALESCE(episode_no, 0), title`
+    );
+    let rows = read.all(showKey);
+    if (rows.length === 0) {
+      try {
+        await cacheSource(showKey, 'show');
+        rows = read.all(showKey);
+      } catch (err) {
+        return { episodes: [], error: err.message };
+      }
+    }
+    const excluded = new Set();
+    if (req.query.channel) {
+      for (const r of db
+        .prepare('SELECT rating_key FROM channel_excludes WHERE channel_id = ?')
+        .all(Number(req.query.channel))) {
+        excluded.add(r.rating_key);
+      }
+    }
+    return {
+      episodes: rows.map((r) => ({
+        ratingKey: r.rating_key,
+        title: r.title,
+        showTitle: r.show_title,
+        seasonNo: r.season_no,
+        episodeNo: r.episode_no,
+        aired: r.aired,
+        durationMs: r.duration_ms,
+        image: imageUrl(r.thumb, 160, 90),
+        excluded: excluded.has(r.rating_key),
+      })),
+    };
+  });
+
   // ---- Channels ----------------------------------------------------------
 
   fastify.get('/api/channels', async () => {
@@ -285,6 +328,28 @@ export default async function api(fastify) {
     return { ok: true, ...regen };
   });
 
+  // ---- Episode filtering (exclude specific episodes from rotation) --------
+
+  fastify.get('/api/channels/:id/excludes', async (req) => ({
+    excludes: db
+      .prepare('SELECT rating_key FROM channel_excludes WHERE channel_id = ?')
+      .all(Number(req.params.id))
+      .map((r) => r.rating_key),
+  }));
+
+  // Replace the whole exclusion set for a channel, then rebuild the schedule.
+  fastify.put('/api/channels/:id/excludes', async (req) => {
+    const channelId = Number(req.params.id);
+    const keys = Array.isArray(req.body?.ratingKeys) ? req.body.ratingKeys.map(String) : [];
+    const apply = db.transaction(() => {
+      db.prepare('DELETE FROM channel_excludes WHERE channel_id = ?').run(channelId);
+      const ins = db.prepare('INSERT OR IGNORE INTO channel_excludes (channel_id, rating_key) VALUES (?,?)');
+      for (const k of keys) ins.run(channelId, k);
+    });
+    apply();
+    return { ok: true, excluded: keys.length, ...regenerateChannel(channelId) };
+  });
+
   fastify.post('/api/channels/:id/refresh', async (req) => {
     const sources = db
       .prepare('SELECT * FROM channel_sources WHERE channel_id = ?')
@@ -403,6 +468,7 @@ export default async function api(fastify) {
     channels: db.prepare('SELECT * FROM channels ORDER BY number').all(),
     sources: db.prepare('SELECT * FROM channel_sources').all(),
     rules: db.prepare('SELECT * FROM schedule_rules').all(),
+    excludes: db.prepare('SELECT * FROM channel_excludes').all(),
   }));
 
   fastify.post('/api/config/import', async (req, reply) => {
@@ -425,6 +491,9 @@ export default async function api(fastify) {
       }
       for (const r of cfg.rules || []) {
         if (idMap[r.channel_id]) insertRow('schedule_rules', r, { channel_id: idMap[r.channel_id] });
+      }
+      for (const e of cfg.excludes || []) {
+        if (idMap[e.channel_id]) insertRow('channel_excludes', e, { channel_id: idMap[e.channel_id] });
       }
     });
     run();

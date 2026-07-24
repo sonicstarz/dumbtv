@@ -22,15 +22,26 @@ function byAirDate(a, b) {
   return bySeasonEpisode(a, b);
 }
 
-/** One array of playable rows per source, each already in its natural order. */
+/** One array of playable rows per source, each already in its natural order.
+ *  Episodes the user filtered out (channel_excludes) are dropped here, so the
+ *  rotation, cooldown, and airing counts never see them. */
 function loadSourceBuckets(channelId) {
   const sources = db
     .prepare('SELECT * FROM channel_sources WHERE channel_id = ? ORDER BY id')
     .all(channelId);
 
+  const excluded = new Set(
+    db
+      .prepare('SELECT rating_key FROM channel_excludes WHERE channel_id = ?')
+      .all(channelId)
+      .map((r) => r.rating_key)
+  );
+
   return sources
     .map((s) => {
-      const rows = selectSourceMedia.all(s.rating_key, s.rating_key);
+      const rows = selectSourceMedia
+        .all(s.rating_key, s.rating_key)
+        .filter((r) => !excluded.has(r.rating_key));
       return { source: s, items: rows.sort(bySeasonEpisode) };
     })
     .filter((b) => b.items.length > 0);

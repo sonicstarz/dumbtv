@@ -464,6 +464,29 @@ check('empty channel recovers when content is added later',
   placeholderTitle === 'No content selected' && nowLate && nowLate !== 'No content selected',
   `(was "${placeholderTitle}" → now "${nowLate}")`);
 
+// ---- pin: a specific episode airs at a specific time ----------------------
+// (chCut above pins show-spidey-e5 at pinAt; assert it lands exactly there.)
+const pinnedAir = db.prepare(
+  "SELECT 1 FROM programs WHERE channel_id = ? AND rating_key = 'show-spidey-e5' AND start_utc = ?"
+).get(chCut, pinAt);
+check('pin: a chosen episode airs exactly at its pinned start', !!pinnedAir);
+
+// ---- filter: excluded episodes never air ----------------------------------
+const chFilter = makeChannel(14, 'Filtered', 'sequential', 30);
+addSource.run(chFilter, 'show-xmen', 'show', 'X-Men Evolution');
+const banned = ['show-xmen-e3', 'show-xmen-e7', 'show-xmen-e11'];
+const insExcl = db.prepare('INSERT INTO channel_excludes (channel_id, rating_key) VALUES (?,?)');
+for (const k of banned) insExcl.run(chFilter, k);
+generateChannel(chFilter, until);
+const airedBanned = db.prepare(
+  `SELECT COUNT(*) n FROM programs WHERE channel_id = ? AND rating_key IN (${banned.map(() => '?').join(',')})`
+).get(chFilter, ...banned).n;
+const airedOther = db.prepare(
+  "SELECT COUNT(*) n FROM programs WHERE channel_id = ? AND kind = 'episode'"
+).get(chFilter).n;
+check('filter: excluded episodes never air', airedBanned === 0 && airedOther > 0,
+  `(${airedBanned} banned aired, ${airedOther} others)`);
+
 const counts = db.prepare('SELECT COUNT(*) n FROM programs').get().n;
 console.log(`\n${counts} programs across 4 channels / 2 days`);
 console.log(`${pass} passed, ${fail} failed\n`);

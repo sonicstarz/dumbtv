@@ -393,6 +393,45 @@ export default async function api(fastify) {
     return { ok: true };
   });
 
+  // ---- Config backup / restore -------------------------------------------
+
+  // Export the whole lineup as one JSON — back it up, share it, or move it to
+  // the Pi. No secrets (token, PIN) are included.
+  fastify.get('/api/config/export', async () => ({
+    version: 2,
+    exportedAt: Date.now(),
+    channels: db.prepare('SELECT * FROM channels ORDER BY number').all(),
+    sources: db.prepare('SELECT * FROM channel_sources').all(),
+    rules: db.prepare('SELECT * FROM schedule_rules').all(),
+  }));
+
+  fastify.post('/api/config/import', async (req, reply) => {
+    const cfg = req.body;
+    if (!cfg || !Array.isArray(cfg.channels)) {
+      return reply.code(400).send({ error: 'Not a Cathode config file' });
+    }
+    const insertRow = (table, obj, remap = {}) => {
+      const row = { ...obj, ...remap };
+      const cols = Object.keys(row).filter((k) => k !== 'id');
+      return db.prepare(`INSERT INTO ${table} (${cols.join(',')}) VALUES (${cols.map(() => '?').join(',')})`)
+        .run(...cols.map((c) => row[c]));
+    };
+    const run = db.transaction(() => {
+      db.prepare('DELETE FROM channels').run(); // cascades sources, rules, programs
+      const idMap = {};
+      for (const c of cfg.channels) idMap[c.id] = insertRow('channels', c).lastInsertRowid;
+      for (const s of cfg.sources || []) {
+        if (idMap[s.channel_id]) insertRow('channel_sources', s, { channel_id: idMap[s.channel_id] });
+      }
+      for (const r of cfg.rules || []) {
+        if (idMap[r.channel_id]) insertRow('schedule_rules', r, { channel_id: idMap[r.channel_id] });
+      }
+    });
+    run();
+    ensureSchedule();
+    return { ok: true, channels: cfg.channels.length, rules: (cfg.rules || []).length };
+  });
+
   fastify.get('/api/guide', async (req) => {
     const from = req.query.from ? Number(req.query.from) : Date.now();
     const hours = req.query.hours ? Number(req.query.hours) : 3;
@@ -569,6 +608,9 @@ export default async function api(fastify) {
     dvrSlots: getSetting('dvr_slots', 6),
     sleepStart: getSetting('sleep_start', null),
     sleepEnd: getSetting('sleep_end', null),
+    timezone: getSetting('timezone', null),
+    activeTimezone: process.env.TZ || Intl.DateTimeFormat().resolvedOptions().timeZone,
+    loudnessTarget: getSetting('loudness_target', -23),
   }));
 
   fastify.post('/api/settings', async (req) => {
@@ -576,6 +618,18 @@ export default async function api(fastify) {
     if (b.dvrSlots !== undefined) setSetting('dvr_slots', Number(b.dvrSlots));
     if (b.sleepStart !== undefined) setSetting('sleep_start', b.sleepStart || null);
     if (b.sleepEnd !== undefined) setSetting('sleep_end', b.sleepEnd || null);
+    if (b.loudnessTarget !== undefined) setSetting('loudness_target', Number(b.loudnessTarget));
+    if (b.timezone !== undefined) {
+      const tz = (b.timezone || '').trim();
+      // Validate the IANA zone before storing.
+      try {
+        if (tz) Intl.DateTimeFormat('en', { timeZone: tz });
+        setSetting('timezone', tz || null);
+        if (tz) process.env.TZ = tz;
+      } catch {
+        return { ok: false, error: 'Unknown timezone' };
+      }
+    }
     return { ok: true };
   });
 }

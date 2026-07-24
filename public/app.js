@@ -212,7 +212,42 @@ async function loadSettings() {
   $('#pinLabel').textContent = s.configured ? (s.authed ? 'CHANGE PIN' : 'ENTER PIN') : 'SET A PIN (4–6 digits)';
   $('#pinLogout').style.display = s.configured && s.authed ? 'inline-block' : 'none';
   $('#pinSave').textContent = s.configured && !s.authed ? 'Unlock' : 'Save';
+
+  const cfg = await api('/api/settings');
+  $('#tzStatus').textContent = `Active: ${cfg.activeTimezone}${cfg.timezone ? '' : ' (this device — no override set)'}`;
+  $('#tzInput').value = cfg.timezone || '';
 }
+$('#tzSave').addEventListener('click', async () => {
+  try {
+    const r = await api('/api/settings', { method: 'POST', body: { timezone: $('#tzInput').value.trim() } });
+    if (r.error) return toast(r.error, true);
+    toast('Timezone saved. Regenerate channels to shift the grid.');
+    loadSettings();
+  } catch (err) { toast(err.message, true); }
+});
+$('#tzOS').addEventListener('click', () => {
+  $('#tzInput').value = Intl.DateTimeFormat().resolvedOptions().timeZone;
+});
+$('#cfgExport').addEventListener('click', async () => {
+  const cfg = await api('/api/config/export');
+  const blob = new Blob([JSON.stringify(cfg, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `cathode-config-${new Date().toISOString().slice(0, 10)}.json`;
+  a.click();
+});
+$('#cfgImport').addEventListener('change', async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  if (!confirm('Importing replaces the current lineup. Continue?')) { e.target.value = ''; return; }
+  try {
+    const cfg = JSON.parse(await file.text());
+    const r = await api('/api/config/import', { method: 'POST', body: cfg });
+    toast(`Imported ${r.channels} channels, ${r.rules} rules.`);
+    loadStatus();
+  } catch (err) { toast(err.message, true); }
+  e.target.value = '';
+});
 $('#pinSave').addEventListener('click', async () => {
   const pin = $('#pinInput').value.trim();
   const s = await api('/api/auth/status');

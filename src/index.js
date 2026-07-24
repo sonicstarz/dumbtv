@@ -2,7 +2,7 @@ import Fastify from 'fastify';
 import fastifyStatic from '@fastify/static';
 import os from 'node:os';
 import { config } from './config.js';
-import { db } from './db.js';
+import { db, getSetting } from './db.js';
 import api from './routes/api.js';
 import { ensureSchedule } from './schedule/generator.js';
 import { engine } from './player/engine.js';
@@ -31,6 +31,10 @@ function lanAddress() {
 }
 
 async function main() {
+  // Honor a configured IANA timezone (a headless Pi often boots on UTC). Set
+  // before any scheduling, which is anchored to local midnight.
+  const tz = getSetting('timezone', null);
+  if (tz) process.env.TZ = tz;
   initFromEnv();
   ensureSchedule();
 

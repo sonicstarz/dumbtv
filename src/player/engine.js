@@ -16,6 +16,9 @@ import {
   OVERLAY_IDS,
 } from './overlay.js';
 
+// A clock earlier than this is a cold-booted Pi with no NTP yet, not a real time.
+const CLOCK_SANE_AFTER = Date.UTC(2026, 0, 1);
+
 const BANNER_MS = 5000;
 
 /**
@@ -319,6 +322,17 @@ export class Engine extends EventEmitter {
   async sync(force = false) {
     if (!this.channelId) return;
     const at = Date.now();
+
+    // NTP sanity gate: a Pi with no real-time clock cold-boots thinking it's 1970.
+    // Don't guess the schedule against a bogus clock — show a card until time syncs.
+    if (at < CLOCK_SANE_AFTER) {
+      if (this.mpv && this.mpv.ready) {
+        await this.mpv.stop().catch(() => {});
+        await this.mpv.showOverlay(OVERLAY_IDS.card, troubleCard('Waiting for the clock to sync…')).catch(() => {});
+      }
+      return;
+    }
+
     const program = nowOn(this.channelId, at);
 
     if (!program) {

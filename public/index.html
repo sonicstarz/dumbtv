@@ -233,6 +233,27 @@
         </div>
         <p class="hint">Gates channel and rule edits. The TV never asks for it. Forgot it? Delete the <span class="mono">pin_hash</span> row in the settings table.</p>
       </div>
+
+      <div class="card">
+        <h3>Timezone</h3>
+        <p class="sub" id="tzStatus">—</p>
+        <div class="field" style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap">
+          <div style="flex:1;min-width:220px"><label>IANA TIMEZONE</label><input id="tzInput" placeholder="America/New_York" style="width:100%"></div>
+          <button class="primary" id="tzSave">Save</button>
+          <button class="sm" id="tzOS">Use this device’s</button>
+        </div>
+        <p class="hint">The schedule is anchored to local midnight. A headless Pi often boots on UTC — set the zone so <span class="mono">08:00</span> means 8am where the TV is.</p>
+      </div>
+
+      <div class="card">
+        <h3>Backup &amp; restore</h3>
+        <p class="sub">Save the whole lineup — channels, sources, and rules — as one JSON. No token or PIN is included.</p>
+        <div class="field" style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+          <button class="primary" id="cfgExport">Export config</button>
+          <label class="sm" style="cursor:pointer;padding:8px 12px;border:1px solid var(--line);border-radius:6px">Import config…<input id="cfgImport" type="file" accept="application/json" style="display:none"></label>
+        </div>
+        <p class="hint">Importing replaces the current lineup. Good for backups, sharing a setup, or moving it to the Pi.</p>
+      </div>
     </section>
 
   </main>

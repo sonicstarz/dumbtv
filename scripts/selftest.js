@@ -449,6 +449,21 @@ const spanDays = cadProgs.length > 1
 check('cadence: replays the show at compressed spacing', cadProgs.length >= 2 && spanDays > 7 && spanDays < 14,
   `(${cadProgs.length} eps over ${spanDays.toFixed(1)}d, original 77d ÷ 7)`);
 
+// ---- regression: empty channel that gets content later --------------------
+// A channel generated while it has no sources writes a "No content selected"
+// placeholder spanning the whole window. Adding content must replace it, not
+// leave the channel stuck on dead air (regenerate has to drop the placeholder
+// even though it is currently airing).
+const chLate = makeChannel(13, 'Added Later', 'sequential', 30);
+generateChannel(chLate, until);           // built while empty → placeholder
+const placeholderTitle = nowOn(chLate)?.title;
+for (const s of shows) addSource.run(chLate, s.key, 'show', s.title);
+regenerateChannel(chLate);                // content arrives
+const nowLate = nowOn(chLate)?.title;
+check('empty channel recovers when content is added later',
+  placeholderTitle === 'No content selected' && nowLate && nowLate !== 'No content selected',
+  `(was "${placeholderTitle}" → now "${nowLate}")`);
+
 const counts = db.prepare('SELECT COUNT(*) n FROM programs').get().n;
 console.log(`\n${counts} programs across 4 channels / 2 days`);
 console.log(`${pass} passed, ${fail} failed\n`);

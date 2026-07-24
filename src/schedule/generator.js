@@ -601,7 +601,13 @@ export function previewChannel(channelId, days = 7) {
 export function regenerateChannel(channelId) {
   const now = Date.now();
   return db.transaction(() => {
-    db.prepare('DELETE FROM programs WHERE channel_id = ? AND start_utc >= ?').run(channelId, now);
+    // Drop everything not yet aired. Also drop the "No content selected"
+    // placeholder even if it is currently airing: it is dead air, not a real
+    // broadcast, and because it spans the whole window it would otherwise pin
+    // generated_thru two weeks out and starve the rebuild when content arrives.
+    db.prepare(
+      "DELETE FROM programs WHERE channel_id = ? AND (start_utc >= ? OR title = 'No content selected')"
+    ).run(channelId, now);
     const last = db
       .prepare('SELECT MAX(end_utc) AS e FROM programs WHERE channel_id = ? AND start_utc < ?')
       .get(channelId, now);

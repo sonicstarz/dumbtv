@@ -75,8 +75,31 @@ final class EmbeddedServer {
             let data = (try? JSONSerialization.data(withJSONObject: r.json)) ?? Data("{}".utf8)
             return (r.status, "application/json", data)
         }
+        if req.path == "/licenses" {
+            return (200, "text/html; charset=utf-8", Data(Self.licensesHTML.utf8))
+        }
         return staticAsset(req.path)
     }
+
+    // LGPL compliance (see docs/vlckit-licensing.md): make users aware VLCKit is
+    // embedded and point to its source. Reachable in-app at /licenses.
+    private static let licensesHTML = """
+    <!doctype html><meta name=viewport content="width=device-width,initial-scale=1">
+    <title>dumbTV — Licenses</title>
+    <body style="font:16px/1.5 -apple-system,system-ui;max-width:40rem;margin:2rem auto;padding:0 1rem;color:#111">
+    <h1>Licenses &amp; Acknowledgements</h1>
+    <p><b>dumbTV</b> turns a Plex library into a 1990s cable box.</p>
+    <h2>VLCKit / libVLC</h2>
+    <p>This app plays video using <b>VLCKit</b> (libVLC), &copy; VideoLAN and contributors,
+    licensed under the <b>GNU Lesser General Public License, version 2.1 or later</b>.</p>
+    <p>VLCKit is used unmodified and linked dynamically; you may obtain, modify, and
+    relink it under the LGPL. Source code for the exact version is available from VideoLAN:</p>
+    <ul>
+      <li><a href="https://code.videolan.org/videolan/VLCKit">code.videolan.org/videolan/VLCKit</a></li>
+      <li><a href="https://www.gnu.org/licenses/old-licenses/lgpl-2.1.html">Full LGPL v2.1 text</a></li>
+    </ul>
+    <p style="color:#666">dumbTV's own code is separate from the LGPL library and is not covered by it.</p>
+    """
 
     // MARK: - static web UI (bundled). Falls back to a placeholder until the
     // shared public/ assets are bundled (next Track G task).

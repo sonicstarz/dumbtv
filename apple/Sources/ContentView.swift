@@ -6,9 +6,9 @@ import dumbTVCore
 /// the local backend (see docs/api-contract.md), reached from a phone/laptop
 /// browser on the same network.
 struct ContentView: View {
+    @ObservedObject var engine: Engine
     let store: Store?
     var configURL: String? = nil
-    @StateObject private var engine = Engine()
 
     var body: some View {
         TVView(engine: engine, configURL: configURL)
@@ -17,5 +17,5 @@ struct ContentView: View {
 }
 
 #Preview {
-    ContentView(store: nil, configURL: "http://10.0.1.21:8080")
+    ContentView(engine: Engine(), store: nil, configURL: "http://10.0.1.21:8080")
 }

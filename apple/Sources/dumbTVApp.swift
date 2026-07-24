@@ -3,6 +3,8 @@ import dumbTVCore
 
 @main
 struct dumbTVApp: App {
+    /// The player, owned at app scope so the macOS menu bar can drive it.
+    @StateObject private var engine = Engine()
     /// The on-device config backend: one persistent Store shared by the embedded
     /// web server (config) and the player (playback). Held for the app's lifetime.
     private let store: Store?
@@ -25,7 +27,7 @@ struct dumbTVApp: App {
 
     var body: some Scene {
         WindowGroup {
-            ContentView(store: store, configURL: configURL)
+            ContentView(engine: engine, store: store, configURL: configURL)
                 #if os(macOS)
                 .frame(minWidth: 640, minHeight: 360)
                 .background(Color.black)
@@ -35,6 +37,16 @@ struct dumbTVApp: App {
         .defaultSize(width: 1024, height: 576)          // 16:9
         .windowStyle(.hiddenTitleBar)                    // immersive — it's a TV
         .windowResizability(.contentMinSize)
+        .commands {
+            CommandGroup(replacing: .newItem) {}          // no "New Window"
+            CommandMenu("Channel") {
+                Button("Channel Up")   { engine.channelUp() }.keyboardShortcut(.upArrow, modifiers: .command)
+                Button("Channel Down") { engine.channelDown() }.keyboardShortcut(.downArrow, modifiers: .command)
+                Divider()
+                Button(engine.guideOpen ? "Hide Guide" : "Show Guide") { engine.guideOpen.toggle() }
+                    .keyboardShortcut("g", modifiers: .command)
+            }
+        }
         #endif
     }
 

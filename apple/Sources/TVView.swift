@@ -21,6 +21,14 @@ struct TVView: View {
             VideoSurface(player: engine.player).ignoresSafeArea()
             VStack {
                 HStack {
+                    if engine.demo {
+                        Text("DEMO")
+                            .font(.system(.caption2, design: .monospaced)).bold()
+                            .foregroundStyle(.black)
+                            .padding(.horizontal, 8).padding(.vertical, 4)
+                            .background(Palette.amber)
+                            .clipShape(Capsule())
+                    }
                     Spacer()
                     Button { engine.guideOpen = true } label: {
                         Text("GUIDE")

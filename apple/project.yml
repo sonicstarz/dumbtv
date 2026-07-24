@@ -49,6 +49,7 @@ targets:
     platform: tvOS
     sources:
       - path: Sources
+      - path: Resources
     dependencies:
       - package: VLCKit
         product: VLCKitSPM
@@ -64,6 +65,7 @@ targets:
     deploymentTarget: "14.0"
     sources:
       - path: Sources
+      - path: Resources
     dependencies:
       - package: VLCKit
         product: VLCKitSPM

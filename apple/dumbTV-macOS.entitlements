@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <!-- Mac App Store requires the App Sandbox. -->
+  <key>com.apple.security.app-sandbox</key>
+  <true/>
+  <!-- Outbound: Plex API + VLCKit playback. -->
+  <key>com.apple.security.network.client</key>
+  <true/>
+  <!-- Inbound: the embedded config server listens on the LAN. -->
+  <key>com.apple.security.network.server</key>
+  <true/>
+  <!-- Config export/import to a file the user picks. -->
+  <key>com.apple.security.files.user-selected.read-write</key>
+  <true/>
+</dict>
+</plist>

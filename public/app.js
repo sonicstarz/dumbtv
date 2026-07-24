@@ -83,10 +83,29 @@ async function loadSchedule() {
 
 function populateSources() {
   const ch = (sched.channels || []).find((c) => c.id === sched.channelId);
-  const opts = (ch && ch.sources || []).map((s) => `<option value="${s.ratingKey}">${escapeHtml(s.title || s.ratingKey)}</option>`).join('')
+  const sources = (ch && ch.sources) || [];
+  const opts = sources.map((s) => `<option value="${s.ratingKey}" data-type="${s.sourceType}">${escapeHtml(s.title || s.ratingKey)}</option>`).join('')
     || '<option value="">(no sources on this channel)</option>';
   $('#rAirSource').innerHTML = opts;
   $('#rPinSource').innerHTML = opts;
+  loadPinEpisodes();
+}
+
+// When the pinned "content" is a show, offer its episodes; a movie plays as-is.
+async function loadPinEpisodes() {
+  const src = $('#rPinSource');
+  const opt = src.options[src.selectedIndex];
+  const wrap = $('#rPinEpisodeWrap');
+  const epSel = $('#rPinEpisode');
+  if (!opt || opt.dataset.type !== 'show') { wrap.style.display = 'none'; return; }
+  wrap.style.display = 'block';
+  epSel.innerHTML = '<option value="">Loading…</option>';
+  try {
+    const { episodes } = await api(`/api/library/show/${opt.value}/episodes`);
+    epSel.innerHTML = episodes.length
+      ? episodes.map((e) => `<option value="${e.ratingKey}">${e.seasonNo ?? '?'}·${String(e.episodeNo ?? '?').padStart(2, '0')} — ${escapeHtml(e.title || 'Untitled')}</option>`).join('')
+      : '<option value="">(no episodes cached)</option>';
+  } catch (err) { epSel.innerHTML = `<option value="">${escapeHtml(err.message)}</option>`; }
 }
 
 async function loadRules() {
@@ -161,6 +180,7 @@ $('#rKind').addEventListener('change', (e) => {
 $('#rMode').addEventListener('change', (e) => {
   $('#rCadenceWrap').style.display = e.target.value === 'original_cadence' ? 'block' : 'none';
 });
+$('#rPinSource').addEventListener('change', loadPinEpisodes);
 $('#rAdd').addEventListener('click', async () => {
   const kind = $('#rKind').value;
   const body = { kind, name: $('#rName').value || null };
@@ -181,8 +201,18 @@ $('#rAdd').addEventListener('click', async () => {
     const at = Date.parse($('#rPinAt').value.replace(' ', 'T'));
     if (Number.isNaN(at)) return toast('Bad date — use YYYY-MM-DD HH:MM', true);
     body.startsAtUtc = at;
-    body.ratingKey = $('#rPinSource').value;
-    body.sourceType = 'episode';
+    const src = $('#rPinSource');
+    const opt = src.options[src.selectedIndex];
+    if (opt && opt.dataset.type === 'show') {
+      // A show must resolve to one episode — the show key isn't playable itself.
+      body.ratingKey = $('#rPinEpisode').value;
+      body.sourceType = 'episode';
+      if (!body.ratingKey) return toast('Pick which episode to pin.', true);
+    } else {
+      body.ratingKey = src.value;
+      body.sourceType = 'movie';
+      if (!body.ratingKey) return toast('Pick a movie to pin.', true);
+    }
   }
   try {
     const { id } = await api(`/api/channels/${sched.channelId}/rules`, { method: 'POST', body });

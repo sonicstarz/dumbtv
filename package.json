@@ -28,6 +28,7 @@
   "dependencies": {
     "@fastify/static": "^7.0.4",
     "better-sqlite3": "^11.3.0",
-    "fastify": "^4.28.1"
+    "fastify": "^4.28.1",
+    "pdfkit": "^0.19.1"
   }
 }

@@ -37,6 +37,7 @@ import {
 import { guide, nowOnAll, nowOn, upNext, publicChannel } from '../schedule/resolver.js';
 import { ORDERING_MODES } from '../schedule/ordering.js';
 import { scanAssets } from '../assets.js';
+import { buildSchedulePdf } from '../print.js';
 import { engine } from '../player/engine.js';
 import { HOUR } from '../util/time.js';
 
@@ -315,6 +316,18 @@ export default async function api(fastify) {
   fastify.get('/api/channels/:id/preview', async (req) =>
     previewChannel(Number(req.params.id), Number(req.query.days || 7))
   );
+
+  // Printable PDF guide, straight from the programs table.
+  fastify.get('/api/schedule/print', async (req, reply) => {
+    const from = req.query.from ? Number(req.query.from) : Date.now();
+    const days = Math.max(1, Math.min(14, Number(req.query.days || 7)));
+    const channelIds = req.query.channels
+      ? String(req.query.channels).split(',').map(Number).filter(Boolean)
+      : null;
+    reply.header('Content-Type', 'application/pdf');
+    reply.header('Content-Disposition', 'inline; filename="cathode-guide.pdf"');
+    return reply.send(buildSchedulePdf({ from, days, channelIds }));
+  });
 
   // ---- Schedule rules ----------------------------------------------------
 

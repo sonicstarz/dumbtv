@@ -141,6 +141,10 @@ async function runPreview() {
 
 $('#schChannel').addEventListener('change', async (e) => { sched.channelId = Number(e.target.value); populateSources(); await loadRules(); await runPreview(); });
 $('#schPreview').addEventListener('click', runPreview);
+$('#printGuide').addEventListener('click', () => {
+  const days = $('#printDays').value;
+  window.open(`/api/schedule/print?days=${days}`, '_blank');
+});
 $('#schApply').addEventListener('click', async () => {
   try {
     await api('/api/schedule/regenerate', { method: 'POST', body: { channelId: sched.channelId } });

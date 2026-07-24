@@ -46,6 +46,8 @@ function decorate(row, at) {
     seasonNo: row.season_no,
     episodeNo: row.episode_no,
     ratingKey: row.rating_key,
+    airingNo: row.airing_no ?? 1,
+    ruleId: row.rule_id ?? null,
     offsetMs,
     remainingMs: Math.max(0, row.end_utc - at),
     source: null,

@@ -152,8 +152,17 @@
           <div><label>CHANNEL</label><select id="schChannel"></select></div>
           <button class="sm" id="schPreview">Preview 7 days</button>
           <button class="primary" id="schApply">Apply changes</button>
+          <span style="flex:1"></span>
+          <div><label>PRINT</label>
+            <select id="printDays" style="width:120px">
+              <option value="1">Today</option>
+              <option value="3">3 days</option>
+              <option value="7" selected>This week</option>
+            </select>
+          </div>
+          <button class="sm" id="printGuide">Open PDF ↗</button>
         </div>
-        <p class="hint">Preview is a dry run — nothing airs until you Apply.</p>
+        <p class="hint">Preview is a dry run — nothing airs until you Apply. The PDF is a printable grid straight from the schedule.</p>
       </div>
 
       <div class="card">

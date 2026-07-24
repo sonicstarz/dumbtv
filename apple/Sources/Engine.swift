@@ -15,6 +15,7 @@ struct GuideEntry: Identifiable {
     let name: String
     let now: Airing?
     let next: Program?
+    let upcoming: [Program]   // the next few programs, with start times
 }
 
 /// The once-a-second loop that makes reality match the schedule — the Swift
@@ -250,9 +251,10 @@ final class Engine: ObservableObject {
     func guideRows() -> [GuideEntry] {
         let at = nowMs()
         return channels.enumerated().map { i, ch in
-            GuideEntry(id: i, number: ch.spec.number, name: ch.spec.name,
-                       now: Resolver.nowOn(ch.programs, at: at),
-                       next: Resolver.upNext(ch.programs, at: at, count: 1).first)
+            let upcoming = Resolver.upNext(ch.programs, at: at, count: 3)
+            return GuideEntry(id: i, number: ch.spec.number, name: ch.spec.name,
+                              now: Resolver.nowOn(ch.programs, at: at),
+                              next: upcoming.first, upcoming: upcoming)
         }
     }
 }

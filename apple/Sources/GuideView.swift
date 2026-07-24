@@ -57,6 +57,11 @@ private struct GuideRowCard: View {
     let row: GuideEntry
     let isCurrent: Bool
 
+    static func time(_ ms: Millis) -> String {
+        let f = DateFormatter(); f.dateFormat = "h:mm"
+        return f.string(from: Date(timeIntervalSince1970: Double(ms) / 1000))
+    }
+
     private var episodeTag: String {
         guard let p = row.now?.program, let s = p.seasonNo, let e = p.episodeNo else { return "" }
         return String(format: "S%02dE%02d  ", s, e)
@@ -83,12 +88,22 @@ private struct GuideRowCard: View {
                 ProgressView(value: row.now?.progress ?? 0).tint(Palette.amber)
             }
 
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: 3) {
                 Text("NEXT").font(.system(size: 10, design: .monospaced)).foregroundStyle(Color(white: 0.75))
-                Text(row.next?.title ?? "—")
-                    .font(.subheadline).foregroundStyle(Color(white: 0.85)).lineLimit(2)
+                if row.upcoming.isEmpty {
+                    Text("—").font(.caption).foregroundStyle(Color(white: 0.85))
+                }
+                ForEach(Array(row.upcoming.prefix(3).enumerated()), id: \.offset) { _, p in
+                    HStack(spacing: 6) {
+                        Text(Self.time(p.startUtc))
+                            .font(.system(size: 11, design: .monospaced))
+                            .foregroundStyle(Palette.amber).frame(width: 52, alignment: .leading)
+                        Text(p.title)
+                            .font(.caption).foregroundStyle(Color(white: 0.85)).lineLimit(1)
+                    }
+                }
             }
-            .frame(width: 120, alignment: .leading)
+            .frame(width: 168, alignment: .leading)
         }
         .padding(12)
         .background(isCurrent ? Palette.amber.opacity(0.22) : Color.white.opacity(0.06))

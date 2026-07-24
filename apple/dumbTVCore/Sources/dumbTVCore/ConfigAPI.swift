@@ -70,6 +70,11 @@ public final class ConfigAPI {
         case ("POST", 2) where s[0] == "plex" && s[1] == "server":  return await plexSaveServer(req)
         case ("POST", 2) where s[0] == "plex" && s[1] == "logout":  return plexLogout()
 
+        // --- schedule (deterministic; regen/ensure are no-ops on Apple) ---
+        case ("POST", 2) where s[0] == "schedule" && s[1] == "regenerate": return .ok()
+        case ("POST", 2) where s[0] == "schedule" && s[1] == "ensure":     return .ok()
+        case ("GET", 2) where s[0] == "schedule" && s[1] == "calendar":    return scheduleCalendar(req)
+
         // --- library browse (async network) ---
         case ("GET", 2) where s[0] == "library" && s[1] == "sections": return await librarySections()
         case ("GET", 4) where s[0] == "library" && s[1] == "sections" && s[3] == "items":
@@ -291,6 +296,33 @@ public final class ConfigAPI {
             "version": 2,
             "channels": store.allChannels().map(channelJSON),
             "rules": allRules().map(ruleJSON),
+        ])
+    }
+
+    /// A channel's real program blocks over a day range — for the calendar view.
+    /// Generated from the Store (deterministic), matching the Node shape.
+    private func scheduleCalendar(_ req: Request) -> Response {
+        guard let cid = req.query["channel"].flatMap({ Int($0) }), let c = store.channel(cid) else {
+            return .ok(["programs": []])
+        }
+        let from = req.query["from"].flatMap { Int64($0) } ?? nowMs()
+        let days = min(14, max(1, req.query["days"].flatMap { Int($0) } ?? 7))
+        let window = Int64(days) * 24 * 3_600_000
+        let to = from + window
+        let buckets = store.library(forChannel: cid).sourceBuckets()
+        let programs = buckets.isEmpty ? []
+            : Generator.generate(channel: c.spec, buckets: buckets, now: from, windowMs: window)
+        let inRange = programs.filter {
+            $0.endUtc > from && $0.startUtc < to && ($0.kind == .episode || $0.kind == .movie)
+        }
+        return .ok([
+            "from": from, "to": to,
+            "programs": inRange.map { p -> [String: Any] in
+                ["startUtc": p.startUtc, "endUtc": p.endUtc, "kind": p.kind.rawValue, "title": p.title,
+                 "subtitle": p.subtitle ?? NSNull(), "seasonNo": p.seasonNo ?? NSNull(),
+                 "episodeNo": p.episodeNo ?? NSNull(), "ratingKey": p.ratingKey ?? NSNull(),
+                 "isPremiere": p.airingNo == 1]
+            },
         ])
     }
 

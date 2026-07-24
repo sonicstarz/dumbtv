@@ -173,15 +173,20 @@ public final class ConfigAPI {
 
     /// What's on every enabled channel right now — generated deterministically
     /// from the Store (the generator is seeded, so this matches the player).
+    /// Shape matches the web UI's ON AIR strip: { channel:{id,number,name}, now }.
     private func onair() -> Response {
         let now = nowMs()
-        let channels: [[String: Any]] = store.allChannels().filter { $0.enabled }.compactMap { c in
+        let channels: [[String: Any]] = store.allChannels().filter { $0.enabled }.map { c in
+            var nowObj: Any = NSNull()
             let buckets = store.library(forChannel: c.id).sourceBuckets()
-            guard !buckets.isEmpty else { return nil }
-            let programs = Generator.generate(channel: c.spec, buckets: buckets, now: now, windowMs: 24 * 3_600_000)
-            guard let a = Resolver.nowOn(programs, at: now) else { return nil }
-            return ["number": c.number, "name": c.name, "title": a.program.title,
-                    "subtitle": a.program.subtitle ?? NSNull(), "progress": a.progress]
+            if !buckets.isEmpty {
+                let programs = Generator.generate(channel: c.spec, buckets: buckets, now: now, windowMs: 24 * 3_600_000)
+                if let a = Resolver.nowOn(programs, at: now) {
+                    nowObj = ["title": a.program.title, "subtitle": a.program.subtitle ?? NSNull(),
+                              "progress": a.progress]
+                }
+            }
+            return ["channel": ["id": c.id, "number": c.number, "name": c.name], "now": nowObj]
         }
         return .ok(["at": now, "channels": channels])
     }

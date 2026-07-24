@@ -2,7 +2,7 @@ import { db } from '../db.js';
 import { config } from '../config.js';
 import { buildPlaylist } from './ordering.js';
 import { makeRng, hashString } from '../util/rng.js';
-import { MINUTE, DAY } from '../util/time.js';
+import { MINUTE, DAY, ceilToSlot } from '../util/time.js';
 
 function adPool(channel) {
   const tags = String(channel.ad_tags || '')
@@ -29,47 +29,84 @@ function adPool(channel) {
 }
 
 // Aim for a short commercial break between shows, like real TV. There's no slot
-// boundary to fill any more, so a break is just a couple of minutes of ads.
-const AD_BREAK_TARGET_MS = 150 * 1000;
+const round5 = (ms) => Math.round(ms / (5 * MINUTE)) * (5 * MINUTE);
 
-/**
- * A commercial break to sit between two programs. Ads up to the per-break cap or
- * ~2.5 minutes, then an optional station-ID bumper. No filler card — without a
- * slot boundary to hit, programs run straight into each other when there are no
- * ads, exactly like channel-surfing real broadcast TV.
- */
-function buildAdBreak(channel, pool, seedKey) {
+/** Pick up to `count` ads, no repeat until the pool is exhausted, each fitting `budgetMs`. */
+function pickAds(channel, pool, seedKey, count, budgetMs) {
   const items = [];
-  if (!channel.ads_enabled || pool.length === 0) return items;
-
+  if (!channel.ads_enabled || pool.length === 0 || count <= 0) return items;
   const rng = makeRng(hashString(seedKey));
   const ads = pool.filter((a) => a.kind === 'ad');
   const usable = ads.length > 0 ? ads : pool.filter((a) => a.kind !== 'bumper');
+  if (usable.length === 0) return items;
   const used = new Set();
-  let placed = 0;
-  let filled = 0;
-  while (placed < channel.max_ads_per_break && filled < AD_BREAK_TARGET_MS) {
-    let fits = usable.filter((a) => !used.has(a.id));
-    // Only start repeating once every spot has already run this break.
-    if (fits.length === 0) {
-      used.clear();
-      fits = usable;
-    }
+  let total = 0;
+  while (items.length < count) {
+    let fits = usable.filter((a) => !used.has(a.id) && total + a.duration_ms <= budgetMs);
+    if (fits.length === 0) { used.clear(); fits = usable.filter((a) => total + a.duration_ms <= budgetMs); }
     if (fits.length === 0) break;
     const pick = fits[Math.floor(rng() * fits.length)];
     used.add(pick.id);
     items.push({ kind: 'ad', assetId: pick.id, title: pick.title, durationMs: pick.duration_ms });
-    filled += pick.duration_ms;
-    placed++;
+    total += pick.duration_ms;
   }
-
-  const bumpers = pool.filter((a) => a.kind === 'bumper');
-  if (bumpers.length > 0) {
-    const pick = bumpers[Math.floor(rng() * bumpers.length)];
-    items.push({ kind: 'bumper', assetId: pick.id, title: pick.title, durationMs: pick.duration_ms });
-  }
-
   return items;
+}
+
+function pickBumper(channel, pool, seedKey, budgetMs) {
+  if (!channel.ads_enabled || pool.length === 0) return null;
+  const rng = makeRng(hashString(`${seedKey}:bump`));
+  const bumpers = pool.filter((a) => a.kind === 'bumper' && a.duration_ms <= budgetMs);
+  if (bumpers.length === 0) return null;
+  const pick = bumpers[Math.floor(rng() * bumpers.length)];
+  return { kind: 'bumper', assetId: pick.id, title: pick.title, durationMs: pick.duration_ms };
+}
+
+/**
+ * A break between two programs, shaped by the channel's timing mode:
+ *   continuous — exactly N ads then straight into the next show; no slot grid.
+ *   grid       — fill to the next :00/:30 boundary (≥N ads, then bumper, then a
+ *                filler card) so the block lands on the grid and the guide reads.
+ *   auto       — a slot derived from content length + N ads, rounded to 5 min.
+ * `hardEnd` clamps everything to a reservation boundary. Returns the break items
+ * and the timestamp the block ends at.
+ */
+function buildBreak(channel, pool, seedKey, programEnd, slotStart, hardEnd) {
+  const mode = channel.timing_mode || 'continuous';
+  const adsN = channel.ads_between ?? 4;
+  const items = [];
+
+  if (mode === 'continuous') {
+    const ads = pickAds(channel, pool, seedKey, adsN, hardEnd - programEnd);
+    let end = programEnd + ads.reduce((s, a) => s + a.durationMs, 0);
+    const bump = pickBumper(channel, pool, seedKey, hardEnd - end);
+    const all = bump ? [...ads, bump] : ads;
+    end = programEnd + all.reduce((s, a) => s + a.durationMs, 0);
+    return { items: all, blockEnd: Math.min(end, hardEnd) };
+  }
+
+  // grid / auto: fill a fixed target window.
+  let target;
+  if (mode === 'auto') {
+    const avg = pool.length ? Math.round(pool.reduce((s, a) => s + a.duration_ms, 0) / pool.length) : 30_000;
+    const dur = programEnd - slotStart;
+    const five = 5 * MINUTE;
+    // Round to 5 min, but never shorter than the program itself.
+    const slotLen = Math.max(round5(dur + adsN * avg), Math.ceil(dur / five) * five);
+    target = slotStart + slotLen;
+  } else {
+    target = ceilToSlot(programEnd, Math.max(5, channel.slot_minutes || 30));
+  }
+  const blockEnd = Math.min(target, hardEnd);
+  let left = blockEnd - programEnd;
+  if (left <= 0) return { items, blockEnd };
+  const cap = Math.max(adsN, channel.max_ads_per_break || 10);
+  const ads = pickAds(channel, pool, seedKey, cap, left);
+  for (const a of ads) { items.push(a); left -= a.durationMs; }
+  const bump = pickBumper(channel, pool, seedKey, left);
+  if (bump) { items.push(bump); left -= bump.durationMs; }
+  if (left > 0) items.push({ kind: 'filler', assetId: null, title: channel.name, durationMs: left });
+  return { items, blockEnd };
 }
 
 // A deterministic per-channel head start (up to 20 min) so channels aren't all
@@ -319,7 +356,7 @@ function pushProgram(ctx, item, start, blockStart, ruleId) {
   });
 }
 
-function pushSpan(ctx, kind, start, end, title, subtitle, ruleId, assetId = null) {
+function pushSpan(ctx, kind, start, end, title, subtitle, ruleId, assetId = null, slotStart = start) {
   ctx.rows.push({
     channelId: ctx.channel.id,
     startUtc: start,
@@ -332,7 +369,7 @@ function pushSpan(ctx, kind, start, end, title, subtitle, ruleId, assetId = null
     subtitle: subtitle ?? null,
     seasonNo: null,
     episodeNo: null,
-    slotStart: start,
+    slotStart,
     ruleId,
     airingNo: 1,
   });
@@ -353,14 +390,17 @@ function fillWindow(ctx, ruleId, start, end) {
     if (!item || !item.duration_ms) { ctx.iter.note(item, t); continue; }
     if (t + item.duration_ms > end) break; // won't fit before the hard end
     const blockStart = t;
+    const programEnd = t + item.duration_ms;
     pushProgram(ctx, item, t, blockStart, ruleId);
-    t += item.duration_ms;
-    ctx.iter.note(item, t);
-    for (const bi of buildAdBreak(ctx.channel, ctx.pool, `${ctx.channel.id}:${blockStart}`)) {
+    ctx.iter.note(item, programEnd);
+    t = programEnd;
+    const { items, blockEnd } = buildBreak(ctx.channel, ctx.pool, `${ctx.channel.id}:${blockStart}`, programEnd, blockStart, end);
+    for (const bi of items) {
       if (t + bi.durationMs > end) break;
-      pushSpan(ctx, bi.kind, t, t + bi.durationMs, bi.title, null, ruleId, bi.assetId);
+      pushSpan(ctx, bi.kind, t, t + bi.durationMs, bi.title, null, ruleId, bi.assetId, blockStart);
       t += bi.durationMs;
     }
+    t = Math.max(t, Math.min(blockEnd, end));
   }
   if (t < end) pushSpan(ctx, 'filler', t, end, ctx.channel.name, null, ruleId);
   return end;

@@ -51,6 +51,9 @@ const CHANNEL_FIELDS = [
   'ads_enabled',
   'max_ads_per_break',
   'ad_tags',
+  'timing_mode',
+  'ads_between',
+  'cooldown_days',
   'enabled',
 ];
 
@@ -222,6 +225,9 @@ export default async function api(fastify) {
       ads_enabled: b.adsEnabled === undefined ? undefined : b.adsEnabled ? 1 : 0,
       max_ads_per_break: b.maxAdsPerBreak,
       ad_tags: b.adTags,
+      timing_mode: b.timingMode,
+      ads_between: b.adsBetween,
+      cooldown_days: b.cooldownDays,
       enabled: b.enabled === undefined ? undefined : b.enabled ? 1 : 0,
     };
     const sets = [];

@@ -475,6 +475,18 @@ function openSettings(channelId) {
     </div>
 
     <div class="row" style="margin-top:18px">
+      <div class="field"><label>AD TIMING</label>
+        <select id="fTiming">
+          <option value="continuous" ${c.timingMode === 'continuous' ? 'selected' : ''}>Continuous — exact ad count, no grid</option>
+          <option value="grid" ${c.timingMode === 'grid' ? 'selected' : ''}>Grid — lands on :00 / :30</option>
+          <option value="auto" ${c.timingMode === 'auto' ? 'selected' : ''}>Auto — slot rounded to 5 min</option>
+        </select>
+      </div>
+      <div class="field"><label>ADS BETWEEN SHOWS</label><input id="fAdsBetween" type="number" min="0" max="20" value="${c.adsBetween ?? 4}" style="width:120px"></div>
+      <div class="field"><label>REPEAT COOLDOWN (days)</label><input id="fCooldown" type="number" min="0" max="30" value="${c.cooldownDays ?? 0}" style="width:130px"></div>
+    </div>
+
+    <div class="row" style="margin-top:18px">
       <div class="field"><label>GOES DARK AT</label><input id="fDarkStart" type="time" value="${c.darkStart || ''}"></div>
       <div class="field"><label>COMES BACK AT</label><input id="fDarkEnd" type="time" value="${c.darkEnd || ''}"></div>
     </div>
@@ -530,6 +542,9 @@ function openSettings(channelId) {
           adsEnabled: $('#fAds', back).checked,
           maxAdsPerBreak: Number($('#fMaxAds', back).value),
           adTags: $('#fTags', back).value,
+          timingMode: $('#fTiming', back).value,
+          adsBetween: Number($('#fAdsBetween', back).value),
+          cooldownDays: Number($('#fCooldown', back).value),
           darkStart: $('#fDarkStart', back).value,
           darkEnd: $('#fDarkEnd', back).value,
         },

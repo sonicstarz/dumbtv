@@ -384,6 +384,36 @@ check('airdate: episodes air on the original weekday at the set time', allSat8, 
 check('airdate: consecutive weeks advance through the show', airProgs.length < 2 ||
   airProgs[0].rating_key !== airProgs[1].rating_key, `(${airProgs.map((p) => p.rating_key).join(', ')})`);
 
+console.log('\nAd timing modes');
+
+// grid mode: blocks land back on :00 / :30 so the guide stays readable.
+const chGrid = makeChannel(9, 'Grid', 'sequential', 30);
+for (const s of shows) addSource.run(chGrid, s.key, 'show', s.title);
+db.prepare("UPDATE channels SET timing_mode = 'grid', ads_between = 2 WHERE id = ?").run(chGrid);
+generateChannel(chGrid, Date.now() + 2 * 24 * HOUR);
+// Exclude the final slot — it's clamped to the window end, not a boundary.
+const gridEnds = db.prepare(
+  "SELECT slot_start, MAX(end_utc) e FROM programs WHERE channel_id = ? GROUP BY slot_start ORDER BY slot_start"
+).all(chGrid).slice(0, -1);
+let gridMiss = 0;
+for (const r of gridEnds) {
+  const d = new Date(r.e);
+  if (d.getMinutes() % 30 !== 0 || d.getSeconds() !== 0 || d.getMilliseconds() !== 0) gridMiss++;
+}
+check('grid mode: blocks land on :00 / :30', gridMiss === 0, `(${gridMiss}/${gridEnds.length} off-grid)`);
+
+// auto mode: each slot is a multiple of 5 minutes.
+const chAuto = makeChannel(10, 'Auto', 'sequential', 30);
+for (const s of shows) addSource.run(chAuto, s.key, 'show', s.title);
+db.prepare("UPDATE channels SET timing_mode = 'auto', ads_between = 3 WHERE id = ?").run(chAuto);
+generateChannel(chAuto, Date.now() + 2 * 24 * HOUR);
+const autoSlots = db.prepare(
+  "SELECT slot_start, MAX(end_utc) e FROM programs WHERE channel_id = ? GROUP BY slot_start ORDER BY slot_start"
+).all(chAuto).slice(0, -1); // last slot is clamped to the window end
+let notFive = 0;
+for (const r of autoSlots) { if ((r.e - r.slot_start) % (5 * MINUTE) !== 0) notFive++; }
+check('auto mode: slots round to 5 minutes', notFive === 0, `(${notFive} off)`);
+
 const counts = db.prepare('SELECT COUNT(*) n FROM programs').get().n;
 console.log(`\n${counts} programs across 4 channels / 2 days`);
 console.log(`${pass} passed, ${fail} failed\n`);

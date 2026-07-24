@@ -164,6 +164,9 @@ export function publicChannel(c) {
     adsEnabled: !!c.ads_enabled,
     maxAdsPerBreak: c.max_ads_per_break,
     adTags: c.ad_tags,
+    timingMode: c.timing_mode || 'continuous',
+    adsBetween: c.ads_between ?? 4,
+    cooldownDays: c.cooldown_days ?? 0,
     enabled: !!c.enabled,
     generatedThru: c.generated_thru,
   };

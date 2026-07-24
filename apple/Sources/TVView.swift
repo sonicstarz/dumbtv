@@ -36,6 +36,19 @@ struct TVView: View {
         #if os(tvOS)
         .onPlayPauseCommand { engine.blocked() }
         #endif
+        #if os(iOS)
+        // Touch: swipe up/down to change channel; a horizontal swipe would be a
+        // seek, so it no-ops with ⊘ (invariant #1).
+        .gesture(
+            DragGesture(minimumDistance: 40).onEnded { v in
+                if abs(v.translation.height) > abs(v.translation.width) {
+                    v.translation.height < 0 ? engine.channelUp() : engine.channelDown()
+                } else {
+                    engine.blocked()
+                }
+            }
+        )
+        #endif
     }
 
     // Full-screen video with the channel banner and a GUIDE button.

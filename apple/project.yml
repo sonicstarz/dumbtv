@@ -80,6 +80,7 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: app.dumbtv.tvos
         PRODUCT_NAME: dumbTV
+        ASSETCATALOG_COMPILER_APPICON_NAME: "App Icon & Top Shelf Image"
 
   dumbTV-macOS:
     type: application

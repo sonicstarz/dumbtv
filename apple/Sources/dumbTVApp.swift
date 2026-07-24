@@ -7,6 +7,7 @@ struct dumbTVApp: App {
     /// web server (config) and the player (playback). Held for the app's lifetime.
     private let store: Store?
     private let server: EmbeddedServer?
+    private let configURL: String?
 
     init() {
         let s = Self.openStore()
@@ -15,14 +16,16 @@ struct dumbTVApp: App {
             let srv = EmbeddedServer(store: s)
             srv.start()
             server = srv
+            configURL = NetworkInfo.configURL(port: srv.port)
         } else {
             server = nil
+            configURL = nil
         }
     }
 
     var body: some Scene {
         WindowGroup {
-            ContentView(store: store)
+            ContentView(store: store, configURL: configURL)
         }
     }
 

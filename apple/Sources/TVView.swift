@@ -3,6 +3,8 @@ import dumbTVCore
 
 struct TVView: View {
     @ObservedObject var engine: Engine
+    /// Where to configure this device (shown as a QR + URL until it's set up).
+    var configURL: String? = nil
 
     var body: some View {
         ZStack {
@@ -38,6 +40,10 @@ struct TVView: View {
                             .background(.black.opacity(0.6))
                             .clipShape(Capsule())
                     }
+                }
+                if engine.demo, let url = configURL {
+                    HStack { SetupCard(url: url); Spacer() }
+                        .padding(.top, 10)
                 }
                 Spacer()
                 if let airing = engine.now {

@@ -7,14 +7,15 @@ import dumbTVCore
 /// browser on the same network.
 struct ContentView: View {
     let store: Store?
+    var configURL: String? = nil
     @StateObject private var engine = Engine()
 
     var body: some View {
-        TVView(engine: engine)
+        TVView(engine: engine, configURL: configURL)
             .task { await engine.bootstrap(store: store) }
     }
 }
 
 #Preview {
-    ContentView(store: nil)
+    ContentView(store: nil, configURL: "http://10.0.1.21:8080")
 }

@@ -406,7 +406,7 @@ $('#cfgExport').addEventListener('click', async () => {
 $('#cfgImport').addEventListener('change', async (e) => {
   const file = e.target.files[0];
   if (!file) return;
-  if (!confirm('Importing replaces the current lineup. Continue?')) { e.target.value = ''; return; }
+  if (!(await confirmModal('Importing replaces the current lineup. Continue?', { ok: 'Import' }))) { e.target.value = ''; return; }
   try {
     const cfg = JSON.parse(await file.text());
     const r = await api('/api/config/import', { method: 'POST', body: cfg });
@@ -574,11 +574,16 @@ function renderChannels() {
   $$('[data-del]', host).forEach((b) =>
     b.addEventListener('click', async () => {
       const c = state.channels.find((x) => x.id === Number(b.dataset.del));
-      if (!confirm(`Delete channel ${c.number} — ${c.name}? Its schedule goes with it.`)) return;
-      await api(`/api/channels/${c.id}`, { method: 'DELETE' });
-      toast('Channel deleted.');
-      loadChannels();
-      loadStatus();
+      if (!c) return;
+      if (!(await confirmModal(`Delete channel ${c.number} — ${c.name}? Its schedule goes with it.`, { danger: true }))) return;
+      try {
+        await api(`/api/channels/${c.id}`, { method: 'DELETE' });
+        toast('Channel deleted.');
+        loadChannels();
+        loadStatus();
+      } catch (err) {
+        toast(`Couldn't delete: ${err.message}`, true);
+      }
     })
   );
   $$('[data-rm]', host).forEach((b) =>
@@ -827,6 +832,28 @@ function modal(html) {
   );
   $('#modalHost').append(back);
   return back;
+}
+
+// In-app confirmation. Native confirm() can be silently suppressed by the
+// browser after a few dialogs ("prevent this page from creating more dialogs"),
+// which makes destructive actions look broken. This never gets suppressed.
+function confirmModal(message, { danger = false, ok = 'Delete', cancel = 'Cancel' } = {}) {
+  return new Promise((resolve) => {
+    const back = modal(`
+      <h3>Are you sure?</h3>
+      <p class="sub" style="margin:8px 0 20px">${escapeHtml(message)}</p>
+      <div class="row" style="justify-content:flex-end;gap:10px">
+        <button class="ghost" id="cmCancel">${escapeHtml(cancel)}</button>
+        <button class="${danger ? 'danger' : 'primary'}" id="cmOk">${escapeHtml(ok)}</button>
+      </div>
+    `);
+    let done = false;
+    const finish = (v) => { if (done) return; done = true; back.remove(); resolve(v); };
+    $('#cmOk', back).addEventListener('click', () => finish(true));
+    $('#cmCancel', back).addEventListener('click', () => finish(false));
+    back.addEventListener('click', (e) => { if (e.target === back) finish(false); });
+    $('#cmOk', back).focus();
+  });
 }
 
 // ---------------------------------------------------------------- settings
@@ -1424,7 +1451,7 @@ $('#startLink').addEventListener('click', async () => {
 });
 
 $('#unlink').addEventListener('click', async () => {
-  if (!confirm('Unlink this Plex account? Channels stay, but nothing will play until you link again.')) return;
+  if (!(await confirmModal('Unlink this Plex account? Channels stay, but nothing will play until you link again.', { danger: true, ok: 'Unlink' }))) return;
   await api('/api/plex/logout', { method: 'POST' });
   location.reload();
 });
@@ -1454,7 +1481,7 @@ $('#jfConnect').addEventListener('click', async () => {
   btn.disabled = false; btn.textContent = 'Connect';
 });
 $('#jfLogout').addEventListener('click', async () => {
-  if (!confirm('Disconnect Jellyfin and switch back to Plex?')) return;
+  if (!(await confirmModal('Disconnect Jellyfin and switch back to Plex?', { danger: true, ok: 'Disconnect' }))) return;
   await api('/api/jellyfin/logout', { method: 'POST' });
   await loadStatus();
   loadSetup();

@@ -15,12 +15,52 @@ struct TVView: View {
                 watchLayout
             }
         }
+        .focusable()
+        #if os(tvOS) || os(macOS)
+        .onMoveCommand { direction in
+            switch direction {
+            case .up:    engine.channelUp()
+            case .down:  engine.channelDown()
+            case .left, .right: engine.blocked()   // no seeking on live TV
+            @unknown default: break
+            }
+        }
+        #endif
+        .onKeyPress { press in
+            if press.characters == " " { engine.blocked(); return .handled }   // no pause
+            if let c = press.characters.first, c.isNumber {
+                engine.pressDigit(String(c)); return .handled
+            }
+            return .ignored
+        }
+        #if os(tvOS)
+        .onPlayPauseCommand { engine.blocked() }
+        #endif
     }
 
     // Full-screen video with the channel banner and a GUIDE button.
     private var watchLayout: some View {
         ZStack {
             VideoSurface(player: engine.player).ignoresSafeArea()
+
+            // Direct channel entry (top-right, like a real box), and the ⊘ /
+            // channel-change flash (centre).
+            if !engine.dialing.isEmpty {
+                Text(engine.dialing)
+                    .font(.system(size: 64, weight: .heavy, design: .monospaced))
+                    .foregroundStyle(.white)
+                    .padding(.horizontal, 28).padding(.vertical, 14)
+                    .background(.black.opacity(0.6)).clipShape(RoundedRectangle(cornerRadius: 12))
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
+                    .padding(40)
+            }
+            if let f = engine.flash {
+                Text(f)
+                    .font(.system(size: 68, weight: .heavy, design: .monospaced))
+                    .foregroundStyle(Palette.amber)
+                    .padding(30)
+                    .background(.black.opacity(0.55)).clipShape(RoundedRectangle(cornerRadius: 14))
+            }
             VStack {
                 HStack {
                     if engine.demo {

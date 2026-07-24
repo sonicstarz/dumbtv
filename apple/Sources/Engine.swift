@@ -31,9 +31,16 @@ final class Engine: ObservableObject {
     @Published var linked = false
     @Published var demo = false
     @Published var status = "Starting…"
+    /// A transient on-screen glyph: "⊘" when a blocked key is pressed (invariant
+    /// #1 — no pause/seek on live), or "CH n" on a channel change.
+    @Published var flash: String?
+    /// Digits being dialed for direct channel entry, shown until they commit.
+    @Published var dialing = ""
 
     private var currentStart: Millis = -1
     private var tick: Timer?
+    private var flashTask: Task<Void, Never>?
+    private var dialTask: Task<Void, Never>?
     private var serverURI = ""
     private var accessToken = ""
 
@@ -170,6 +177,51 @@ final class Engine: ObservableObject {
         currentStart = -1
         guideOpen = false
         sync()
+    }
+
+    // MARK: - remote / keyboard control (a cable box you turn the dial on)
+
+    func channelUp()   { surf(+1) }
+    func channelDown() { surf(-1) }
+
+    private func surf(_ delta: Int) {
+        guard !channels.isEmpty else { return }
+        let next = ((currentIndex + delta) % channels.count + channels.count) % channels.count
+        tune(to: next)
+        showFlash("CH \(String(format: "%02d", channelNumber))")
+    }
+
+    /// Invariant #1: pause/seek/resume do nothing on a live channel — flash ⊘.
+    func blocked() { showFlash("⊘") }
+
+    /// Direct channel entry: accumulate digits, commit after a short window.
+    func pressDigit(_ d: String) {
+        dialing = String((dialing + d).suffix(3))
+        dialTask?.cancel()
+        dialTask = Task { @MainActor [weak self] in
+            try? await Task.sleep(nanoseconds: 1_500_000_000)
+            self?.commitDial()
+        }
+    }
+
+    private func commitDial() {
+        defer { dialing = "" }
+        guard let n = Int(dialing) else { return }
+        if let idx = channels.firstIndex(where: { $0.spec.number == n }) {
+            tune(to: idx)
+            showFlash("CH \(String(format: "%02d", n))")
+        } else {
+            showFlash("⊘")
+        }
+    }
+
+    private func showFlash(_ s: String) {
+        flash = s
+        flashTask?.cancel()
+        flashTask = Task { @MainActor [weak self] in
+            try? await Task.sleep(nanoseconds: 1_100_000_000)
+            if self?.flash == s { self?.flash = nil }
+        }
     }
 
     private func startTicking() {

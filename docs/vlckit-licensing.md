@@ -60,10 +60,17 @@ VideoLAN's official Apple binaries used for App Store apps are built
 labelled LGPL-2.1 and bundles those official builds — so this is **very likely
 already clean**. But it must be confirmed, not assumed.
 
-- ⬜ **Action (blocking gate before submission):** confirm the specific VLCKit
-  xcframework the package pulls contains **no GPL modules** — check VideoLAN's
-  build config / module list for the pinned version, or ask in the VLCKit
-  tracker. If in doubt, pin to a known LGPL-only VideoLAN release.
+- ✅ **AUDITED 2026-07-24 — clean.** Enumerated the compiled module entry
+  points (`nm … | grep vlc_entry__`) and the plugin manifest
+  (`PrivateHeaders/vlc-plugins-MacOSX.h`, **968 plugins**) of the pinned
+  `tylerjonesio/vlckit-spm` macOS binary. The **only** match against known-GPL
+  module names is `packetizer_a52` — an **LGPL core packetizer**, not the GPL
+  `liba52`/a52dec decoder. **No module entry points** for `x264`, `x265`,
+  `liba52` (decoder), `libmad`, `libmpeg2`, `dvdnav`, `goom`, or `schroedinger`
+  were present (the raw `strings` hits for those are fourcc/description text,
+  not compiled modules). Decode runs through libavcodec (FFmpeg), LGPL-
+  configured (no linked `libx264`). This matches VideoLAN's LGPL-only App Store
+  build. Re-run this check if the VLCKit version is bumped.
 
 ## Precedent (why this is low-risk)
 

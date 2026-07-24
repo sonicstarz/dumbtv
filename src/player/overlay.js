@@ -226,6 +226,16 @@ export function blockedGlyph() {
   });
 }
 
+/** Brief confirmation when captions are toggled from the remote. */
+export function captionFlash(on) {
+  return text(W / 2, H * 0.16, on ? 'CC  ON' : 'CC  OFF', {
+    size: 64,
+    colour: on ? C.amber : C.dim,
+    bold: 1,
+    align: 8,
+  });
+}
+
 // ---- program guide -------------------------------------------------------
 
 const GUIDE = {
@@ -362,4 +372,5 @@ export const OVERLAY_IDS = {
   digits: 3,
   blocked: 4,
   guide: 5,
+  captions: 6,
 };

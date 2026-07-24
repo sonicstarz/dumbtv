@@ -12,6 +12,7 @@ import {
   troubleCard,
   colorBars,
   blockedGlyph,
+  captionFlash,
   guideScreen,
   OVERLAY_IDS,
 } from './overlay.js';
@@ -197,6 +198,8 @@ export class Engine extends EventEmitter {
           this.showBanner();
           await this.tick().catch(() => {});
         }
+      } else if (action === 'captions') {
+        await this.#toggleCaptions();
       } else if (action === 'blocked') {
         await this.#flashBlocked();
       }
@@ -311,6 +314,20 @@ export class Engine extends EventEmitter {
     setTimeout(() => {
       this.mpv?.clearOverlay(OVERLAY_IDS.blocked).catch(() => {});
     }, 450);
+  }
+
+  /** Toggle embedded subtitles live, persist the choice, and flash CC ON/OFF.
+   *  mpv keeps the subtitle track it auto-selected at load; we just show or hide
+   *  it. The persisted setting is what the next program's play() reapplies. */
+  async #toggleCaptions() {
+    const on = !getSetting('captions', 0);
+    setSetting('captions', on ? 1 : 0);
+    if (!this.mpv || !this.mpv.ready) return;
+    await this.mpv.setProperty('sub-visibility', on ? 'yes' : 'no').catch(() => {});
+    await this.mpv.showOverlay(OVERLAY_IDS.captions, captionFlash(on)).catch(() => {});
+    setTimeout(() => {
+      this.mpv?.clearOverlay(OVERLAY_IDS.captions).catch(() => {});
+    }, 1200);
   }
 
   async #drawDigits() {

@@ -190,6 +190,9 @@ export class MpvPlayer extends EventEmitter {
     binds.push(['LEFT', msg('arrow', 'left')]);
     binds.push(['RIGHT', msg('arrow', 'right')]);
     binds.push(['ENTER', msg('enter')]);
+    // Captions toggle.
+    binds.push(['c', msg('captions')]);
+    binds.push(['C', msg('captions')]);
     // No pausing, no seeking (invariant #1). These flash ⊘ and do nothing.
     for (const k of ['SPACE', 'k', 'j', 'l']) {
       binds.push([k, msg('blocked')]);

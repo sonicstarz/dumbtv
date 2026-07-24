@@ -16,9 +16,13 @@ packages:
 settings:
   base:
     SWIFT_VERSION: "5.0"
-    MARKETING_VERSION: "0.1.0"
+    MARKETING_VERSION: "1.0"
     CURRENT_PROJECT_VERSION: "1"
     GENERATE_INFOPLIST_FILE: YES
+    INFOPLIST_FILE: Info-shared.plist          # base for ATS; Xcode merges generated keys on top
+    # dumbTV reaches the user's Plex server and serves its own setup page on the
+    # LAN — iOS blocks local-network access without this usage string.
+    INFOPLIST_KEY_NSLocalNetworkUsageDescription: "dumbTV connects to your Plex server and serves its setup page on your local network."
     DEVELOPMENT_TEAM: ""
     CODE_SIGN_STYLE: Automatic
     CODE_SIGNING_REQUIRED: NO

@@ -3,33 +3,39 @@ import dumbTVCore
 
 @main
 struct dumbTVApp: App {
-    /// The on-device config backend (persistent Store + embedded web server).
-    /// Held for the app's lifetime so the server keeps listening.
+    /// The on-device config backend: one persistent Store shared by the embedded
+    /// web server (config) and the player (playback). Held for the app's lifetime.
+    private let store: Store?
     private let server: EmbeddedServer?
 
     init() {
-        server = Self.makeServer()
+        let s = Self.openStore()
+        store = s
+        if let s {
+            let srv = EmbeddedServer(store: s)
+            srv.start()
+            server = srv
+        } else {
+            server = nil
+        }
     }
 
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            ContentView(store: store)
         }
     }
 
-    /// Open (creating if needed) the persistent DB in Application Support and
-    /// start the config server. Failure is non-fatal — the TV still plays.
-    private static func makeServer() -> EmbeddedServer? {
+    /// Open (creating if needed) the persistent DB in Application Support.
+    /// Failure is non-fatal — the TV still plays the built-in demo.
+    private static func openStore() -> Store? {
         do {
             let fm = FileManager.default
             let base = try fm.url(for: .applicationSupportDirectory, in: .userDomainMask,
                                   appropriateFor: nil, create: true)
             let dir = base.appendingPathComponent("dumbTV", isDirectory: true)
             try fm.createDirectory(at: dir, withIntermediateDirectories: true)
-            let store = try Store(path: dir.appendingPathComponent("dumbtv.db").path)
-            let server = EmbeddedServer(store: store)
-            server.start()
-            return server
+            return try Store(path: dir.appendingPathComponent("dumbtv.db").path)
         } catch {
             print("dumbTV backend init failed: \(error)")
             return nil

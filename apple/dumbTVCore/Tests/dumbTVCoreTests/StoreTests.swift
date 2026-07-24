@@ -128,6 +128,30 @@ final class StoreTests: XCTestCase {
         XCTAssertEqual(store.airing(ch, "m1").lastAired, 222)
     }
 
+    /// The "player reads the Store" path end-to-end (no Plex): configured
+    /// channel + cached episodes → generate a schedule → resolve what's on now.
+    func testScheduleGeneratesAndResolvesFromStore() throws {
+        let (store, _) = try makeStore()
+        let ch = store.insertChannel(ChannelConfig(id: 0, number: 2, name: "Toons", orderingMode: .sequential))
+        store.addSource(ch, ratingKey: "show-x", sourceType: "show", title: "Show X")
+        store.upsertMedia((1...5).map { i in
+            Media(ratingKey: "show-x-e\(i)", parentKey: "show-x", kind: .episode, title: "Ep \(i)",
+                  seasonNo: 1, episodeNo: i, durationMs: 1_320_000, partKey: "local:/x/\(i).mp4")
+        })
+
+        let cfg = try XCTUnwrap(store.channel(ch))
+        let buckets = store.library(forChannel: ch).sourceBuckets()
+        XCTAssertFalse(buckets.isEmpty)
+
+        let now = Millis(Date().timeIntervalSince1970 * 1000)
+        let programs = Generator.generate(channel: cfg.spec, buckets: buckets, now: now, windowMs: 24 * 3_600_000)
+        XCTAssertFalse(programs.isEmpty)
+
+        let airing = try XCTUnwrap(Resolver.nowOn(programs, at: now))
+        XCTAssertTrue(airing.program.ratingKey?.hasPrefix("show-x-e") ?? false)
+        XCTAssertGreaterThanOrEqual(airing.offsetMs, 0)
+    }
+
     func testPersistsAcrossReopen() throws {
         let (store, path) = try makeStore()
         _ = store.insertChannel(ChannelConfig(id: 0, number: 9, name: "Persisted"))

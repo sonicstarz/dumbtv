@@ -79,6 +79,41 @@ final class Engine: ObservableObject {
         if env["DUMBTV_START_GUIDE"] == "1" { guideOpen = true }
     }
 
+    /// Prefer configured channels from the Store; fall back to env Plex, then
+    /// the built-in demo. This is how the player and the web config share one
+    /// source of truth on a self-contained device.
+    func bootstrap(store: Store?) async {
+        if let store, loadFromStore(store) { return }
+        await bootstrapFromEnvIfPresent()
+    }
+
+    /// Build runtimes from the persisted channels + cached library. The
+    /// generator is deterministic, so this matches what the config UI's guide
+    /// shows. Returns false if nothing is configured/cached yet (caller falls back).
+    private func loadFromStore(_ store: Store) -> Bool {
+        let cfgs = store.allChannels().filter { $0.enabled }
+        guard !cfgs.isEmpty else { return false }
+        serverURI = store.getSetting("plex_server_uri") ?? ""
+        accessToken = store.getSetting("plex_access_token") ?? ""
+        let now = nowMs()
+        var built: [ChannelRuntime] = []
+        for c in cfgs {
+            let buckets = store.library(forChannel: c.id).sourceBuckets()
+            guard !buckets.isEmpty else { continue }   // no media cached yet
+            let programs = Generator.generate(channel: c.spec, buckets: buckets,
+                                              now: now, windowMs: 24 * 3_600_000)
+            var lookup: [String: Media] = [:]
+            for m in buckets.flatMap({ $0 }) { lookup[m.ratingKey] = m }
+            built.append(ChannelRuntime(spec: c.spec, programs: programs, mediaByKey: lookup))
+        }
+        guard !built.isEmpty else { return false }
+        channels = built
+        linked = true
+        status = ""
+        startTicking()
+        return true
+    }
+
     private func addChannel(id: Int, number: Int, name: String, mode: OrderingMode, showKey: String, seed: UInt32) async {
         status = "Loading \(name)…"
         do {

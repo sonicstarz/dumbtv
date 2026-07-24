@@ -175,7 +175,7 @@ public struct Library: Sendable {
 
     /// Ordered source buckets for the rotation playlist, with excludes removed —
     /// the port of `ordering.js` `loadSourceBuckets`.
-    func sourceBuckets() -> [[Media]] {
+    public func sourceBuckets() -> [[Media]] {
         sources
             .map { s -> [Media] in
                 mediaByKey.values

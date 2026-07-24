@@ -55,7 +55,7 @@ public final class ConfigAPI {
         case ("DELETE", 2) where s[0] == "rules":    return deleteRule(s[1])
         case ("GET", 2) where s[0] == "config" && s[1] == "export": return exportConfig()
 
-        case ("POST", 3) where s[0] == "channels" && s[2] == "sources":  return addSources(s[1], req)
+        case ("POST", 3) where s[0] == "channels" && s[2] == "sources":  return await addSources(s[1], req)
         case ("GET", 3) where s[0] == "channels" && s[2] == "excludes":  return getExcludes(s[1])
         case ("PUT", 3) where s[0] == "channels" && s[2] == "excludes":  return putExcludes(s[1], req)
         case ("GET", 3) where s[0] == "channels" && s[2] == "rules":     return listRules(s[1])
@@ -83,7 +83,7 @@ public final class ConfigAPI {
         case ("GET", 2) where s[0] == "jellyfin" && s[1] == "status": return .ok(["configured": false, "active": false, "server": NSNull()])
         case ("GET", 2) where s[0] == "llm" && s[1] == "status":      return .ok(["configured": false, "model": NSNull()])
         case ("GET", 1) where s[0] == "assets":                       return .ok(["assets": []])
-        case ("GET", 1) where s[0] == "onair":                        return .ok(["at": nowMs(), "channels": []])
+        case ("GET", 1) where s[0] == "onair":                        return onair()
         case ("GET", 1) where s[0] == "guide":                        return .ok(["from": nowMs(), "channels": []])
 
         default: return .notFound("No route for \(m) \(req.path)")
@@ -155,15 +155,35 @@ public final class ConfigAPI {
         return .ok()
     }
 
-    private func addSources(_ idStr: String, _ req: Request) -> Response {
+    private func addSources(_ idStr: String, _ req: Request) async -> Response {
         guard let id = Int(idStr) else { return .bad("bad id") }
+        await ensurePlexConfigured()
         let items = (req.body?["items"] as? [[String: Any]]) ?? []
         for it in items {
             guard let rk = it.string("ratingKey") else { continue }
-            store.addSource(id, ratingKey: rk, sourceType: it.string("sourceType") ?? "show",
-                            title: it.string("title"))
+            let type = it.string("sourceType") ?? "show"
+            store.addSource(id, ratingKey: rk, sourceType: type, title: it.string("title"))
+            // Cache the show's episodes now so the channel has content to schedule.
+            if type == "show", let eps = try? await plex.episodes(showKey: rk) {
+                store.upsertMedia(eps)
+            }
         }
         return .ok(["ok": true, "added": items.count])
+    }
+
+    /// What's on every enabled channel right now — generated deterministically
+    /// from the Store (the generator is seeded, so this matches the player).
+    private func onair() -> Response {
+        let now = nowMs()
+        let channels: [[String: Any]] = store.allChannels().filter { $0.enabled }.compactMap { c in
+            let buckets = store.library(forChannel: c.id).sourceBuckets()
+            guard !buckets.isEmpty else { return nil }
+            let programs = Generator.generate(channel: c.spec, buckets: buckets, now: now, windowMs: 24 * 3_600_000)
+            guard let a = Resolver.nowOn(programs, at: now) else { return nil }
+            return ["number": c.number, "name": c.name, "title": a.program.title,
+                    "subtitle": a.program.subtitle ?? NSNull(), "progress": a.progress]
+        }
+        return .ok(["at": now, "channels": channels])
     }
 
     private func deleteSource(_ idStr: String, _ sidStr: String) -> Response {

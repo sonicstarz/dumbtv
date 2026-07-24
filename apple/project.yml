@@ -10,6 +10,8 @@ packages:
   VLCKit:
     url: https://github.com/tylerjonesio/vlckit-spm.git
     branch: main
+  CathodeCore:
+    path: CathodeCore
 
 settings:
   base:
@@ -32,6 +34,7 @@ targets:
     dependencies:
       - package: VLCKit
         product: VLCKitSPM
+      - package: CathodeCore
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.cathode.app
@@ -49,6 +52,7 @@ targets:
     dependencies:
       - package: VLCKit
         product: VLCKitSPM
+      - package: CathodeCore
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.cathode.app

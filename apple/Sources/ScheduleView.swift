@@ -70,12 +70,8 @@ struct ScheduleView: View {
             }
             ForEach(rules) { rule in
                 RuleRow(rule: rule)
-                    .swipeActions(edge: .trailing) {
-                        if rule.kind != .rotation {
-                            Button(role: .destructive) {
-                                if let cid = channelId { store.removeRule(cid, ruleId: rule.id) }
-                            } label: { Label("Remove", systemImage: "trash") }
-                        }
+                    .removeRuleAction(enabled: rule.kind != .rotation) {
+                        if let cid = channelId { store.removeRule(cid, ruleId: rule.id) }
                     }
             }
         }
@@ -203,4 +199,25 @@ private struct TimelinePreview: View {
 
 extension Array {
     subscript(safe i: Int) -> Element? { indices.contains(i) ? self[i] : nil }
+}
+
+private extension View {
+    /// A destructive "Remove" affordance that works on every platform: a trailing
+    /// swipe on iOS/macOS, a long-press context menu on tvOS (no swiping there).
+    @ViewBuilder
+    func removeRuleAction(enabled: Bool, _ action: @escaping () -> Void) -> some View {
+        #if os(tvOS)
+        contextMenu {
+            if enabled {
+                Button(role: .destructive, action: action) { Label("Remove", systemImage: "trash") }
+            }
+        }
+        #else
+        swipeActions(edge: .trailing) {
+            if enabled {
+                Button(role: .destructive, action: action) { Label("Remove", systemImage: "trash") }
+            }
+        }
+        #endif
+    }
 }

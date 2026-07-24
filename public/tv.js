@@ -17,6 +17,8 @@ const state = {
   digitTimer: null,
   bannerUntil: 0,
   helpUntil: Date.now() + 9000,
+  fill: 'fit',
+  captions: false,
 };
 
 const clock = (ts) =>
@@ -58,6 +60,29 @@ function flashNope() {
   const el = $('#nope');
   el.classList.add('on');
   setTimeout(() => el.classList.remove('on'), 450);
+}
+
+// ------------------------------------------------------------ display settings
+
+function applyCaptions() {
+  // Best-effort in the browser: embedded subs are only shown if the <video>
+  // exposes them as text tracks. On the Pi, mpv handles this properly.
+  const tracks = video.textTracks || [];
+  for (const t of tracks) t.mode = state.captions ? 'showing' : 'hidden';
+}
+
+function applyDisplay() {
+  document.body.classList.toggle('fill', state.fill === 'fill');
+  applyCaptions();
+}
+
+async function loadDisplaySettings() {
+  try {
+    const s = await api('/api/settings');
+    state.fill = s.displayFill === 'fill' ? 'fill' : 'fit';
+    state.captions = !!s.captions;
+    applyDisplay();
+  } catch {}
 }
 
 // ------------------------------------------------------------ the loop
@@ -112,6 +137,7 @@ async function poll() {
       video.play().catch(() => {
         show('trouble', { message: 'Click anywhere to start the picture' });
       });
+      applyCaptions();
       if (now.offsetMs < 4000 && (now.kind === 'episode' || now.kind === 'movie')) {
         state.bannerUntil = Date.now() + 5000;
       }
@@ -155,6 +181,7 @@ function paint() {
   }
 
   $('#guide').classList.toggle('on', state.guideOpen);
+  $('#screen').classList.toggle('guiding', state.guideOpen);
   if (state.guideOpen) {
     $('#gClock').textContent = clock(now);
     $('#gRows').innerHTML = state.channels
@@ -267,6 +294,13 @@ document.addEventListener('keydown', async (e) => {
     case 'I':
       state.bannerUntil = Date.now() + 5000;
       break;
+    case 'c':
+    case 'C':
+      state.captions = !state.captions;
+      applyCaptions();
+      api('/api/settings', { method: 'POST', body: { captions: state.captions ? 1 : 0 } }).catch(() => {});
+      state.bannerUntil = Date.now() + 2000;
+      break;
     case 'r':
     case 'R':
       try {
@@ -301,6 +335,9 @@ document.addEventListener('mousemove', () => {
   cursorTimer = setTimeout(() => document.body.classList.remove('showcursor'), 2500);
 });
 
+// Apply captions once a file's tracks are known.
+video.addEventListener('loadeddata', applyCaptions);
+
 // A finished file should never leave a frozen frame on screen.
 video.addEventListener('ended', () => {
   state.programId = null;
@@ -313,5 +350,8 @@ video.addEventListener('error', () => {
 });
 
 poll();
+loadDisplaySettings();
 setInterval(poll, 1000);
 setInterval(paint, 250);
+// Pick up display-setting changes made from the config app.
+setInterval(loadDisplaySettings, 10000);

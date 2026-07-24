@@ -714,6 +714,10 @@ export default async function api(fastify) {
     timezone: getSetting('timezone', null),
     activeTimezone: process.env.TZ || Intl.DateTimeFormat().resolvedOptions().timeZone,
     loudnessTarget: getSetting('loudness_target', -23),
+    // Display: 'fit' letterboxes to keep the whole picture; 'fill' crops to fill
+    // the screen (right for a 4:3 set where letterbox bars waste the tube).
+    displayFill: getSetting('display_fill', 'fit'),
+    captions: getSetting('captions', 0) ? 1 : 0,
   }));
 
   fastify.post('/api/settings', async (req) => {
@@ -722,6 +726,8 @@ export default async function api(fastify) {
     if (b.sleepStart !== undefined) setSetting('sleep_start', b.sleepStart || null);
     if (b.sleepEnd !== undefined) setSetting('sleep_end', b.sleepEnd || null);
     if (b.loudnessTarget !== undefined) setSetting('loudness_target', Number(b.loudnessTarget));
+    if (b.displayFill !== undefined) setSetting('display_fill', b.displayFill === 'fill' ? 'fill' : 'fit');
+    if (b.captions !== undefined) setSetting('captions', b.captions ? 1 : 0);
     if (b.timezone !== undefined) {
       const tz = (b.timezone || '').trim();
       // Validate the IANA zone before storing.

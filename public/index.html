@@ -273,6 +273,24 @@
       </div>
 
       <div class="card">
+        <h3>Display</h3>
+        <p class="sub">How the picture fills the screen, and whether captions show. Applies to the TV.</p>
+        <div class="row" style="align-items:flex-end;gap:16px;flex-wrap:wrap">
+          <div class="field">
+            <label>PICTURE</label>
+            <select id="dispFill">
+              <option value="fit">Fit — whole picture, letterbox bars if needed</option>
+              <option value="fill">Fill — crop to fill the screen (4:3 sets)</option>
+            </select>
+          </div>
+          <label style="display:flex;gap:8px;align-items:center;font-family:var(--sans);font-size:14px;color:var(--tape)">
+            <input id="dispCaptions" type="checkbox"> Show captions
+          </label>
+        </div>
+        <p class="hint">On the TV, <span class="mono">C</span> toggles captions and the picture setting drives mpv panscan. Browser captions depend on the file exposing subtitle tracks.</p>
+      </div>
+
+      <div class="card">
         <h3>Backup &amp; restore</h3>
         <p class="sub">Save the whole lineup — channels, sources, and rules — as one JSON. No token or PIN is included.</p>
         <div class="field" style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">

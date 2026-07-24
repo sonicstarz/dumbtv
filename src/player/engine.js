@@ -389,6 +389,15 @@ export class Engine extends EventEmitter {
       await this.mpv
         .setProperty('af', program.gainDb ? `volume=${program.gainDb}dB` : '')
         .catch(() => {});
+      // Display fill: panscan 1.0 crops the picture to fill the screen (no
+      // letterbox bars), the right call on a 4:3 set. 'fit' leaves it whole.
+      await this.mpv
+        .setProperty('panscan', getSetting('display_fill', 'fit') === 'fill' ? 1.0 : 0.0)
+        .catch(() => {});
+      // Captions: show embedded subtitles when the household wants them.
+      await this.mpv
+        .setProperty('sub-visibility', getSetting('captions', 0) ? 'yes' : 'no')
+        .catch(() => {});
       // A show starting is worth announcing, same as cable did.
       if (program.offsetMs < 3000 && (program.kind === 'episode' || program.kind === 'movie')) {
         this.bannerUntil = Date.now() + BANNER_MS;

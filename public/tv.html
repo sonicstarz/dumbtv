@@ -31,6 +31,21 @@ body.showcursor { cursor: default; }
 
 #screen { position: fixed; inset: 0; background: #000; }
 video { width: 100%; height: 100%; object-fit: contain; background: #000; display: block; }
+/* Fill mode crops the picture to fill the screen — no letterbox bars, right for
+   a 4:3 set. Set from the display setting. */
+body.fill video { object-fit: cover; }
+
+/* When the guide is up the picture minimises into an amber "content bubble" in
+   the top area and keeps playing. It always crops to fill the bubble. */
+#screen.guiding #video {
+  position: absolute;
+  left: 50%; top: 3.5vh; transform: translateX(-50%);
+  width: 48vw; height: 34vh;
+  object-fit: cover;
+  border: 3px solid var(--amber); border-radius: 8px;
+  box-shadow: 0 10px 34px rgba(0,0,0,.65);
+  background: #000; z-index: 5;
+}
 
 .card {
   position: absolute; inset: 0;
@@ -193,7 +208,7 @@ video { width: 100%; height: 100%; object-fit: contain; background: #000; displa
 
   <div id="help">
     <b>0-9</b> tune &nbsp; <b>&uarr;&darr;</b> channel &nbsp; <b>G</b> guide<br>
-    <b>I</b> info &nbsp; <b>R</b> record &nbsp; <b>F</b> fullscreen &nbsp; <b>H</b> hide this
+    <b>I</b> info &nbsp; <b>C</b> captions &nbsp; <b>R</b> record &nbsp; <b>F</b> fullscreen &nbsp; <b>H</b> hide this
   </div>
 </div>
 

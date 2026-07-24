@@ -354,7 +354,18 @@ async function loadSettings() {
   const cfg = await api('/api/settings');
   $('#tzStatus').textContent = `Active: ${cfg.activeTimezone}${cfg.timezone ? '' : ' (this device — no override set)'}`;
   $('#tzInput').value = cfg.timezone || '';
+  $('#dispFill').value = cfg.displayFill === 'fill' ? 'fill' : 'fit';
+  $('#dispCaptions').checked = !!cfg.captions;
 }
+
+$('#dispFill').addEventListener('change', async (e) => {
+  await api('/api/settings', { method: 'POST', body: { displayFill: e.target.value } });
+  toast('Picture setting saved.');
+});
+$('#dispCaptions').addEventListener('change', async (e) => {
+  await api('/api/settings', { method: 'POST', body: { captions: e.target.checked ? 1 : 0 } });
+  toast(e.target.checked ? 'Captions on.' : 'Captions off.');
+});
 $('#tzSave').addEventListener('click', async () => {
   try {
     const r = await api('/api/settings', { method: 'POST', body: { timezone: $('#tzInput').value.trim() } });

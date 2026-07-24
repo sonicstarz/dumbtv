@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Cathode</title>
+<link rel="stylesheet" href="/style.css" />
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect x='3' y='6' width='26' height='20' rx='3' fill='none' stroke='%23f2b134' stroke-width='3'/></svg>" />
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">
+    <div class="brand-mark"></div>
+    <div>
+      <h1>CATHODE</h1>
+      <span>CABLE HEADEND</span>
+    </div>
+  </div>
+  <div class="onair" id="onair"></div>
+  <div class="tally"><span class="dot off" id="tallyDot"></span><span id="tallyText">STARTING</span></div>
+</header>
+
+<div class="shell">
+  <nav class="rail">
+    <h2>OPERATE</h2>
+    <button class="navlink active" data-view="channels">Channels <span class="badge" id="navChannels"></span></button>
+    <button class="navlink" data-view="guide">Guide</button>
+    <button class="navlink" data-view="commercials">Commercials <span class="badge" id="navAssets"></span></button>
+    <hr />
+    <h2>CONNECT</h2>
+    <button class="navlink" data-view="setup">Plex <span class="badge" id="navPlex"></span></button>
+    <hr />
+    <h2>WATCH</h2>
+    <a class="navlink" href="/tv" target="_blank" style="text-decoration:none">Open the TV &nearr;</a>
+  </nav>
+
+  <main class="main">
+
+    <!-- ---------------- channels ---------------- -->
+    <section class="view active" id="view-channels">
+      <h2 class="title">Channels</h2>
+      <p class="lede">Each channel runs a continuous broadcast built from your Plex library. Pick what goes on it, decide how it's ordered, and it plays whether anyone is watching or not.</p>
+
+      <div id="channelList"></div>
+
+      <button class="primary" id="addChannel">Add a channel</button>
+      <button class="ghost" id="rebuildAll">Rebuild all schedules</button>
+      <p class="hint">Rebuilding leaves whatever is currently airing alone and only changes what hasn't aired yet.</p>
+    </section>
+
+    <!-- ---------------- guide ---------------- -->
+    <section class="view" id="view-guide">
+      <h2 class="title">Guide</h2>
+      <p class="lede">What's coming up, exactly as it will air. The red line is right now.</p>
+
+      <div class="row" style="margin-bottom:16px">
+        <button class="sm" id="guidePrev">&larr; Earlier</button>
+        <button class="sm" id="guideNow">Now</button>
+        <button class="sm" id="guideNext">Later &rarr;</button>
+        <div class="field">
+          <label>HOURS SHOWN</label>
+          <select id="guideHours">
+            <option value="2">2</option>
+            <option value="3" selected>3</option>
+            <option value="4">4</option>
+            <option value="6">6</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="guide-wrap">
+        <div class="guide-head">
+          <strong id="guideDay">—</strong>
+          <span class="clock" id="guideClock">—</span>
+        </div>
+        <div class="guide-scroll">
+          <div class="guide-grid" id="guideGrid"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ---------------- commercials ---------------- -->
+    <section class="view" id="view-commercials">
+      <h2 class="title">Commercials</h2>
+      <p class="lede">Drop video files into the media folder and they become the ad breaks between shows. Sub-folders turn into tags, so <span class="mono">media/ads/90s/toys/</span> tags everything inside it <span class="mono">90s, toys</span>.</p>
+
+      <div class="card">
+        <h3>Media folder</h3>
+        <p class="sub mono" id="mediaPath">—</p>
+        <button class="primary" id="scanAssets">Scan for new files</button>
+        <p class="hint">Durations are read with ffprobe. Anything it can't read gets skipped and listed, because a wrong duration makes the whole schedule drift.</p>
+      </div>
+
+      <div class="card">
+        <h3>Import from Plex</h3>
+        <p class="sub">Point Cathode at a Plex library of commercials and it pulls them straight into the ad pool — nothing to copy onto the device. Make a library of ad clips in Plex, pick it here, and enable “Run commercials” on your channels.</p>
+        <div class="field" style="display:flex; gap:8px; align-items:flex-end; flex-wrap:wrap">
+          <div style="flex:1; min-width:200px">
+            <label>PLEX LIBRARY</label>
+            <select id="adSection" style="width:100%"><option value="">Link Plex first…</option></select>
+          </div>
+          <button class="primary" id="importPlexAds">Import commercials</button>
+          <button class="sm" id="refreshPlexAds">Refresh</button>
+        </div>
+        <p class="hint">Everything imported comes in as a commercial. Re-run after adding spots in Plex to pull the new ones.</p>
+      </div>
+
+      <div class="card">
+        <h3>Library</h3>
+        <p class="sub" id="assetSummary">Nothing imported yet.</p>
+        <table class="table" id="assetTable"></table>
+      </div>
+    </section>
+
+    <!-- ---------------- setup ---------------- -->
+    <section class="view" id="view-setup">
+      <h2 class="title">Plex</h2>
+      <p class="lede">Cathode reads your library and plays files directly. It never transcodes and never marks anything as watched.</p>
+
+      <div class="card" id="linkCard">
+        <h3>Link your account</h3>
+        <p class="sub">You'll get a four-character code to enter at plex.tv/link. No password goes through this app.</p>
+        <div id="linkBody">
+          <button class="primary" id="startLink">Get a link code</button>
+        </div>
+      </div>
+
+      <div class="card" id="serverCard" style="display:none">
+        <h3>Server</h3>
+        <p class="sub" id="serverSub">Pick the server holding your library.</p>
+        <div id="serverList"></div>
+      </div>
+
+      <div class="card" id="libCard" style="display:none">
+        <h3>Libraries found</h3>
+        <p class="sub">These are what you'll pick from when building channels.</p>
+        <div id="libList"></div>
+        <button class="ghost danger" id="unlink" style="margin-top:14px">Unlink this account</button>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<div id="modalHost"></div>
+<div id="toastHost"></div>
+
+<script src="/app.js" type="module"></script>
+</body>
+</html>

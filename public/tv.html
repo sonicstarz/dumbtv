@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Cathode TV</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect x='3' y='6' width='26' height='20' rx='3' fill='none' stroke='%23f2b134' stroke-width='3'/></svg>" />
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Archivo+Black&family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap');
+
+:root {
+  --amber: #f2b134;
+  --tape: #e8e4d9;
+  --dim: #a9a4b8;
+  --tally: #e0483f;
+  --prevue-1: #2b3a8f;
+  --prevue-2: #16205a;
+  --display: 'Archivo Black', Impact, sans-serif;
+  --sans: 'IBM Plex Sans', system-ui, sans-serif;
+  --mono: 'IBM Plex Mono', ui-monospace, monospace;
+  /* CRTs hide the outer edges behind the bezel. Nothing important goes there. */
+  --safe: 7.5%;
+}
+
+* { box-sizing: border-box; }
+html, body {
+  margin: 0; height: 100%; background: #000; color: var(--tape);
+  font-family: var(--sans); overflow: hidden; cursor: none;
+}
+body.showcursor { cursor: default; }
+
+#screen { position: fixed; inset: 0; background: #000; }
+video { width: 100%; height: 100%; object-fit: contain; background: #000; display: block; }
+
+.card {
+  position: absolute; inset: 0;
+  display: none; align-items: center; justify-content: center;
+  flex-direction: column; text-align: center; background: #000;
+}
+.card.on { display: flex; }
+.card .num { font-family: var(--display); font-size: 12vh; color: var(--amber); line-height: 1; }
+.card .nm { font-family: var(--display); font-size: 4vh; margin-top: 2vh; letter-spacing: .04em; }
+.card .msg { font-family: var(--mono); font-size: 2vh; color: var(--dim); margin-top: 2vh; }
+
+/* Colour bars, because a dead channel should still look like television. */
+#bars { position: absolute; inset: 0; display: none; flex-direction: column; }
+#bars.on { display: flex; }
+#bars .strip { flex: 1; display: flex; }
+#bars .strip i { flex: 1; }
+#bars .foot {
+  height: 26%; background: #000; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 1.4vh;
+}
+#bars .foot .t { font-family: var(--display); font-size: 3.4vh; color: var(--amber); }
+#bars .foot .s { font-family: var(--mono); font-size: 1.9vh; color: var(--dim); }
+
+/* ---- banner ---- */
+#banner {
+  position: absolute;
+  left: var(--safe); right: var(--safe); bottom: var(--safe);
+  background: rgba(6, 6, 10, 0.82);
+  border-left: 6px solid var(--amber);
+  padding: 2.4vh 3vh;
+  display: none;
+  backdrop-filter: blur(3px);
+}
+#banner.on { display: block; }
+#banner .top { display: flex; align-items: baseline; gap: 2vh; }
+#banner .cn { font-family: var(--display); font-size: 5.2vh; color: var(--amber); line-height: 1; }
+#banner .cname { font-family: var(--mono); font-size: 2.1vh; letter-spacing: .18em; color: var(--dim); flex: 1; }
+#banner .now { font-family: var(--mono); font-size: 2.1vh; color: var(--dim); }
+#banner .title { font-size: 4vh; font-weight: 600; margin-top: 1.4vh; line-height: 1.15; }
+#banner .sub { font-size: 2.3vh; color: var(--dim); margin-top: .8vh; }
+#banner .times { display: flex; justify-content: space-between; margin-top: 1.6vh; font-family: var(--mono); font-size: 2vh; }
+#banner .times .range { color: var(--amber); }
+#banner .times .next { color: var(--dim); }
+#banner .bar { height: 5px; background: rgba(255,255,255,.16); margin-top: 1.4vh; }
+#banner .bar i { display: block; height: 100%; background: var(--amber); width: 0; }
+
+/* ---- digits ---- */
+#digits {
+  position: absolute; top: var(--safe); right: var(--safe);
+  background: rgba(6,6,10,.82); padding: 1.4vh 2.6vh;
+  font-family: var(--display); font-size: 7vh; color: var(--amber);
+  display: none; letter-spacing: .08em;
+}
+#digits.on { display: block; }
+
+/* ---- guide ---- */
+#guide {
+  position: absolute; left: 0; right: 0; bottom: 0; height: 58%;
+  background: linear-gradient(180deg, var(--prevue-1), var(--prevue-2));
+  border-top: 3px solid var(--amber);
+  display: none; flex-direction: column;
+}
+#guide.on { display: flex; }
+#guide .gh {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 1.4vh 3vh; background: rgba(0,0,0,.3);
+  font-family: var(--mono); font-size: 1.9vh; letter-spacing: .1em;
+}
+#guide .gh .k { color: var(--amber); }
+#guide .rows { flex: 1; overflow: hidden; }
+#guide .grow {
+  display: grid; grid-template-columns: 16vh 1fr 1fr 1fr;
+  border-bottom: 1px solid rgba(255,255,255,.14);
+  align-items: stretch;
+}
+#guide .grow.sel { background: rgba(242,177,52,.2); }
+#guide .gc { padding: 1.2vh 2vh; border-right: 1px solid rgba(255,255,255,.2); }
+#guide .gc .n { font-family: var(--display); font-size: 2.8vh; color: var(--amber); line-height: 1; }
+#guide .gc .t { font-size: 1.6vh; color: #dfe4ff; margin-top: .5vh; }
+#guide .gp { padding: 1.2vh 2vh; border-right: 1px solid rgba(255,255,255,.14); overflow: hidden; }
+#guide .gp .pt { font-size: 1.9vh; font-weight: 600; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#guide .gp .ps { font-size: 1.6vh; color: #b9c2f0; margin-top: .4vh; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#guide .gp .tm { font-family: var(--mono); font-size: 1.4vh; color: var(--amber); }
+
+/* ---- blocked action flash ---- */
+#nope {
+  position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+  font-size: 14vh; color: rgba(255,255,255,.85); display: none;
+  text-shadow: 0 0 30px rgba(0,0,0,.9);
+}
+#nope.on { display: block; }
+
+#help {
+  position: absolute; left: var(--safe); top: var(--safe);
+  font-family: var(--mono); font-size: 1.7vh; color: var(--dim);
+  background: rgba(6,6,10,.7); padding: 1.2vh 1.8vh; line-height: 1.7;
+  display: none;
+}
+#help.on { display: block; }
+#help b { color: var(--amber); font-weight: 600; }
+
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+
+<div id="screen">
+  <video id="video" autoplay playsinline></video>
+
+  <div class="card" id="filler">
+    <div class="num" id="fillerNum">00</div>
+    <div class="nm" id="fillerName">CHANNEL</div>
+  </div>
+
+  <div id="bars">
+    <div class="strip">
+      <i style="background:#c0c0c0"></i><i style="background:#c0c000"></i>
+      <i style="background:#00c0c0"></i><i style="background:#00c000"></i>
+      <i style="background:#c000c0"></i><i style="background:#c00000"></i>
+      <i style="background:#0000c0"></i>
+    </div>
+    <div class="foot">
+      <div class="t" id="barsTitle">OFF AIR</div>
+      <div class="s" id="barsMsg">Programming resumes shortly</div>
+    </div>
+  </div>
+
+  <div class="card" id="trouble">
+    <div class="nm">ONE MOMENT PLEASE</div>
+    <div class="msg" id="troubleMsg">We are experiencing technical difficulties</div>
+  </div>
+
+  <div id="banner">
+    <div class="top">
+      <div class="cn" id="bNum">00</div>
+      <div class="cname" id="bName">CHANNEL</div>
+      <div class="now" id="bClock">—</div>
+    </div>
+    <div class="title" id="bTitle">—</div>
+    <div class="sub" id="bSub"></div>
+    <div class="times">
+      <span class="range" id="bRange"></span>
+      <span class="next" id="bNext"></span>
+    </div>
+    <div class="bar"><i id="bProgress"></i></div>
+  </div>
+
+  <div id="digits"></div>
+
+  <div id="guide">
+    <div class="gh">
+      <span>GUIDE</span>
+      <span class="k" id="gClock"></span>
+      <span>&uarr;&darr; CHANNELS &nbsp; ENTER WATCH &nbsp; G CLOSE</span>
+    </div>
+    <div class="rows" id="gRows"></div>
+  </div>
+
+  <div id="nope">&#8709;</div>
+
+  <div id="help">
+    <b>0-9</b> tune &nbsp; <b>&uarr;&darr;</b> channel &nbsp; <b>G</b> guide<br>
+    <b>I</b> info &nbsp; <b>R</b> record &nbsp; <b>F</b> fullscreen &nbsp; <b>H</b> hide this
+  </div>
+</div>
+
+<script src="/tv.js" type="module"></script>
+</body>
+</html>

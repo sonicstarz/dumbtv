@@ -1,0 +1,33 @@
+{
+  "name": "cathode",
+  "version": "0.1.0",
+  "description": "Turn a Plex library into a 1990s cable box. What's on is what's on.",
+  "type": "module",
+  "main": "src/index.js",
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "node --watch src/index.js",
+    "doctor": "node scripts/doctor.js",
+    "scan-assets": "node scripts/scan-assets.js",
+    "demo": "node scripts/demo.js",
+    "demo-ads": "node scripts/make-demo-ads.js",
+    "selftest": "node scripts/selftest.js",
+    "reset": "node scripts/reset.js"
+  },
+  "keywords": [
+    "plex",
+    "retro",
+    "cable-tv",
+    "crt",
+    "raspberry-pi"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "@fastify/static": "^7.0.4",
+    "better-sqlite3": "^11.3.0",
+    "fastify": "^4.28.1"
+  }
+}

@@ -1,0 +1,447 @@
+import fs from 'node:fs';
+import path from 'node:path';
+import { db, getSetting, setSetting } from '../db.js';
+
+const MIME = {
+  '.mp4': 'video/mp4',
+  '.m4v': 'video/mp4',
+  '.mkv': 'video/x-matroska',
+  '.webm': 'video/webm',
+  '.mov': 'video/quicktime',
+  '.avi': 'video/x-msvideo',
+  '.mpg': 'video/mpeg',
+  '.mpeg': 'video/mpeg',
+};
+import {
+  createPin,
+  checkPin,
+  saveToken,
+  getToken,
+  listServers,
+  saveServer,
+  getServer,
+  clearAuth,
+} from '../plex/auth.js';
+import {
+  getSections,
+  getSectionItems,
+  cacheSource,
+  importPlexAds,
+  ping,
+  imageUrl,
+} from '../plex/client.js';
+import { generateChannel, regenerateChannel, ensureSchedule } from '../schedule/generator.js';
+import { guide, nowOnAll, nowOn, upNext, publicChannel } from '../schedule/resolver.js';
+import { ORDERING_MODES } from '../schedule/ordering.js';
+import { scanAssets } from '../assets.js';
+import { engine } from '../player/engine.js';
+import { HOUR } from '../util/time.js';
+
+const CHANNEL_FIELDS = [
+  'name',
+  'number',
+  'slot_minutes',
+  'ordering_mode',
+  'marathon_size',
+  'dark_start',
+  'dark_end',
+  'ads_enabled',
+  'max_ads_per_break',
+  'ad_tags',
+  'enabled',
+];
+
+export default async function api(fastify) {
+  fastify.get('/api/status', async () => {
+    const token = getToken();
+    const server = getServer();
+    let reachable = null;
+    if (server) {
+      reachable = await ping().catch(() => false);
+    }
+    const counts = {
+      channels: db.prepare('SELECT COUNT(*) n FROM channels').get().n,
+      media: db.prepare('SELECT COUNT(*) n FROM media').get().n,
+      assets: db.prepare('SELECT COUNT(*) n FROM assets').get().n,
+      programs: db.prepare('SELECT COUNT(*) n FROM programs').get().n,
+    };
+    return {
+      linked: !!token,
+      server: server ? { name: server.name, uri: server.uri, local: server.local } : null,
+      reachable,
+      counts,
+      player: engine.snapshot(),
+      orderingModes: ORDERING_MODES,
+    };
+  });
+
+  // ---- Plex link ---------------------------------------------------------
+
+  fastify.post('/api/plex/pin', async () => createPin());
+
+  fastify.get('/api/plex/pin/:id', async (req) => {
+    const token = await checkPin(req.params.id);
+    if (!token) return { linked: false };
+    saveToken(token);
+    const servers = await listServers(token);
+    return { linked: true, servers };
+  });
+
+  fastify.get('/api/plex/servers', async (req, reply) => {
+    const token = getToken();
+    if (!token) return reply.code(400).send({ error: 'Not linked to Plex yet' });
+    return { servers: await listServers(token) };
+  });
+
+  fastify.post('/api/plex/server', async (req) => {
+    saveServer(req.body);
+    return { ok: true, reachable: await ping().catch(() => false) };
+  });
+
+  fastify.post('/api/plex/logout', async () => {
+    clearAuth();
+    return { ok: true };
+  });
+
+  // ---- Library browsing --------------------------------------------------
+
+  fastify.get('/api/library/sections', async () => ({ sections: await getSections() }));
+
+  fastify.get('/api/library/sections/:key/items', async (req) => {
+    const type = req.query.type || 'show';
+    const items = await getSectionItems(req.params.key, type);
+    return {
+      items: items.map((i) => ({ ...i, image: imageUrl(i.thumb, 200, 300) })),
+    };
+  });
+
+  // ---- Channels ----------------------------------------------------------
+
+  fastify.get('/api/channels', async () => {
+    const rows = db.prepare('SELECT * FROM channels ORDER BY number').all();
+    const srcStmt = db.prepare('SELECT * FROM channel_sources WHERE channel_id = ? ORDER BY id');
+    const countStmt = db.prepare(
+      `SELECT COUNT(*) n FROM media WHERE parent_key = ? OR rating_key = ?`
+    );
+    return {
+      channels: rows.map((c) => {
+        const sources = srcStmt.all(c.id).map((s) => ({
+          id: s.id,
+          ratingKey: s.rating_key,
+          sourceType: s.source_type,
+          title: s.title,
+          itemCount: countStmt.get(s.rating_key, s.rating_key).n,
+        }));
+        return { ...publicChannel(c), sources };
+      }),
+    };
+  });
+
+  fastify.post('/api/channels', async (req) => {
+    const b = req.body || {};
+    const maxNo = db.prepare('SELECT MAX(number) m FROM channels').get().m || 1;
+    const info = db
+      .prepare(
+        `INSERT INTO channels
+          (number, name, slot_minutes, ordering_mode, marathon_size,
+           shuffle_seed, dark_start, dark_end, ads_enabled, max_ads_per_break,
+           ad_tags, enabled, created_at)
+         VALUES (?,?,?,?,?,?,?,?,?,?,?,1,?)`
+      )
+      .run(
+        b.number ?? maxNo + 1,
+        b.name || 'New Channel',
+        b.slotMinutes ?? 30,
+        b.orderingMode || 'sequential',
+        b.marathonSize ?? 3,
+        Math.floor(Math.random() * 2 ** 31),
+        b.darkStart || null,
+        b.darkEnd || null,
+        b.adsEnabled === false ? 0 : 1,
+        b.maxAdsPerBreak ?? 10,
+        b.adTags || '',
+        Date.now()
+      );
+    return { id: info.lastInsertRowid };
+  });
+
+  fastify.patch('/api/channels/:id', async (req) => {
+    const b = req.body || {};
+    const map = {
+      name: b.name,
+      number: b.number,
+      slot_minutes: b.slotMinutes,
+      ordering_mode: b.orderingMode,
+      marathon_size: b.marathonSize,
+      dark_start: b.darkStart === '' ? null : b.darkStart,
+      dark_end: b.darkEnd === '' ? null : b.darkEnd,
+      ads_enabled: b.adsEnabled === undefined ? undefined : b.adsEnabled ? 1 : 0,
+      max_ads_per_break: b.maxAdsPerBreak,
+      ad_tags: b.adTags,
+      enabled: b.enabled === undefined ? undefined : b.enabled ? 1 : 0,
+    };
+    const sets = [];
+    const vals = [];
+    for (const f of CHANNEL_FIELDS) {
+      if (map[f] !== undefined) {
+        sets.push(`${f} = ?`);
+        vals.push(map[f]);
+      }
+    }
+    if (sets.length) {
+      vals.push(req.params.id);
+      db.prepare(`UPDATE channels SET ${sets.join(', ')} WHERE id = ?`).run(...vals);
+    }
+    const res = regenerateChannel(Number(req.params.id));
+    return { ok: true, ...res };
+  });
+
+  fastify.delete('/api/channels/:id', async (req) => {
+    db.prepare('DELETE FROM channels WHERE id = ?').run(req.params.id);
+    return { ok: true };
+  });
+
+  fastify.post('/api/channels/:id/sources', async (req, reply) => {
+    const channelId = Number(req.params.id);
+    const items = req.body.items || [];
+    const insert = db.prepare(
+      `INSERT OR IGNORE INTO channel_sources (channel_id, rating_key, source_type, title)
+       VALUES (?,?,?,?)`
+    );
+
+    const results = [];
+    for (const it of items) {
+      insert.run(channelId, String(it.ratingKey), it.sourceType, it.title);
+      try {
+        const r = await cacheSource(String(it.ratingKey), it.sourceType);
+        results.push({ title: it.title, ...r });
+      } catch (err) {
+        results.push({ title: it.title, error: err.message });
+      }
+    }
+    const regen = regenerateChannel(channelId);
+    return { ok: true, results, ...regen };
+  });
+
+  fastify.delete('/api/channels/:id/sources/:sourceId', async (req) => {
+    db.prepare('DELETE FROM channel_sources WHERE id = ? AND channel_id = ?').run(
+      req.params.sourceId,
+      req.params.id
+    );
+    const regen = regenerateChannel(Number(req.params.id));
+    return { ok: true, ...regen };
+  });
+
+  fastify.post('/api/channels/:id/refresh', async (req) => {
+    const sources = db
+      .prepare('SELECT * FROM channel_sources WHERE channel_id = ?')
+      .all(req.params.id);
+    const results = [];
+    for (const s of sources) {
+      try {
+        results.push({ title: s.title, ...(await cacheSource(s.rating_key, s.source_type)) });
+      } catch (err) {
+        results.push({ title: s.title, error: err.message });
+      }
+    }
+    return { ok: true, results, ...regenerateChannel(Number(req.params.id)) };
+  });
+
+  // ---- Schedule ----------------------------------------------------------
+
+  fastify.post('/api/schedule/regenerate', async (req) => {
+    if (req.body && req.body.channelId) {
+      return regenerateChannel(Number(req.body.channelId));
+    }
+    const ids = db.prepare('SELECT id FROM channels').all().map((r) => r.id);
+    return { results: ids.map((id) => regenerateChannel(id)) };
+  });
+
+  fastify.post('/api/schedule/ensure', async () => ({ results: ensureSchedule() }));
+
+  fastify.get('/api/guide', async (req) => {
+    const from = req.query.from ? Number(req.query.from) : Date.now();
+    const hours = req.query.hours ? Number(req.query.hours) : 3;
+    return guide(from, hours);
+  });
+
+  fastify.get('/api/onair', async () => ({ at: Date.now(), channels: nowOnAll() }));
+
+  fastify.get('/api/channels/:id/upnext', async (req) => ({
+    now: nowOn(Number(req.params.id)),
+    next: upNext(Number(req.params.id), Number(req.query.count || 5)),
+  }));
+
+  // ---- Player ------------------------------------------------------------
+
+  fastify.get('/api/player', async () => engine.snapshot());
+
+  fastify.post('/api/player/tune', async (req, reply) => {
+    const { channelId, number } = req.body || {};
+    try {
+      if (number != null) {
+        const res = await engine.tuneByNumber(Number(number));
+        if (!res) return reply.code(404).send({ error: 'No channel on that number' });
+        return res;
+      }
+      return await engine.tune(Number(channelId));
+    } catch (err) {
+      return reply.code(400).send({ error: err.message });
+    }
+  });
+
+  fastify.post('/api/player/surf', async (req) =>
+    engine.surf(req.body && req.body.direction < 0 ? -1 : 1)
+  );
+
+  fastify.post('/api/player/digit', async (req) => ({
+    digits: engine.pressDigit(String(req.body.digit)),
+  }));
+
+  fastify.post('/api/player/banner', async () => engine.showBanner());
+
+  // ---- Local media -------------------------------------------------------
+
+  /**
+   * Streams a file from disk with Range support, which the browser needs in
+   * order to join a program already in progress. Only paths that are already
+   * in the database can be served.
+   */
+  fastify.get('/api/local', async (req, reply) => {
+    const p = req.query.p;
+    if (!p) return reply.code(400).send({ error: 'Missing path' });
+
+    const known =
+      db.prepare('SELECT 1 FROM assets WHERE path = ?').get(p) ||
+      db.prepare('SELECT 1 FROM media WHERE part_key = ?').get(`local:${p}`);
+    if (!known) return reply.code(403).send({ error: 'That file is not part of the library' });
+
+    let stat;
+    try {
+      stat = fs.statSync(p);
+    } catch {
+      return reply.code(404).send({ error: 'File is missing from disk' });
+    }
+
+    const type = MIME[path.extname(p).toLowerCase()] || 'video/mp4';
+    const range = req.headers.range;
+
+    if (!range) {
+      reply.header('Content-Length', stat.size);
+      reply.header('Accept-Ranges', 'bytes');
+      reply.type(type);
+      return reply.send(fs.createReadStream(p));
+    }
+
+    const m = /bytes=(\d*)-(\d*)/.exec(range);
+    const start = m && m[1] ? Number(m[1]) : 0;
+    const end = m && m[2] ? Number(m[2]) : stat.size - 1;
+    if (start >= stat.size) {
+      reply.header('Content-Range', `bytes */${stat.size}`);
+      return reply.code(416).send();
+    }
+
+    reply.code(206);
+    reply.header('Content-Range', `bytes ${start}-${end}/${stat.size}`);
+    reply.header('Accept-Ranges', 'bytes');
+    reply.header('Content-Length', end - start + 1);
+    reply.type(type);
+    return reply.send(fs.createReadStream(p, { start, end }));
+  });
+
+  // ---- Assets ------------------------------------------------------------
+
+  fastify.get('/api/assets', async () => ({
+    assets: db.prepare('SELECT * FROM assets ORDER BY kind, title').all(),
+  }));
+
+  fastify.post('/api/assets/scan', async () => scanAssets());
+
+  // Pull a Plex library of commercials into the ad pool. The section id is
+  // remembered so /refresh-plex can re-pull when new spots are added in Plex.
+  fastify.post('/api/assets/import-plex', async (req, reply) => {
+    const sectionKey = req.body && req.body.sectionKey;
+    if (!sectionKey) return reply.code(400).send({ error: 'sectionKey is required' });
+    const res = await importPlexAds(String(sectionKey));
+    const saved = new Set(getSetting('ad_plex_sections', []));
+    saved.add(String(sectionKey));
+    setSetting('ad_plex_sections', [...saved]);
+    return { ok: true, ...res };
+  });
+
+  fastify.post('/api/assets/refresh-plex', async () => {
+    const sections = getSetting('ad_plex_sections', []);
+    const results = [];
+    for (const key of sections) {
+      try {
+        results.push({ sectionKey: key, ...(await importPlexAds(String(key))) });
+      } catch (err) {
+        results.push({ sectionKey: key, error: err.message });
+      }
+    }
+    return { ok: true, sections, results };
+  });
+
+  fastify.delete('/api/assets/:id', async (req) => {
+    db.prepare('DELETE FROM assets WHERE id = ?').run(req.params.id);
+    return { ok: true };
+  });
+
+  fastify.patch('/api/assets/:id', async (req) => {
+    const b = req.body || {};
+    if (b.tags !== undefined) {
+      db.prepare('UPDATE assets SET tags = ? WHERE id = ?').run(b.tags, req.params.id);
+    }
+    if (b.kind !== undefined) {
+      db.prepare('UPDATE assets SET kind = ? WHERE id = ?').run(b.kind, req.params.id);
+    }
+    return { ok: true };
+  });
+
+  // ---- DVR ---------------------------------------------------------------
+
+  fastify.get('/api/dvr', async () => ({
+    slots: db.prepare('SELECT * FROM dvr ORDER BY recorded_at DESC').all(),
+    limit: getSetting('dvr_slots', 6),
+  }));
+
+  fastify.post('/api/dvr', async (req, reply) => {
+    const p = nowOn(Number(req.body.channelId));
+    if (!p || !p.ratingKey) {
+      return reply.code(400).send({ error: 'Nothing recordable is on right now' });
+    }
+    const limit = getSetting('dvr_slots', 6);
+    const count = db.prepare('SELECT COUNT(*) n FROM dvr').get().n;
+    if (count >= limit) {
+      db.prepare(
+        'DELETE FROM dvr WHERE id = (SELECT id FROM dvr ORDER BY recorded_at ASC LIMIT 1)'
+      ).run();
+    }
+    db.prepare(
+      `INSERT INTO dvr (rating_key, title, subtitle, duration_ms, recorded_at)
+       VALUES (?,?,?,?,?)`
+    ).run(p.ratingKey, p.title, p.subtitle, p.durationMs, Date.now());
+    return { ok: true, recorded: p.title };
+  });
+
+  fastify.delete('/api/dvr/:id', async (req) => {
+    db.prepare('DELETE FROM dvr WHERE id = ?').run(req.params.id);
+    return { ok: true };
+  });
+
+  // ---- Settings ----------------------------------------------------------
+
+  fastify.get('/api/settings', async () => ({
+    dvrSlots: getSetting('dvr_slots', 6),
+    sleepStart: getSetting('sleep_start', null),
+    sleepEnd: getSetting('sleep_end', null),
+  }));
+
+  fastify.post('/api/settings', async (req) => {
+    const b = req.body || {};
+    if (b.dvrSlots !== undefined) setSetting('dvr_slots', Number(b.dvrSlots));
+    if (b.sleepStart !== undefined) setSetting('sleep_start', b.sleepStart || null);
+    if (b.sleepEnd !== undefined) setSetting('sleep_end', b.sleepEnd || null);
+    return { ok: true };
+  });
+}

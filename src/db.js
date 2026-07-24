@@ -131,7 +131,7 @@ CREATE INDEX IF NOT EXISTS idx_rules_channel ON schedule_rules(channel_id, prior
 
 -- Premiere vs rerun, and repeat cooldown, per (channel, item).
 CREATE TABLE IF NOT EXISTS airings (
-  channel_id  INTEGER NOT NULL,
+  channel_id  INTEGER NOT NULL REFERENCES channels(id) ON DELETE CASCADE,
   rating_key  TEXT NOT NULL,
   count       INTEGER NOT NULL DEFAULT 0,
   last_aired  INTEGER,
@@ -191,6 +191,31 @@ addColumnIfMissing('assets', 'gain_db', 'REAL');
         SELECT * FROM channel_excludes WHERE channel_id IN (SELECT id FROM channels);
       DROP TABLE channel_excludes;
       ALTER TABLE channel_excludes_new RENAME TO channel_excludes;
+    `);
+    db.pragma('foreign_keys = ON');
+  }
+})();
+
+// airings shipped the same way — no ON DELETE CASCADE — so deleting a channel
+// left its airing counts behind. Left orphaned, they'd skew scheduling if a new
+// channel ever reused that id (least-recently-aired thinks those items just
+// aired). Rebuild with the FK and drop rows for channels that no longer exist.
+(function ensureAiringsCascade() {
+  const fks = db.prepare('PRAGMA foreign_key_list(airings)').all();
+  if (fks.length === 0) {
+    db.pragma('foreign_keys = OFF');
+    db.exec(`
+      CREATE TABLE airings_new (
+        channel_id  INTEGER NOT NULL REFERENCES channels(id) ON DELETE CASCADE,
+        rating_key  TEXT NOT NULL,
+        count       INTEGER NOT NULL DEFAULT 0,
+        last_aired  INTEGER,
+        PRIMARY KEY (channel_id, rating_key)
+      );
+      INSERT INTO airings_new
+        SELECT * FROM airings WHERE channel_id IN (SELECT id FROM channels);
+      DROP TABLE airings;
+      ALTER TABLE airings_new RENAME TO airings;
     `);
     db.pragma('foreign_keys = ON');
   }

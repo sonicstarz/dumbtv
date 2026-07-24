@@ -214,6 +214,15 @@ export class Engine extends EventEmitter {
       .all();
   }
 
+  /** The lowest-numbered enabled channel — where we land after the tuned one
+   *  disappears (deleted or disabled). Null if there are no channels left. */
+  #fallbackChannel() {
+    const row = db
+      .prepare('SELECT id FROM channels WHERE enabled = 1 ORDER BY number LIMIT 1')
+      .get();
+    return row ? row.id : null;
+  }
+
   async #onArrow(dir) {
     if (this.guideOpen) {
       const rows = this.#enabledChannels();
@@ -425,6 +434,22 @@ export class Engine extends EventEmitter {
   }
 
   async tick() {
+    // If the tuned channel was deleted or disabled out from under us, fall back
+    // so the TV never strands on "Nothing is scheduled" pointing at a ghost.
+    if (this.channelId && !db.prepare('SELECT 1 FROM channels WHERE id = ? AND enabled = 1').get(this.channelId)) {
+      const alt = this.#fallbackChannel();
+      if (alt) {
+        await this.tune(alt, { silent: true }).catch(() => {});
+      } else {
+        this.channelId = null;
+        if (this.mpv && this.mpv.ready) {
+          await this.mpv.stop().catch(() => {});
+          await this.mpv.showOverlay(OVERLAY_IDS.card, troubleCard('No channels are set up')).catch(() => {});
+        }
+        return;
+      }
+    }
+
     await this.sync(false);
     if (!this.mpv || !this.mpv.ready) return;
 

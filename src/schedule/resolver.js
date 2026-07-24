@@ -1,5 +1,5 @@
 import { db } from '../db.js';
-import { streamUrl } from '../plex/client.js';
+import { streamUrl } from '../media/backend.js';
 import { HOUR } from '../util/time.js';
 
 const qNow = db.prepare(`

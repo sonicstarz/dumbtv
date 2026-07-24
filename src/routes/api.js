@@ -26,10 +26,18 @@ import {
   getSections,
   getSectionItems,
   cacheSource,
-  importPlexAds,
+  importAds,
   ping,
   imageUrl,
-} from '../plex/client.js';
+  activeBackend,
+} from '../media/backend.js';
+import {
+  authenticate as jfAuthenticate,
+  saveApiKey as jfSaveApiKey,
+  getJfServer,
+  clearJf,
+  jfConfigured,
+} from '../jellyfin/auth.js';
 import { generateChannel, regenerateChannel, ensureSchedule, previewChannel } from '../schedule/generator.js';
 import {
   isConfigured, setPin, verifyPin, clearPin, tokenValid, cookieToken, sessionCookieHeader,
@@ -102,12 +110,18 @@ export default async function api(fastify) {
   });
 
   fastify.get('/api/status', async () => {
-    const token = getToken();
-    const server = getServer();
+    const backend = activeBackend();
+    const plexServer = getServer();
+    const jf = getJfServer();
+    // "linked" reflects whichever backend is active.
+    const linked = backend === 'jellyfin' ? jfConfigured() : !!getToken();
+    const connected = backend === 'jellyfin' ? jfConfigured() : !!plexServer;
     let reachable = null;
-    if (server) {
-      reachable = await ping().catch(() => false);
-    }
+    if (connected) reachable = await ping().catch(() => false);
+    const server =
+      backend === 'jellyfin'
+        ? jf ? { name: jf.name || 'Jellyfin', uri: jf.url, local: false } : null
+        : plexServer ? { name: plexServer.name, uri: plexServer.uri, local: plexServer.local } : null;
     const counts = {
       channels: db.prepare('SELECT COUNT(*) n FROM channels').get().n,
       media: db.prepare('SELECT COUNT(*) n FROM media').get().n,
@@ -115,8 +129,9 @@ export default async function api(fastify) {
       programs: db.prepare('SELECT COUNT(*) n FROM programs').get().n,
     };
     return {
-      linked: !!token,
-      server: server ? { name: server.name, uri: server.uri, local: server.local } : null,
+      backend,
+      linked,
+      server,
       reachable,
       counts,
       player: engine.snapshot(),
@@ -149,6 +164,53 @@ export default async function api(fastify) {
 
   fastify.post('/api/plex/logout', async () => {
     clearAuth();
+    return { ok: true };
+  });
+
+  // ---- Jellyfin link -----------------------------------------------------
+
+  // Switch which media backend is active (plex | jellyfin).
+  fastify.post('/api/media/backend', async (req) => {
+    const backend = req.body?.backend === 'jellyfin' ? 'jellyfin' : 'plex';
+    setSetting('media_backend', backend);
+    return { ok: true, backend, reachable: await ping().catch(() => false) };
+  });
+
+  fastify.get('/api/jellyfin/status', async () => {
+    const s = getJfServer();
+    return {
+      configured: jfConfigured(),
+      server: s ? { url: s.url, name: s.name, userId: s.userId } : null,
+      active: activeBackend() === 'jellyfin',
+    };
+  });
+
+  // Connect with a username + password (Jellyfin issues an access token).
+  fastify.post('/api/jellyfin/connect', async (req, reply) => {
+    const b = req.body || {};
+    try {
+      const s = await jfAuthenticate(b.url, b.username, b.password);
+      setSetting('media_backend', 'jellyfin');
+      return { ok: true, server: { url: s.url, name: s.name, userId: s.userId } };
+    } catch (err) {
+      return reply.code(400).send({ error: err.message });
+    }
+  });
+
+  // Or connect with a server URL + user id + dashboard API key.
+  fastify.post('/api/jellyfin/apikey', async (req, reply) => {
+    const b = req.body || {};
+    if (!b.url || !b.userId || !b.apiKey) {
+      return reply.code(400).send({ error: 'Need server URL, user id, and API key.' });
+    }
+    await jfSaveApiKey(b.url, b.userId, b.apiKey);
+    setSetting('media_backend', 'jellyfin');
+    return { ok: true, reachable: await ping().catch(() => false) };
+  });
+
+  fastify.post('/api/jellyfin/logout', async () => {
+    clearJf();
+    setSetting('media_backend', 'plex');
     return { ok: true };
   });
 
@@ -638,7 +700,7 @@ export default async function api(fastify) {
   fastify.post('/api/assets/import-plex', async (req, reply) => {
     const sectionKey = req.body && req.body.sectionKey;
     if (!sectionKey) return reply.code(400).send({ error: 'sectionKey is required' });
-    const res = await importPlexAds(String(sectionKey));
+    const res = await importAds(String(sectionKey));
     const saved = new Set(getSetting('ad_plex_sections', []));
     saved.add(String(sectionKey));
     setSetting('ad_plex_sections', [...saved]);
@@ -650,7 +712,7 @@ export default async function api(fastify) {
     const results = [];
     for (const key of sections) {
       try {
-        results.push({ sectionKey: key, ...(await importPlexAds(String(key))) });
+        results.push({ sectionKey: key, ...(await importAds(String(key))) });
       } catch (err) {
         results.push({ sectionKey: key, error: err.message });
       }

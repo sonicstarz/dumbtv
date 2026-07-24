@@ -32,7 +32,7 @@
     <button class="navlink" data-view="settings">Settings</button>
     <hr />
     <h2>CONNECT</h2>
-    <button class="navlink" data-view="setup">Plex <span class="badge" id="navPlex"></span></button>
+    <button class="navlink" data-view="setup">Server <span class="badge" id="navPlex"></span></button>
     <hr />
     <h2>WATCH</h2>
     <a class="navlink" href="/tv" target="_blank" style="text-decoration:none">Open the TV &nearr;</a>
@@ -118,9 +118,19 @@
 
     <!-- ---------------- setup ---------------- -->
     <section class="view" id="view-setup">
-      <h2 class="title">Plex</h2>
+      <h2 class="title">Media Server</h2>
       <p class="lede">Cathode reads your library and plays files directly. It never transcodes and never marks anything as watched.</p>
 
+      <div class="card">
+        <h3>Where your library lives</h3>
+        <div class="row" style="gap:10px">
+          <button class="sm" id="bePlex" data-backend="plex">Plex</button>
+          <button class="sm" id="beJelly" data-backend="jellyfin">Jellyfin</button>
+          <span class="sub" id="beActive" style="margin-left:auto"></span>
+        </div>
+      </div>
+
+      <div id="plexPanel">
       <div class="card" id="linkCard">
         <h3>Link your account</h3>
         <p class="sub">You'll get a four-character code to enter at plex.tv/link. No password goes through this app.</p>
@@ -140,6 +150,24 @@
         <p class="sub">These are what you'll pick from when building channels.</p>
         <div id="libList"></div>
         <button class="ghost danger" id="unlink" style="margin-top:14px">Unlink this account</button>
+      </div>
+      </div><!-- /plexPanel -->
+
+      <div id="jellyPanel" style="display:none">
+        <div class="card">
+          <h3>Connect to Jellyfin</h3>
+          <p class="sub" id="jellyStatus">Enter your server address and sign in. Cathode direct-plays every file — nothing is transcoded.</p>
+          <div class="field"><label>SERVER ADDRESS</label><input id="jfUrl" placeholder="http://192.168.1.50:8096" style="width:100%"></div>
+          <div class="row" style="gap:10px">
+            <div class="field" style="flex:1"><label>USERNAME</label><input id="jfUser" style="width:100%"></div>
+            <div class="field" style="flex:1"><label>PASSWORD</label><input id="jfPass" type="password" style="width:100%"></div>
+          </div>
+          <div class="row" style="gap:10px;margin-top:8px">
+            <button class="primary" id="jfConnect">Connect</button>
+            <button class="ghost danger" id="jfLogout" style="display:none">Disconnect</button>
+          </div>
+          <p class="hint">Direct play only — set your Jellyfin users' bitrate limits high enough that playback isn't forced to transcode.</p>
+        </div>
       </div>
     </section>
 

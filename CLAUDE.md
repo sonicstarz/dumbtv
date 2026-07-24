@@ -119,6 +119,11 @@ Written from API shape and docs, never executed against the real thing:
 
 - **`plex/auth.js` and `plex/client.js`** — the PIN flow and `/allLeaves` have
   never seen a live response.
+- **`jellyfin/auth.js` and `jellyfin/client.js`** — written from the Jellyfin
+  API shape. AuthenticateByName, `/Shows/:id/Episodes`, and the `?static=true`
+  direct-play stream URL have never seen a live Jellyfin server. The active
+  backend is chosen by the `media_backend` setting; `media/backend.js` is the
+  facade and dispatches stream URLs by part-key prefix (`jf:` → Jellyfin).
 - **`player/mpv.js`** — mpv was not installed in the build environment. The
   `loadfile` option syntax moved between mpv releases, so `play()` tries three
   forms and falls back to a corrective seek after `file-loaded`. Plausible,

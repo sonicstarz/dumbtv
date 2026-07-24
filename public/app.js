@@ -1206,9 +1206,34 @@ $('#refreshPlexAds').addEventListener('click', async () => {
 
 // ---------------------------------------------------------------- setup
 
+function applyBackendPanel(backend) {
+  const jelly = backend === 'jellyfin';
+  $('#plexPanel').style.display = jelly ? 'none' : '';
+  $('#jellyPanel').style.display = jelly ? '' : 'none';
+  $('#bePlex').classList.toggle('primary', !jelly);
+  $('#beJelly').classList.toggle('primary', jelly);
+  $('#beActive').textContent = jelly ? 'Using Jellyfin' : 'Using Plex';
+}
+
+async function loadJellyfin() {
+  try {
+    const j = await api('/api/jellyfin/status');
+    if (j.server) {
+      $('#jellyStatus').innerHTML = `<span style="color:var(--phosphor)">Connected to ${escapeHtml(j.server.name || j.server.url)}.</span>`;
+      $('#jfUrl').value = j.server.url || '';
+      $('#jfLogout').style.display = 'inline-block';
+    } else {
+      $('#jfLogout').style.display = 'none';
+    }
+  } catch {}
+}
+
 async function loadSetup() {
   const s = state.status;
   if (!s) return;
+
+  applyBackendPanel(s.backend || 'plex');
+  loadJellyfin();
 
   if (s.linked) {
     $('#linkBody').innerHTML = `<p style="color:var(--phosphor);margin:0">Linked to Plex.</p>`;
@@ -1297,6 +1322,37 @@ $('#unlink').addEventListener('click', async () => {
   if (!confirm('Unlink this Plex account? Channels stay, but nothing will play until you link again.')) return;
   await api('/api/plex/logout', { method: 'POST' });
   location.reload();
+});
+
+// ---- backend switch + Jellyfin ----
+$$('[data-backend]').forEach((b) =>
+  b.addEventListener('click', async () => {
+    await api('/api/media/backend', { method: 'POST', body: { backend: b.dataset.backend } });
+    await loadStatus();
+    loadSetup();
+    toast(`Now using ${b.dataset.backend === 'jellyfin' ? 'Jellyfin' : 'Plex'}.`);
+  })
+);
+$('#jfConnect').addEventListener('click', async () => {
+  const btn = $('#jfConnect');
+  btn.disabled = true; btn.textContent = 'Connecting…';
+  try {
+    await api('/api/jellyfin/connect', {
+      method: 'POST',
+      body: { url: $('#jfUrl').value.trim(), username: $('#jfUser').value.trim(), password: $('#jfPass').value },
+    });
+    toast('Connected to Jellyfin.');
+    $('#jfPass').value = '';
+    await loadStatus();
+    loadSetup();
+  } catch (err) { toast(err.message, true); }
+  btn.disabled = false; btn.textContent = 'Connect';
+});
+$('#jfLogout').addEventListener('click', async () => {
+  if (!confirm('Disconnect Jellyfin and switch back to Plex?')) return;
+  await api('/api/jellyfin/logout', { method: 'POST' });
+  await loadStatus();
+  loadSetup();
 });
 
 // ---------------------------------------------------------------- boot

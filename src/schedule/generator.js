@@ -2,25 +2,7 @@ import { db } from '../db.js';
 import { config } from '../config.js';
 import { buildPlaylist } from './ordering.js';
 import { makeRng, hashString } from '../util/rng.js';
-import {
-  MINUTE,
-  DAY,
-  inDarkWindow,
-  darkWindowEnd,
-} from '../util/time.js';
-
-const insertProgram = db.prepare(`
-  INSERT INTO programs
-    (channel_id, start_utc, end_utc, duration_ms, kind, rating_key, asset_id,
-     title, subtitle, season_no, episode_no, slot_start)
-  VALUES
-    (@channelId, @startUtc, @endUtc, @durationMs, @kind, @ratingKey, @assetId,
-     @title, @subtitle, @seasonNo, @episodeNo, @slotStart)
-`);
-
-const insertMany = db.transaction((rows) => {
-  for (const r of rows) insertProgram.run(r);
-});
+import { MINUTE, DAY } from '../util/time.js';
 
 function adPool(channel) {
   const tags = String(channel.ad_tags || '')
@@ -102,161 +84,332 @@ function staggerOffset(channel) {
  * Append-only: already-generated programs are never rewritten, so a guide
  * you printed this morning is still correct tonight.
  */
-export function generateChannel(channelId, until = Date.now() + config.scheduleWindowDays * DAY) {
-  const channel = db.prepare('SELECT * FROM channels WHERE id = ?').get(channelId);
-  if (!channel) throw new Error(`No channel ${channelId}`);
+// ---- rules ----------------------------------------------------------------
 
-  const now = Date.now();
+function hmToMin(hm) {
+  const [h, m] = String(hm).split(':').map(Number);
+  return h * 60 + m;
+}
 
-  // Where this channel's timeline begins. Topping up an existing schedule, we
-  // continue from the end of what's already built. Building fresh, we back-date
-  // by a per-channel stagger so the channel is already mid-show right now and
-  // isn't aligned with every other channel.
-  let t;
-  if (channel.generated_thru && channel.generated_thru > now) {
-    t = channel.generated_thru;
-  } else {
-    t = now - staggerOffset(channel);
+/**
+ * Migrated installs already have rules. A channel created since (or in a fresh
+ * DB) gets its defaults synthesised here: a rotation rule from its ordering, and
+ * a blackout rule from any dark hours. Persisted so the UI can edit them later.
+ */
+function ensureChannelRules(channel) {
+  const n = db.prepare('SELECT COUNT(*) n FROM schedule_rules WHERE channel_id = ?').get(channel.id).n;
+  if (n > 0) return;
+  db.prepare(
+    `INSERT INTO schedule_rules (channel_id, name, kind, priority, enabled, ordering_mode, cursor)
+     VALUES (?,?,?,?,1,?,?)`
+  ).run(channel.id, 'Everything else', 'rotation', 0, channel.ordering_mode, channel.cursor || 0);
+  if (channel.dark_start && channel.dark_end) {
+    let dur = hmToMin(channel.dark_end) - hmToMin(channel.dark_start);
+    if (dur <= 0) dur += 24 * 60;
+    db.prepare(
+      `INSERT INTO schedule_rules (channel_id, name, kind, priority, enabled, days_of_week, start_time, duration_min)
+       VALUES (?,?,?,?,1,?,?,?)`
+    ).run(channel.id, 'Off air', 'blackout', 1000, '0,1,2,3,4,5,6', channel.dark_start, dur);
   }
-  if (t >= until) return { added: 0, reason: 'already built' };
+}
 
-  const playlist = buildPlaylist(channel, 0);
-  const pool = adPool(channel);
-  const rows = [];
-
-  if (playlist.length === 0) {
-    // No content picked yet — run colour bars rather than a black screen.
-    rows.push({
-      channelId: channel.id,
-      startUtc: t,
-      endUtc: until,
-      durationMs: until - t,
-      kind: 'offair',
-      ratingKey: null,
-      assetId: null,
-      title: 'No content selected',
-      subtitle: 'Add shows or movies to this channel',
-      seasonNo: null,
-      episodeNo: null,
-      slotStart: t,
-    });
-    insertMany(rows);
-    db.prepare('UPDATE channels SET generated_thru = ? WHERE id = ?').run(until, channel.id);
-    return { added: 1, reason: 'no sources' };
+/** Occurrences of a day-of-week + local start time over [from, until). */
+function dayTimeOccurrences(daysCsv, startTime, durationMin, from, until) {
+  const days = new Set(
+    String(daysCsv || '').split(',').map((s) => parseInt(s, 10)).filter((x) => !Number.isNaN(x))
+  );
+  if (days.size === 0 || !startTime || !durationMin) return [];
+  const [sh, sm] = String(startTime).split(':').map(Number);
+  const out = [];
+  const d = new Date(from);
+  d.setHours(0, 0, 0, 0);
+  d.setDate(d.getDate() - 1); // catch a block that started yesterday and runs in
+  for (let i = 0; i < 500 && d.getTime() < until; i++) {
+    if (days.has(d.getDay())) {
+      const start = new Date(d);
+      start.setHours(sh, sm, 0, 0);
+      const s = start.getTime();
+      const e = s + durationMin * 60000;
+      if (e > from && s < until) out.push({ start: s, end: e });
+    }
+    d.setDate(d.getDate() + 1);
   }
+  return out;
+}
 
+/** Expand one rule into concrete [start, end) occurrences inside the window. */
+function expandRule(rule, from, until) {
+  const effFrom = rule.effective_from ? Date.parse(`${rule.effective_from}T00:00:00`) : -Infinity;
+  const effTo = rule.effective_to ? Date.parse(`${rule.effective_to}T23:59:59`) : Infinity;
+  const lo = Math.max(from, effFrom);
+  const hi = Math.min(until, effTo);
+  if (lo >= hi) return [];
+
+  if (rule.kind === 'blackout' || rule.kind === 'recurring') {
+    return dayTimeOccurrences(rule.days_of_week, rule.start_time, rule.duration_min, lo, hi)
+      .map((o) => ({ ...o, rule }));
+  }
+  if (rule.kind === 'pinned' && rule.starts_at_utc) {
+    const m = db.prepare('SELECT duration_ms FROM media WHERE rating_key = ?').get(rule.rating_key);
+    const dur = m && m.duration_ms ? m.duration_ms : 0;
+    if (dur <= 0) return [];
+    const s = rule.starts_at_utc;
+    const e = s + dur;
+    if (e > lo && s < hi) return [{ start: s, end: e, rule }];
+  }
+  // airdate modes arrive in Phase 3.
+  return [];
+}
+
+const overlaps = (a, b) => a.start < b.end && b.start < a.end;
+
+// ---- rotation iterator (shared across every gap in one build) --------------
+
+function makeRotationIterator(channel) {
+  const base = buildPlaylist(channel, 0);
   let cursor = channel.cursor || 0;
   let cachedCycle = -1;
-  let cachedList = playlist;
-
-  const nextItem = () => {
-    const len = cachedList.length || playlist.length;
-    const cycle = Math.floor(cursor / len);
+  let cachedList = base;
+  function refresh() {
+    if (!cachedList.length) return;
+    const cycle = Math.floor(cursor / cachedList.length);
     if (cycle !== cachedCycle) {
       cachedCycle = cycle;
-      cachedList =
-        channel.ordering_mode === 'shuffle'
-          ? buildPlaylist(channel, cycle)
-          : playlist;
+      cachedList = channel.ordering_mode === 'shuffle' ? buildPlaylist(channel, cycle) : base;
     }
-    const item = cachedList[cursor % cachedList.length];
-    cursor++;
-    return item;
+  }
+  return {
+    empty: base.length === 0,
+    peek() { refresh(); return cachedList[cursor % cachedList.length]; },
+    advance() { cursor++; },
+    cursor: () => cursor,
   };
+}
 
+// ---- program builders ------------------------------------------------------
+
+function airingNo(ctx, ratingKey) {
+  const existing =
+    db.prepare('SELECT count FROM airings WHERE channel_id = ? AND rating_key = ?')
+      .get(ctx.channel.id, ratingKey)?.count || 0;
+  const bumped = ctx.airingBump.get(ratingKey) || 0;
+  ctx.airingBump.set(ratingKey, bumped + 1);
+  return existing + bumped + 1;
+}
+
+function pushProgram(ctx, item, start, blockStart, ruleId) {
+  const airing = item.rating_key ? airingNo(ctx, item.rating_key) : 1;
+  ctx.rows.push({
+    channelId: ctx.channel.id,
+    startUtc: start,
+    endUtc: start + item.duration_ms,
+    durationMs: item.duration_ms,
+    kind: item.kind === 'movie' ? 'movie' : 'episode',
+    ratingKey: item.rating_key,
+    assetId: null,
+    title: item.show_title || item.title,
+    subtitle: item.show_title ? item.title : null,
+    seasonNo: item.season_no ?? null,
+    episodeNo: item.episode_no ?? null,
+    slotStart: blockStart,
+    ruleId,
+    airingNo: airing,
+  });
+}
+
+function pushSpan(ctx, kind, start, end, title, subtitle, ruleId, assetId = null) {
+  ctx.rows.push({
+    channelId: ctx.channel.id,
+    startUtc: start,
+    endUtc: end,
+    durationMs: end - start,
+    kind,
+    ratingKey: null,
+    assetId,
+    title,
+    subtitle: subtitle ?? null,
+    seasonNo: null,
+    episodeNo: null,
+    slotStart: start,
+    ruleId,
+    airingNo: 1,
+  });
+}
+
+/**
+ * Fill [start, end) with rotation content back-to-back, plus ad breaks. Programs
+ * never overrun `end` (protect policy); whatever's left over is padded with a
+ * filler so there's zero dead air before the next reservation. Reused for gaps
+ * and for recurring blocks — filling a reserved 3-hour Saturday and an unclaimed
+ * Tuesday afternoon are the same operation with different bounds.
+ */
+function fillWindow(ctx, ruleId, start, end) {
+  let t = start;
   let guard = 0;
-  while (t < until && guard++ < 20000) {
-    if (inDarkWindow(t, channel.dark_start, channel.dark_end)) {
-      const end = Math.min(darkWindowEnd(t, channel.dark_start, channel.dark_end), until);
-      rows.push({
-        channelId: channel.id,
-        startUtc: t,
-        endUtc: end,
-        durationMs: end - t,
-        kind: 'offair',
-        ratingKey: null,
-        assetId: null,
-        title: 'Off air',
-        subtitle: null,
-        seasonNo: null,
-        episodeNo: null,
-        slotStart: t,
-      });
-      t = end;
-      continue;
-    }
-
-    const item = nextItem();
-    if (!item || !item.duration_ms) continue;
-
-    // The program plays at its natural length, then straight into a break, then
-    // the next program — no rounding to a slot boundary. The whole block (show +
-    // its trailing ads) shares one slotStart so the guide groups it as one entry.
+  while (t < end && guard++ < 50000) {
+    const item = ctx.iter.peek();
+    if (!item || !item.duration_ms) { ctx.iter.advance(); continue; }
+    if (t + item.duration_ms > end) break; // won't fit before the hard end
+    ctx.iter.advance();
     const blockStart = t;
-    const programEnd = t + item.duration_ms;
-
-    rows.push({
-      channelId: channel.id,
-      startUtc: t,
-      endUtc: programEnd,
-      durationMs: item.duration_ms,
-      kind: item.kind === 'movie' ? 'movie' : 'episode',
-      ratingKey: item.rating_key,
-      assetId: null,
-      title: item.show_title || item.title,
-      subtitle: item.show_title ? item.title : null,
-      seasonNo: item.season_no,
-      episodeNo: item.episode_no,
-      slotStart: blockStart,
-    });
-
-    t = programEnd;
-
-    const breakItems = buildAdBreak(channel, pool, `${channel.id}:${blockStart}`);
-    for (const bi of breakItems) {
-      rows.push({
-        channelId: channel.id,
-        startUtc: t,
-        endUtc: t + bi.durationMs,
-        durationMs: bi.durationMs,
-        kind: bi.kind,
-        ratingKey: null,
-        assetId: bi.assetId,
-        title: bi.title,
-        subtitle: null,
-        seasonNo: null,
-        episodeNo: null,
-        slotStart: blockStart,
-      });
+    pushProgram(ctx, item, t, blockStart, ruleId);
+    t += item.duration_ms;
+    for (const bi of buildAdBreak(ctx.channel, ctx.pool, `${ctx.channel.id}:${blockStart}`)) {
+      if (t + bi.durationMs > end) break;
+      pushSpan(ctx, bi.kind, t, t + bi.durationMs, bi.title, null, ruleId, bi.assetId);
       t += bi.durationMs;
     }
   }
-
-  insertMany(rows);
-  db.prepare('UPDATE channels SET cursor = ?, generated_thru = ? WHERE id = ?').run(
-    cursor,
-    t,
-    channel.id
-  );
-
-  return { added: rows.length, through: t };
+  if (t < end) pushSpan(ctx, 'filler', t, end, ctx.channel.name, null, ruleId);
+  return end;
 }
 
-/** Throw away everything not yet aired and rebuild. Use after editing a channel. */
+function fillRange(ctx, ruleId, start, end) {
+  if (start >= end) return end;
+  if (ctx.iter.empty) {
+    pushSpan(ctx, 'offair', start, end, 'No content selected', 'Add shows or movies to this channel', ruleId);
+    return end;
+  }
+  return fillWindow(ctx, ruleId, start, end);
+}
+
+function emitReservation(ctx, res, until) {
+  const end = Math.min(res.end, until);
+  if (res.start >= end) return;
+  const rule = res.rule;
+  if (rule.kind === 'blackout') {
+    pushSpan(ctx, 'offair', res.start, end, 'Off air', null, rule.id);
+  } else if (rule.kind === 'pinned') {
+    const m = db.prepare('SELECT * FROM media WHERE rating_key = ?').get(rule.rating_key);
+    if (m) {
+      pushProgram(ctx, {
+        rating_key: m.rating_key, kind: m.kind, title: m.title, show_title: m.show_title,
+        season_no: m.season_no, episode_no: m.episode_no, duration_ms: m.duration_ms,
+      }, res.start, res.start, rule.id);
+      if (res.start + m.duration_ms < end) {
+        pushSpan(ctx, 'filler', res.start + m.duration_ms, end, ctx.channel.name, null, rule.id);
+      }
+    } else {
+      pushSpan(ctx, 'offair', res.start, end, rule.name || 'Scheduled', null, rule.id);
+    }
+  } else {
+    // recurring (and later airdate): fill the reserved block with content.
+    fillRange(ctx, rule.id, res.start, end);
+  }
+}
+
+const insertProgramV2 = db.prepare(`
+  INSERT INTO programs
+    (channel_id, start_utc, end_utc, duration_ms, kind, rating_key, asset_id,
+     title, subtitle, season_no, episode_no, slot_start, rule_id, airing_no)
+  VALUES
+    (@channelId, @startUtc, @endUtc, @durationMs, @kind, @ratingKey, @assetId,
+     @title, @subtitle, @seasonNo, @episodeNo, @slotStart, @ruleId, @airingNo)
+`);
+
+/**
+ * Two-pass reserve-then-fill. Pass 1 places reservations (blackout, pinned,
+ * recurring) highest priority first, reporting — never silently dropping —
+ * anything that loses its slot. Pass 2 fills every gap with rotation.
+ */
+export function generateChannel(channelId, until = Date.now() + config.scheduleWindowDays * DAY) {
+  const channel = db.prepare('SELECT * FROM channels WHERE id = ?').get(channelId);
+  if (!channel) throw new Error(`No channel ${channelId}`);
+  ensureChannelRules(channel);
+
+  const now = Date.now();
+  const from = channel.generated_thru && channel.generated_thru > now
+    ? channel.generated_thru
+    : now - staggerOffset(channel);
+  if (from >= until) return { added: 0, reason: 'already built', conflicts: [] };
+
+  const rules = db
+    .prepare('SELECT * FROM schedule_rules WHERE channel_id = ? AND enabled = 1 ORDER BY priority DESC, id')
+    .all(channel.id);
+  const rotationRule = rules.find((r) => r.kind === 'rotation') || { id: null };
+
+  // Pass 1 — reservations.
+  const reservations = [];
+  const conflicts = [];
+  for (const rule of rules) {
+    if (rule.kind === 'rotation') continue;
+    for (const occ of expandRule(rule, from, until)) {
+      const clash = reservations.find((r) => overlaps(r, occ));
+      if (clash) {
+        conflicts.push({ rule: rule.name || rule.kind, at: occ.start, lostTo: clash.rule.name || clash.rule.kind });
+      } else {
+        reservations.push(occ);
+      }
+    }
+  }
+  reservations.sort((a, b) => a.start - b.start);
+
+  // Pass 2 — fill.
+  const ctx = {
+    channel,
+    rows: [],
+    pool: adPool(channel),
+    iter: makeRotationIterator(channel),
+    airingBump: new Map(),
+  };
+
+  let t = from;
+  let ri = 0;
+  let guard = 0;
+  while (t < until && guard++ < 200000) {
+    const res = reservations[ri];
+    if (!res || res.start >= until) {
+      fillRange(ctx, rotationRule.id, t, until);
+      t = until;
+      break;
+    }
+    if (t < res.start) {
+      fillRange(ctx, rotationRule.id, t, res.start);
+      t = res.start;
+    }
+    emitReservation(ctx, res, until);
+    t = Math.max(t, Math.min(res.end, until));
+    ri++;
+  }
+
+  // Commit atomically: insert programs, advance cursors, bump airings.
+  const commit = db.transaction(() => {
+    for (const r of ctx.rows) insertProgramV2.run(r);
+    db.prepare('UPDATE channels SET cursor = ?, generated_thru = ? WHERE id = ?')
+      .run(ctx.iter.cursor(), t, channel.id);
+    if (rotationRule.id) {
+      db.prepare('UPDATE schedule_rules SET cursor = ? WHERE id = ?').run(ctx.iter.cursor(), rotationRule.id);
+    }
+    const upAiring = db.prepare(`
+      INSERT INTO airings (channel_id, rating_key, count, last_aired)
+      VALUES (?,?,?,?)
+      ON CONFLICT(channel_id, rating_key) DO UPDATE SET
+        count = count + excluded.count,
+        last_aired = MAX(COALESCE(last_aired, 0), excluded.last_aired)
+    `);
+    for (const [rk, n] of ctx.airingBump) {
+      const lastEnd = ctx.rows.filter((x) => x.ratingKey === rk).reduce((mx, x) => Math.max(mx, x.endUtc), 0);
+      upAiring.run(channel.id, rk, n, lastEnd);
+    }
+  });
+  commit();
+
+  return { added: ctx.rows.length, through: t, conflicts };
+}
+
+/** Throw away everything not yet aired and rebuild — atomically, so the engine
+ *  reading once a second never sees a half-written schedule. */
 export function regenerateChannel(channelId) {
   const now = Date.now();
-  db.prepare('DELETE FROM programs WHERE channel_id = ? AND start_utc >= ?').run(
-    channelId,
-    now
-  );
-  const last = db
-    .prepare(
-      'SELECT MAX(end_utc) AS e FROM programs WHERE channel_id = ? AND start_utc < ?'
-    )
-    .get(channelId, now);
-  const through = last && last.e ? last.e : now;
-  db.prepare('UPDATE channels SET generated_thru = ? WHERE id = ?').run(through, channelId);
-  return generateChannel(channelId);
+  return db.transaction(() => {
+    db.prepare('DELETE FROM programs WHERE channel_id = ? AND start_utc >= ?').run(channelId, now);
+    const last = db
+      .prepare('SELECT MAX(end_utc) AS e FROM programs WHERE channel_id = ? AND start_utc < ?')
+      .get(channelId, now);
+    const through = last && last.e ? last.e : now;
+    db.prepare('UPDATE channels SET generated_thru = ? WHERE id = ?').run(through, channelId);
+    return generateChannel(channelId);
+  })();
 }
 
 /** Top every channel up to the rolling window, and sweep old programs. */

@@ -288,6 +288,57 @@ check(
   nowBefore && nowAfter && nowBefore.id === nowAfter.id
 );
 
+console.log('\nReservations (Backend v2)');
+
+const chRules = makeChannel(6, 'Rules Test', 'sequential', 30);
+for (const s of shows) addSource.run(chRules, s.key, 'show', s.title);
+generateChannel(chRules, Date.now() + 2 * 24 * HOUR); // creates the rotation rule + baseline
+
+// A pinned event claims an exact instant.
+const pinnedAt = Date.now() + 6 * HOUR;
+const pinnedKey = 'show-spidey-e3';
+db.prepare(
+  `INSERT INTO schedule_rules (channel_id, name, kind, priority, enabled, starts_at_utc, source_type, rating_key)
+   VALUES (?,?,?,?,1,?,?,?)`
+).run(chRules, 'Spidey Special', 'pinned', 800, pinnedAt, 'episode', pinnedKey);
+regenerateChannel(chRules);
+
+const pinnedProg = db
+  .prepare('SELECT * FROM programs WHERE channel_id = ? AND rating_key = ? AND start_utc = ?')
+  .get(chRules, pinnedKey, pinnedAt);
+check('a pinned program starts to the millisecond', !!pinnedProg, `(wanted ${pinnedAt})`);
+
+// A lower-priority event that overlaps must be reported, not silently dropped.
+db.prepare(
+  `INSERT INTO schedule_rules (channel_id, name, kind, priority, enabled, starts_at_utc, source_type, rating_key)
+   VALUES (?,?,?,?,1,?,?,?)`
+).run(chRules, 'Clashing Event', 'pinned', 700, pinnedAt + 60_000, 'episode', 'show-gargoyles-e2');
+const regen = regenerateChannel(chRules);
+check(
+  'conflicts are reported, never silently dropped',
+  (regen.conflicts || []).some((c) => c.rule === 'Clashing Event'),
+  `(${JSON.stringify(regen.conflicts || [])})`
+);
+
+// Reservations must not create overlaps or gaps.
+const rprog = db
+  .prepare("SELECT start_utc, end_utc FROM programs WHERE channel_id = ? ORDER BY start_utc")
+  .all(chRules);
+let rovl = 0, rgap = 0;
+for (let i = 1; i < rprog.length; i++) {
+  const d = rprog[i].start_utc - rprog[i - 1].end_utc;
+  if (d < 0) rovl++;
+  if (d > 0) rgap++;
+}
+check('no overlaps once reservations are placed', rovl === 0, `(${rovl})`);
+check('no gaps once reservations are placed', rgap === 0, `(${rgap})`);
+
+// airing_no: the first time an item airs is a premiere.
+const premiere = db
+  .prepare("SELECT MIN(airing_no) m FROM programs WHERE channel_id = ? AND kind = 'episode'")
+  .get(chSeq).m;
+check('premiere/rerun tracked (airing_no starts at 1)', premiere === 1, `(min ${premiere})`);
+
 const counts = db.prepare('SELECT COUNT(*) n FROM programs').get().n;
 console.log(`\n${counts} programs across 4 channels / 2 days`);
 console.log(`${pass} passed, ${fail} failed\n`);

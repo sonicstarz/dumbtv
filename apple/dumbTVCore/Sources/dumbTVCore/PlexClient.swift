@@ -38,6 +38,13 @@ public struct PlexPin: Sendable {
     public let expiresAt: String?
 }
 
+public struct PlexItem: Sendable {
+    public let ratingKey: String
+    public let title: String
+    public let type: String    // show | movie
+    public let thumb: String?
+}
+
 public enum PlexError: Error { case http(Int), badResponse, noServerSelected }
 
 public actor PlexClient {
@@ -138,6 +145,16 @@ public actor PlexClient {
         return (mc["Directory"] as? [[String: Any]] ?? []).map {
             PlexSection(key: "\($0["key"] ?? "")", title: $0["title"] as? String ?? "",
                         type: $0["type"] as? String ?? "")
+        }
+    }
+
+    /// Shows or movies inside a section — the browse list for adding sources.
+    public func sectionItems(key: String, type: String) async throws -> [PlexItem] {
+        let t = (type == "movie") ? 1 : 2   // Plex: 1=movie, 2=show
+        let mc = try await containerGet("/library/sections/\(key)/all?type=\(t)")
+        return (mc["Metadata"] as? [[String: Any]] ?? []).map {
+            PlexItem(ratingKey: "\($0["ratingKey"] ?? "")", title: $0["title"] as? String ?? "",
+                     type: type, thumb: $0["thumb"] as? String)
         }
     }
 

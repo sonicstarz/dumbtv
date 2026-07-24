@@ -55,39 +55,41 @@ final class EmbeddedServer {
     }
 
     private func respond(_ conn: NWConnection, to req: HTTPRequest) {
-        let (status, contentType, body): (Int, String, Data)
+        Task {
+            let (status, contentType, body) = await self.buildResponse(req)
+            var head = "HTTP/1.1 \(status) \(Self.reason(status))\r\n"
+            head += "Content-Type: \(contentType)\r\n"
+            head += "Content-Length: \(body.count)\r\n"
+            head += "Access-Control-Allow-Origin: *\r\n"
+            head += "Connection: close\r\n\r\n"
+            var out = Data(head.utf8); out.append(body)
+            conn.send(content: out, completion: .contentProcessed { _ in conn.cancel() })
+        }
+    }
 
+    private func buildResponse(_ req: HTTPRequest) async -> (Int, String, Data) {
         if req.path.hasPrefix("/api/") {
             let jsonBody = req.body.flatMap { try? JSONSerialization.jsonObject(with: $0) as? [String: Any] }
-            let apiReq = ConfigAPI.Request(method: req.method, path: req.path,
-                                           query: req.query, body: jsonBody)
-            let r = api.handle(apiReq)
+            let apiReq = ConfigAPI.Request(method: req.method, path: req.path, query: req.query, body: jsonBody)
+            let r = await api.handle(apiReq)
             let data = (try? JSONSerialization.data(withJSONObject: r.json)) ?? Data("{}".utf8)
-            (status, contentType, body) = (r.status, "application/json", data)
-        } else {
-            (status, contentType, body) = staticAsset(req.path)
+            return (r.status, "application/json", data)
         }
-
-        var head = "HTTP/1.1 \(status) \(Self.reason(status))\r\n"
-        head += "Content-Type: \(contentType)\r\n"
-        head += "Content-Length: \(body.count)\r\n"
-        head += "Access-Control-Allow-Origin: *\r\n"
-        head += "Connection: close\r\n\r\n"
-        var out = Data(head.utf8); out.append(body)
-        conn.send(content: out, completion: .contentProcessed { _ in conn.cancel() })
+        return staticAsset(req.path)
     }
 
     // MARK: - static web UI (bundled). Falls back to a placeholder until the
     // shared public/ assets are bundled (next Track G task).
 
     private func staticAsset(_ path: String) -> (Int, String, Data) {
-        let name = (path == "/" ? "/index.html" : path)
-        let rel = String(name.drop(while: { $0 == "/" }))
-        if let url = Bundle.main.url(forResource: rel, withExtension: nil, subdirectory: "web"),
-           let data = try? Data(contentsOf: url) {
-            return (200, Self.mime(rel), data)
+        let rel = (path == "/" ? "index.html" : String(path.drop(while: { $0 == "/" })))
+        if let webRoot = Bundle.main.resourceURL?.appendingPathComponent("web") {
+            let fileURL = webRoot.appendingPathComponent(rel)
+            if let data = try? Data(contentsOf: fileURL) {
+                return (200, Self.mime(rel), data)
+            }
         }
-        if path == "/" {
+        if path == "/" {   // web UI not bundled yet → placeholder
             return (200, "text/html; charset=utf-8", Data(Self.placeholder.utf8))
         }
         return (404, "text/plain", Data("Not found".utf8))

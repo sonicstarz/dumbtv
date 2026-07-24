@@ -24,10 +24,26 @@ settings:
     CODE_SIGNING_REQUIRED: NO
     CODE_SIGNING_ALLOWED: NO
 
+# Shared by every platform app: copy the single source of the web config UI
+# (public/) into the bundle's web/ folder, so the embedded server serves the
+# same HTML/JS everywhere. No duplication in git — copied at build time.
+targetTemplates:
+  App:
+    postBuildScripts:
+      - name: Bundle web UI
+        basedOnDependencyAnalysis: false
+        script: |
+          DEST="${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/web"
+          mkdir -p "$DEST"
+          cp "${SRCROOT}/../public/index.html" \
+             "${SRCROOT}/../public/app.js" \
+             "${SRCROOT}/../public/style.css" "$DEST/"
+
 targets:
   dumbTV-iOS:
     type: application
     platform: iOS
+    templates: [App]
     sources:
       - path: Sources
       - path: Resources
@@ -47,6 +63,7 @@ targets:
   dumbTV-tvOS:
     type: application
     platform: tvOS
+    templates: [App]
     sources:
       - path: Sources
       - path: Resources
@@ -63,6 +80,7 @@ targets:
     type: application
     platform: macOS
     deploymentTarget: "14.0"
+    templates: [App]
     sources:
       - path: Sources
       - path: Resources

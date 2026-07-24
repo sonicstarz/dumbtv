@@ -7,7 +7,11 @@ import Foundation
 /// backed) are layered on separately.
 public final class ConfigAPI {
     let store: Store
-    public init(store: Store) { self.store = store }
+    let plex: PlexClient
+    public init(store: Store, plex: PlexClient = PlexClient()) {
+        self.store = store
+        self.plex = plex
+    }
 
     public struct Request {
         public let method: String                 // GET / POST / PATCH / DELETE
@@ -31,13 +35,14 @@ public final class ConfigAPI {
     /// Route a request. Returns 404 for anything unmatched. Swift can't bind
     /// inside array-literal patterns, so we switch on (method, segment-count)
     /// and read the path segments explicitly.
-    public func handle(_ req: Request) -> Response {
+    public func handle(_ req: Request) async -> Response {
         let parts = req.path.split(separator: "/").map(String.init)  // ["api","channels","3"]
         guard parts.first == "api" else { return .notFound() }
         let s = Array(parts.dropFirst())
         let m = req.method.uppercased()
 
         switch (m, s.count) {
+        // --- config CRUD (Store-backed, synchronous) ---
         case ("GET", 1) where s[0] == "status":     return status()
         case ("GET", 1) where s[0] == "channels":   return listChannels()
         case ("POST", 1) where s[0] == "channels":  return createChannel(req)
@@ -57,9 +62,35 @@ public final class ConfigAPI {
         case ("POST", 3) where s[0] == "channels" && s[2] == "rules":    return createRule(s[1], req)
 
         case ("DELETE", 4) where s[0] == "channels" && s[2] == "sources": return deleteSource(s[1], s[3])
+
+        // --- Plex link (async network) ---
+        case ("POST", 2) where s[0] == "plex" && s[1] == "pin":     return await plexCreatePin()
+        case ("GET", 3) where s[0] == "plex" && s[1] == "pin":      return await plexCheckPin(s[2])
+        case ("GET", 2) where s[0] == "plex" && s[1] == "servers":  return await plexServers()
+        case ("POST", 2) where s[0] == "plex" && s[1] == "server":  return await plexSaveServer(req)
+        case ("POST", 2) where s[0] == "plex" && s[1] == "logout":  return plexLogout()
+
+        // --- library browse (async network) ---
+        case ("GET", 2) where s[0] == "library" && s[1] == "sections": return await librarySections()
+        case ("GET", 4) where s[0] == "library" && s[1] == "sections" && s[3] == "items":
+            return await librarySectionItems(s[2], req)
+        case ("GET", 4) where s[0] == "library" && s[1] == "show" && s[3] == "episodes":
+            return await libraryEpisodes(s[2], req)
+
+        // --- stubs so the shared web UI degrades gracefully (features not yet
+        //     ported on Apple: auth PIN, Jellyfin, LLM, assets, guide/on-air) ---
+        case ("GET", 2) where s[0] == "auth" && s[1] == "status":     return .ok(["configured": false, "authed": true])
+        case ("GET", 2) where s[0] == "jellyfin" && s[1] == "status": return .ok(["configured": false, "active": false, "server": NSNull()])
+        case ("GET", 2) where s[0] == "llm" && s[1] == "status":      return .ok(["configured": false, "model": NSNull()])
+        case ("GET", 1) where s[0] == "assets":                       return .ok(["assets": []])
+        case ("GET", 1) where s[0] == "onair":                        return .ok(["at": nowMs(), "channels": []])
+        case ("GET", 1) where s[0] == "guide":                        return .ok(["from": nowMs(), "channels": []])
+
         default: return .notFound("No route for \(m) \(req.path)")
         }
     }
+
+    private func nowMs() -> Int64 { Int64(Date().timeIntervalSince1970 * 1000) }
 
     // MARK: - status
 
@@ -236,6 +267,115 @@ public final class ConfigAPI {
             "channels": store.allChannels().map(channelJSON),
             "rules": allRules().map(ruleJSON),
         ])
+    }
+
+    // MARK: - Plex link (async)
+
+    /// Push the persisted token/server into the actor before a library call.
+    private func ensurePlexConfigured() async {
+        await plex.configure(token: store.getSetting("plex_token"),
+                             serverURI: store.getSetting("plex_server_uri"),
+                             accessToken: store.getSetting("plex_access_token"))
+    }
+
+    private func plexCreatePin() async -> Response {
+        do {
+            let pin = try await plex.createPin()
+            return .ok(["id": pin.id, "code": pin.code])
+        } catch { return Response(502, ["error": "plex.tv: \(error.localizedDescription)"]) }
+    }
+
+    private func plexCheckPin(_ idStr: String) async -> Response {
+        guard let id = Int(idStr) else { return .bad("bad pin id") }
+        do {
+            guard let token = try await plex.checkPin(id: id) else { return .ok(["linked": false]) }
+            store.setSetting("plex_token", token)
+            let servers = try await plex.listServers(token: token)
+            return .ok(["linked": true, "servers": servers.map(serverJSON)])
+        } catch { return Response(502, ["error": error.localizedDescription]) }
+    }
+
+    private func plexServers() async -> Response {
+        guard let token = store.getSetting("plex_token") else { return .bad("Not linked to Plex yet") }
+        do { return .ok(["servers": try await plex.listServers(token: token).map(serverJSON)]) }
+        catch { return Response(502, ["error": error.localizedDescription]) }
+    }
+
+    private func plexSaveServer(_ req: Request) async -> Response {
+        let b = req.body ?? [:]
+        // Accept an explicit uri, else the preferred connection from the posted server.
+        let uri = b.string("uri") ?? bestURI(from: b["connections"] as? [[String: Any]])
+        guard let uri, let access = b.string("accessToken") else {
+            return .bad("Need a server uri and accessToken")
+        }
+        store.setSetting("plex_server_uri", uri)
+        store.setSetting("plex_access_token", access)
+        store.setSetting("plex_server_name", b.string("name"))
+        await plex.configure(token: store.getSetting("plex_token"), serverURI: uri, accessToken: access)
+        return .ok()
+    }
+
+    private func plexLogout() -> Response {
+        for k in ["plex_token", "plex_server_uri", "plex_access_token", "plex_server_name"] { store.setSetting(k, nil) }
+        return .ok()
+    }
+
+    /// local → non-relay WAN → relay, mirroring PlexServer.preferredURI.
+    private func bestURI(from conns: [[String: Any]]?) -> String? {
+        guard let conns else { return nil }
+        func score(_ c: [String: Any]) -> Int {
+            if (c["relay"] as? Bool) == true { return 2 }
+            return (c["local"] as? Bool) == true ? 0 : 1
+        }
+        return conns.filter { ($0["uri"] as? String)?.isEmpty == false }
+            .sorted { score($0) < score($1) }.first?["uri"] as? String
+    }
+
+    // MARK: - library browse (async)
+
+    private func librarySections() async -> Response {
+        await ensurePlexConfigured()
+        do {
+            let secs = try await plex.sections()
+            return .ok(["sections": secs.map { ["key": $0.key, "title": $0.title, "type": $0.type] }])
+        } catch { return Response(502, ["error": error.localizedDescription]) }
+    }
+
+    private func librarySectionItems(_ key: String, _ req: Request) async -> Response {
+        await ensurePlexConfigured()
+        let type = req.query["type"] ?? "show"
+        do {
+            let items = try await plex.sectionItems(key: key, type: type)
+            return .ok(["items": items.map { i -> [String: Any] in
+                ["ratingKey": i.ratingKey, "title": i.title, "type": i.type, "thumb": i.thumb ?? NSNull()]
+            }])
+        } catch { return Response(502, ["error": error.localizedDescription]) }
+    }
+
+    private func libraryEpisodes(_ showKey: String, _ req: Request) async -> Response {
+        await ensurePlexConfigured()
+        do {
+            var rows = store.media(forSource: showKey).filter { $0.durationMs > 0 }
+            if rows.isEmpty {   // first look — pull from Plex once and cache
+                let eps = try await plex.episodes(showKey: showKey)
+                store.upsertMedia(eps)
+                rows = eps
+            }
+            let excluded = req.query["channel"].flatMap { Int($0) }.map { store.excludes($0) } ?? []
+            let sorted = rows.sorted { ($0.seasonNo ?? 0, $0.episodeNo ?? 0) < ($1.seasonNo ?? 0, $1.episodeNo ?? 0) }
+            return .ok(["episodes": sorted.map { m -> [String: Any] in
+                ["ratingKey": m.ratingKey, "title": m.title, "showTitle": m.showTitle ?? NSNull(),
+                 "seasonNo": m.seasonNo ?? NSNull(), "episodeNo": m.episodeNo ?? NSNull(),
+                 "aired": m.aired ?? NSNull(), "durationMs": m.durationMs,
+                 "excluded": excluded.contains(m.ratingKey)]
+            }])
+        } catch { return Response(502, ["error": error.localizedDescription]) }
+    }
+
+    private func serverJSON(_ s: PlexServer) -> [String: Any] {
+        let conns: [[String: Any]] = s.connections.map { ["uri": $0.uri, "local": $0.local, "relay": $0.relay] }
+        return ["name": s.name, "clientIdentifier": s.clientIdentifier, "accessToken": s.accessToken,
+                "uri": s.preferredURI.map { $0 as Any } ?? NSNull(), "connections": conns]
     }
 
     // MARK: - JSON shapes

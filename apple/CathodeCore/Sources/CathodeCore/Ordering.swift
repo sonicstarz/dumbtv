@@ -19,7 +19,7 @@ private func byAirDate(_ a: Media, _ b: Media) -> Bool {
 
 /// The full ordered playlist for a channel. The generator walks this with a
 /// monotonic cursor and wraps at the end, so a channel never runs dry.
-public func buildPlaylist(channel: ChannelSpec, buckets rawBuckets: [[Media]], cycle: Int = 0) -> [Media] {
+public func buildPlaylist(channel: PlaylistChannel, buckets rawBuckets: [[Media]], cycle: Int = 0) -> [Media] {
     let buckets = rawBuckets
         .map { $0.sorted(by: bySeasonEpisode) }
         .filter { !$0.isEmpty }

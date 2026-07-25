@@ -19,9 +19,12 @@ jobs:
 
   swift:
     name: dumbTVCore tests + Apple build
-    runs-on: macos-14
+    runs-on: macos-15
     steps:
       - uses: actions/checkout@v4
+      - uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
 
       - name: dumbTVCore unit tests
         working-directory: apple/dumbTVCore

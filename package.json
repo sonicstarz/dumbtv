@@ -1,6 +1,6 @@
 {
   "name": "dumbtv",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Turn a Plex library into a 1990s cable box. What's on is what's on.",
   "type": "module",
   "main": "src/index.js",

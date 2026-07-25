@@ -3,9 +3,14 @@ import SQLite3
 
 /// A thin, dependency-free wrapper over the system SQLite3 C library. Keeps
 /// `dumbTVCore` self-contained (no SPM deps) while giving the Store ergonomic
-/// bind/query helpers. Not thread-safe on its own — callers serialise access.
+/// bind/query helpers. **Thread-safe**: every operation is serialised by a
+/// recursive lock, so the one connection can be shared across the embedded
+/// server's concurrent request handlers.
 public final class SQLite {
     private var db: OpaquePointer?
+    /// Serialises all access to the single connection. Recursive so a
+    /// `transaction` can call `run`/`query`/`exec` while holding it.
+    private let lock = NSRecursiveLock()
 
     /// SQLite wants to copy bound text/blob bytes (they may be freed after bind).
     static let TRANSIENT = unsafeBitCast(-1, to: sqlite3_destructor_type.self)
@@ -25,12 +30,14 @@ public final class SQLite {
     /// Run raw SQL with no bindings/results (schema, pragmas, transactions).
     @discardableResult
     public func exec(_ sql: String) -> Bool {
-        sqlite3_exec(db, sql, nil, nil, nil) == SQLITE_OK
+        lock.lock(); defer { lock.unlock() }
+        return sqlite3_exec(db, sql, nil, nil, nil) == SQLITE_OK
     }
 
     /// INSERT/UPDATE/DELETE with bindings. Returns the last inserted rowid.
     @discardableResult
     public func run(_ sql: String, _ params: [Value] = []) throws -> Int64 {
+        lock.lock(); defer { lock.unlock() }
         let stmt = try prepare(sql, params)
         defer { sqlite3_finalize(stmt) }
         let rc = sqlite3_step(stmt)
@@ -40,6 +47,7 @@ public final class SQLite {
 
     /// SELECT returning rows keyed by column name.
     public func query(_ sql: String, _ params: [Value] = []) throws -> [Row] {
+        lock.lock(); defer { lock.unlock() }
         let stmt = try prepare(sql, params)
         defer { sqlite3_finalize(stmt) }
         var rows: [Row] = []
@@ -54,8 +62,10 @@ public final class SQLite {
         return rows
     }
 
-    /// Run `body` inside a transaction; rolls back if it throws.
+    /// Run `body` inside a transaction; rolls back if it throws. The lock is held
+    /// for the whole transaction so it's atomic against concurrent callers.
     public func transaction(_ body: () throws -> Void) throws {
+        lock.lock(); defer { lock.unlock() }
         exec("BEGIN")
         do { try body(); exec("COMMIT") }
         catch { exec("ROLLBACK"); throw self.error("transaction rolled back: \(error.localizedDescription)") }

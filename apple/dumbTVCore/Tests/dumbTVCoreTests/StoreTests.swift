@@ -152,6 +152,27 @@ final class StoreTests: XCTestCase {
         XCTAssertGreaterThanOrEqual(airing.offsetMs, 0)
     }
 
+    /// Regression: the embedded server handles requests concurrently, so the
+    /// shared Store gets hit from many threads at once. Before SQLite was
+    /// serialised this corrupted the heap and crashed (double-free in the parser).
+    func testConcurrentAccessIsSafe() throws {
+        let (store, _) = try makeStore()
+        for i in 1...5 { store.insertChannel(ChannelConfig(id: 0, number: i + 1, name: "C\(i)")) }
+
+        let group = DispatchGroup()
+        for n in 0..<64 {
+            group.enter()
+            DispatchQueue.global().async {
+                _ = store.allChannels()                 // /api/status + /api/onair path
+                _ = store.library(forChannel: 2)
+                store.setSetting("hits", String(n))     // concurrent writes too
+                group.leave()
+            }
+        }
+        XCTAssertEqual(group.wait(timeout: .now() + 15), .success)
+        XCTAssertGreaterThanOrEqual(store.allChannels().count, 5)
+    }
+
     func testPersistsAcrossReopen() throws {
         let (store, path) = try makeStore()
         _ = store.insertChannel(ChannelConfig(id: 0, number: 9, name: "Persisted"))

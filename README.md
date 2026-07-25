@@ -35,6 +35,12 @@ Open the config app at **http://localhost:8080**, link Plex, and build a channel
 The native Apple apps do the same — they serve that web UI locally and show a
 setup URL/QR on screen.
 
+> **Pre-release builds aren't code-signed yet.** macOS calls the app "damaged" —
+> it isn't. Open it with:
+> `xattr -dr com.apple.quarantine /Applications/dumbTV.app`
+> On Windows, click **More info → Run anyway** past SmartScreen. Both warnings
+> disappear once the apps are signed/notarized.
+
 ---
 
 ## How it works

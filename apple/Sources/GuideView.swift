@@ -19,6 +19,8 @@ struct GuideView: View {
                             GuideRowCard(row: row, isCurrent: row.id == engine.currentIndex)
                         }
                         .buttonStyle(.plain)
+                        .accessibilityElement(children: .ignore)
+                        .accessibilityLabel("Channel \(row.number), \(row.name). Now: \(row.now?.program.title ?? "nothing"). Select to tune.")
                     }
                 }
                 .padding(16)

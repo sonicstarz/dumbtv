@@ -31,6 +31,8 @@ struct SetupCard: View {
         .padding(18)
         .background(.black.opacity(0.74))
         .clipShape(RoundedRectangle(cornerRadius: 8))
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel("Set up dumbTV. Open \(url) in a browser on your phone or laptop.")
     }
 
     /// A crisp QR for `string`, or nil if generation fails.

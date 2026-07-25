@@ -15,20 +15,38 @@ WANT=("$@"); [ ${#WANT[@]} -eq 0 ] && WANT=(ios tvos macos)
 
 xcodegen generate
 
+# Export options carrying the team. Written per-run so the script stays
+# team-agnostic (pass any Team ID on the command line).
+EXPORT_PLIST="$(mktemp)"
+cat > "$EXPORT_PLIST" <<EOF
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0"><dict>
+  <key>method</key><string>app-store-connect</string>
+  <key>destination</key><string>export</string>
+  <key>signingStyle</key><string>automatic</string>
+  <key>teamID</key><string>$TEAM</string>
+  <key>generateAppStoreInformation</key><true/>
+</dict></plist>
+EOF
+
 archive_one() {
   local scheme="$1" dest="$2"
-  echo "==> archiving $scheme"
+  echo "==> archiving $scheme (unsigned; team baked in)"
+  # Archive UNSIGNED with the team set. The App Store export below then creates
+  # a *distribution* provisioning profile — which needs NO registered devices,
+  # unlike a development profile — and signs the artifact. This is what lets a
+  # device-free machine (or CI) produce App Store builds; a normal signed
+  # archive would fail on "your team has no devices".
   xcodebuild archive \
     -project dumbTV.xcodeproj -scheme "$scheme" -destination "$dest" \
     -archivePath "build/archives/$scheme.xcarchive" \
-    DEVELOPMENT_TEAM="$TEAM" CODE_SIGN_STYLE=Automatic \
-    CODE_SIGNING_ALLOWED=YES CODE_SIGNING_REQUIRED=YES \
-    -allowProvisioningUpdates
-  echo "==> exporting $scheme"
+    DEVELOPMENT_TEAM="$TEAM" CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO
+  echo "==> exporting $scheme for the App Store"
   xcodebuild -exportArchive \
     -archivePath "build/archives/$scheme.xcarchive" \
     -exportPath "build/export/$scheme" \
-    -exportOptionsPlist ExportOptions-AppStore.plist \
+    -exportOptionsPlist "$EXPORT_PLIST" \
     -allowProvisioningUpdates
 }
 

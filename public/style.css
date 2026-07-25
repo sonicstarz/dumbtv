@@ -694,3 +694,21 @@ body:not(.native) [data-node-hide] { display: none !important; }
 }
 .chip-btn:hover { border-color: var(--dim); }
 .chip-btn.on { background: var(--amber); border-color: var(--amber); color: #201a08; }
+
+/* ---------- Kids Mode ---------- */
+.kids-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel);
+  padding: 14px 18px;
+  margin-bottom: 18px;
+}
+.kids-bar.on { border-color: var(--prevue-1); background: linear-gradient(180deg, rgba(43,58,143,.28), var(--panel)); }
+.kids-bar strong { font-size: 15px; margin-right: 10px; }
+.kids-bar span { color: var(--dim); font-size: 13px; }
+.kids-bar.on #kidsToggle { background: var(--prevue-1); border-color: var(--prevue-1); color: #fff; }
+button.sm.kid.on { border-color: var(--phosphor); color: var(--phosphor); }

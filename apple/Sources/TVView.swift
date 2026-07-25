@@ -142,6 +142,13 @@ struct TVView: View {
                             .padding(.horizontal, 8).padding(.vertical, 4)
                             .background(Palette.amber)
                     }
+                    if engine.kidsMode {
+                        Text("KIDS")
+                            .font(Palette.mono(11, .bold))
+                            .foregroundStyle(.white)
+                            .padding(.horizontal, 8).padding(.vertical, 4)
+                            .background(Palette.prevue1)
+                    }
                     Spacer()
                     #if !os(tvOS)
                     // On tvOS the whole picture is the guide button (select);

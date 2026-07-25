@@ -507,6 +507,19 @@ async function loadStatus() {
   $('#navPlex').textContent = s.linked ? (s.reachable ? '●' : '!') : '—';
   $('#navPlex').style.color = s.linked && s.reachable ? 'var(--phosphor)' : 'var(--dim)';
 
+  // Kids Mode banner reflects current state.
+  const kb = $('#kidsBar');
+  if (kb) {
+    const on = !!s.kidsMode;
+    kb.classList.toggle('on', on);
+    $('#kidsToggle').textContent = on ? 'Turn off' : 'Turn on';
+    $('#kidsBarSub').textContent = on
+      ? `On — the TV is limited to ${s.kidSafeCount} kid-safe channel${s.kidSafeCount === 1 ? '' : 's'}.`
+      : (s.kidSafeCount
+          ? `${s.kidSafeCount} channel${s.kidSafeCount === 1 ? '' : 's'} marked kid-safe. Turn on to lock the TV to them.`
+          : 'Mark channels kid-safe below, then turn this on to lock the TV to them.');
+  }
+
   // On the native apps the TV is the app window itself — a browser tab can't
   // direct-play the library (VLCKit does that natively). Point users there
   // instead of a browser /tv that would just show colour bars.
@@ -570,11 +583,23 @@ function renderChannels() {
           <button class="sm primary" data-add="${c.id}">Add content</button>
           <button class="sm" data-edit="${c.id}">Settings</button>
           <button class="sm" data-watch="${c.id}">Watch</button>
+          <button class="sm kid ${c.kidSafe ? 'on' : ''}" data-kid="${c.id}" title="Show this channel in Kids Mode">${c.kidSafe ? '🧸 Kid-safe' : '🧸 Mark kid-safe'}</button>
           <button class="sm danger" data-del="${c.id}">Delete</button>
         </div>
       </div>`;
     })
     .join('');
+
+  $$('[data-kid]', host).forEach((b) =>
+    b.addEventListener('click', async () => {
+      const c = state.channels.find((x) => x.id === Number(b.dataset.kid));
+      try {
+        await api(`/api/channels/${c.id}/kid-safe`, { method: 'POST', body: { on: !c.kidSafe } });
+        loadChannels();
+        loadStatus();
+      } catch (err) { toast(err.message, true); }
+    })
+  );
 
   $$('[data-add]', host).forEach((b) =>
     b.addEventListener('click', () => openPicker(Number(b.dataset.add)))
@@ -828,6 +853,15 @@ $('#rebuildAll').addEventListener('click', async () => {
   }
   btn.disabled = false;
   btn.textContent = 'Rebuild all schedules';
+});
+
+$('#kidsToggle').addEventListener('click', async () => {
+  const on = !state.status?.kidsMode;
+  try {
+    await api('/api/kids-mode', { method: 'POST', body: { on } });
+    toast(on ? 'Kids Mode on — the TV is now limited to kid-safe channels.' : 'Kids Mode off.');
+    await loadStatus();
+  } catch (err) { toast(err.message, true); }
 });
 
 // ---------------------------------------------------------------- modal

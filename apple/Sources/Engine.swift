@@ -80,6 +80,8 @@ final class Engine: ObservableObject {
     /// First-run coach mark: nothing on screen says the guide exists until you
     /// know the key. Shown once, then remembered in the Store.
     @Published var showGuideHint = false
+    /// True while the TV is locked to kid-safe channels (set from the web UI).
+    @Published var kidsMode = false
 
     private var currentStart: Millis = -1
     private var tick: Timer?
@@ -223,7 +225,17 @@ final class Engine: ObservableObject {
     /// `now` — so the schedule survives restarts and matches the guide exactly.
     /// Returns false if nothing is configured yet (caller falls back).
     private func loadFromStore(_ store: Store) -> Bool {
-        let cfgs = store.allChannels().filter { $0.enabled }
+        var cfgs = store.allChannels().filter { $0.enabled }
+        guard !cfgs.isEmpty else { return false }
+        // Kids Mode (set from the PIN-gated web UI) restricts the TV to the
+        // channels a parent marked kid-safe — surfing, dialing, and the guide
+        // all read `channels`, so filtering here locks the whole set down.
+        let kids = store.getSetting("kids_mode") == "1"
+        let kidIds = Set((store.getSetting("kids_safe_channels") ?? "").split(separator: ",").compactMap { Int($0) })
+        if kids && !kidIds.isEmpty {
+            cfgs = cfgs.filter { kidIds.contains($0.id) }
+        }
+        kidsMode = kids && !kidIds.isEmpty
         guard !cfgs.isEmpty else { return false }
         serverURI = store.getSetting("plex_server_uri") ?? ""
         accessToken = store.getSetting("plex_access_token") ?? ""

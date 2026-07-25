@@ -71,6 +71,10 @@ public final class ConfigAPI {
     private func regenerateForMutation(_ req: Request) {
         let now = nowMs()
         let s = Array(req.path.split(separator: "/").map(String.init).dropFirst())  // drop "api"
+        // Visibility-only mutations don't change any schedule — just let the
+        // player reload (the notification still fires) so the filter re-applies.
+        if s.first == "kids-mode" || (s.count == 3 && s[0] == "channels" && s[2] == "kid-safe") { return }
+        if s.first == "auth" { return }
         if s.count >= 2, s[0] == "channels", let id = Int(s[1]) {
             Scheduler.regenerate(store: store, channelId: id, now: now)
         } else if s.count >= 2, s[0] == "rules", let rid = Int(s[1]),
@@ -146,6 +150,10 @@ public final class ConfigAPI {
         case ("GET", 1) where s[0] == "player":                    return playerState()
         case ("POST", 2) where s[0] == "player" && s[1] == "tune": return playerTune(req)
 
+        // --- Kids Mode (parental control; PIN-gated like any mutation) ---
+        case ("POST", 1) where s[0] == "kids-mode":                          return setKidsMode(req)
+        case ("POST", 3) where s[0] == "channels" && s[2] == "kid-safe":     return setKidSafe(s[1], req)
+
         // --- schedule dry-run for the rule editor ---
         case ("GET", 3) where s[0] == "channels" && s[2] == "preview": return preview(s[1], req)
 
@@ -206,6 +214,8 @@ public final class ConfigAPI {
             "native": true,          // this is a native app; the TV is the app window, not /tv
             "player": player,
             "linked": store.getSetting("plex_token") != nil,
+            "kidsMode": kidsModeOn,
+            "kidSafeCount": kidSafeIds().count,
             "server": server,
             // We only keep a server whose connection responded at link time
             // (firstReachable), so a configured server is reachable-until-proven-
@@ -526,6 +536,36 @@ public final class ConfigAPI {
         return Response(200, ["ok": true], setCookie: Auth.sessionCookieHeader(store))
     }
 
+    // MARK: - Kids Mode (parental control)
+
+    /// The set of channel ids a parent has marked kid-safe (a settings CSV, so
+    /// no schema churn).
+    private func kidSafeIds() -> Set<Int> {
+        Set((store.getSetting("kids_safe_channels") ?? "").split(separator: ",").compactMap { Int($0) })
+    }
+    private var kidsModeOn: Bool { store.getSetting("kids_mode") == "1" }
+
+    private func setKidsMode(_ req: Request) -> Response {
+        let on = req.body?.bool("on") ?? false
+        // Turning it on with nothing marked would blank the TV — refuse and say so.
+        if on && kidSafeIds().isEmpty {
+            return .bad("Mark at least one channel kid-safe before turning on Kids Mode.")
+        }
+        store.setSetting("kids_mode", on ? "1" : nil)
+        return .ok(["kidsMode": on])
+    }
+
+    private func setKidSafe(_ idStr: String, _ req: Request) -> Response {
+        guard let id = Int(idStr), store.channel(id) != nil else { return .notFound("No such channel") }
+        var ids = kidSafeIds()
+        if req.body?.bool("on") ?? false { ids.insert(id) } else { ids.remove(id) }
+        store.setSetting("kids_safe_channels", ids.isEmpty ? nil : ids.sorted().map(String.init).joined(separator: ","))
+        // If the parent just un-marked the last kid channel, drop out of Kids Mode
+        // rather than leave the TV with nothing to show.
+        if ids.isEmpty { store.setSetting("kids_mode", nil) }
+        return .ok(["kidSafe": ids.contains(id)])
+    }
+
     // MARK: - player (native TV)
 
     private func playerState() -> Response {
@@ -762,7 +802,7 @@ public final class ConfigAPI {
             "adsEnabled": c.adsEnabled, "maxAdsPerBreak": c.maxAdsPerBreak, "adTags": c.adTags,
             "timingMode": c.timingMode.rawValue, "adsBetween": c.adsBetween,
             "cooldownDays": c.cooldownDays, "overrunPolicy": c.overrunPolicy.rawValue,
-            "enabled": c.enabled,
+            "enabled": c.enabled, "kidSafe": kidSafeIds().contains(c.id),
             "sources": store.sources(c.id).map { s -> [String: Any] in
                 ["id": s.id, "ratingKey": s.ratingKey, "sourceType": s.sourceType,
                  "title": s.title ?? NSNull(), "thumb": s.thumb ?? NSNull(),

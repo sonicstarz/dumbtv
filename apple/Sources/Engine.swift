@@ -27,10 +27,16 @@ struct GuideProgramRow: Identifiable {
     let programs: [Program]
 }
 
-/// Format a UTC millisecond instant as a wall clock, e.g. "10:35 PM".
+/// Format a UTC millisecond instant as a wall clock, e.g. "10:35 PM". The
+/// formatter is cached — this is called dozens of times per render, every
+/// second, and a fresh DateFormatter each time is a real allocation cost.
+/// DateFormatter is documented thread-safe for formatting, so one shared
+/// instance is fine.
+private let hhmmFormatter: DateFormatter = {
+    let f = DateFormatter(); f.dateFormat = "h:mm a"; return f
+}()
 func hhmm(_ ms: Millis) -> String {
-    let f = DateFormatter(); f.dateFormat = "h:mm a"
-    return f.string(from: Date(timeIntervalSince1970: Double(ms) / 1000))
+    hhmmFormatter.string(from: Date(timeIntervalSince1970: Double(ms) / 1000))
 }
 
 /// The visible span of the grid guide (90 min → 3 half-hour columns).

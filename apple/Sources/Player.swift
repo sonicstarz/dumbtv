@@ -56,13 +56,15 @@ final class Player: ObservableObject {
         views = [makeView(), makeView()]
         vlcs = views.map { v in
             // network-caching smooths WAN streaming (the freeze-and-swap hides
-            // the buffering gap). normvol levels loudness so one show isn't a
-            // whisper and the next a shout — 1990s cable had a compressor too.
+            // the buffering gap). normvol levels loudness between shows; a LONG
+            // averaging window (~4s vs the old ~200ms) corrects slow program-to-
+            // program level differences without pumping on dialogue transients —
+            // the earlier short window is what made it "feel off."
             let p = VLCMediaPlayer(options: [
                 "--network-caching=4000",
                 "--audio-filter=normvol",
-                "--norm-buff-size=10",
-                "--norm-max-level=1.6",
+                "--norm-buff-size=200",
+                "--norm-max-level=2.0",
             ])
             p.drawable = v
             return p
@@ -160,17 +162,24 @@ struct ColorBars: View {
         Color(red: 0, green: 0, blue: 0.75),
     ]
     var body: some View {
-        VStack(spacing: 0) {
-            HStack(spacing: 0) { ForEach(bars.indices, id: \.self) { bars[$0] } }
-            VStack(spacing: 10) {
-                Text(title)
-                    .font(Palette.display(26)).foregroundStyle(Palette.amber)
-                Text(message)
-                    .font(Palette.mono(13)).foregroundStyle(Palette.dim)
+        // Size the ident footer to a fraction of the height (like the web bars'
+        // 26% foot) so it looks right both full-screen and in the guide's small
+        // video thumbnail, instead of a fixed 130pt that dominated the thumbnail.
+        GeometryReader { geo in
+            let footerH = min(geo.size.height * 0.5, max(46, geo.size.height * 0.24))
+            let titleSize = max(13, min(28, footerH * 0.34))
+            VStack(spacing: 0) {
+                HStack(spacing: 0) { ForEach(bars.indices, id: \.self) { bars[$0] } }
+                VStack(spacing: footerH * 0.1) {
+                    Text(title)
+                        .font(Palette.display(titleSize)).foregroundStyle(Palette.amber)
+                    Text(message)
+                        .font(Palette.mono(max(9, titleSize * 0.5))).foregroundStyle(Palette.dim)
+                }
+                .frame(maxWidth: .infinity)
+                .frame(height: footerH)
+                .background(Color.black)
             }
-            .frame(maxWidth: .infinity)
-            .frame(height: 130)
-            .background(Color.black)
         }
         .ignoresSafeArea()
     }

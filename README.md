@@ -8,11 +8,32 @@ already playing, halfway through, the way television used to work.
 Built to end up on a Raspberry Pi wired to a CRT, but it runs on your laptop
 first — and you can watch it in a browser before you own any hardware.
 
-```
+---
+
+## Install
+
+Every version is the same television — **guide + channels + watch** — configured
+from any phone or laptop browser on your network. Grab a build from
+[**Releases**](https://github.com/sonicstarz/dumbtv/releases):
+
+| Platform | How |
+|---|---|
+| **iPhone · iPad · Apple TV · Mac** | Native app — App Store *(coming soon)*, or the **`dumbTV.dmg`** for Mac |
+| **Windows** | **`dumbTV-Setup.exe`** installer (bundles Node + mpv) |
+| **Raspberry Pi** | `curl -fsSL https://raw.githubusercontent.com/sonicstarz/dumbtv/main/pi/install.sh \| bash` |
+| **Any machine (from source)** | Node 20+ — below |
+
+### Run from source
+
+```bash
 npm install
 npm run demo      # builds a working lineup, no Plex needed
 npm start         # open http://localhost:8080/tv
 ```
+
+Open the config app at **http://localhost:8080**, link Plex, and build a channel.
+The native Apple apps do the same — they serve that web UI locally and show a
+setup URL/QR on screen.
 
 ---
 

@@ -56,6 +56,7 @@ public final class ConfigAPI {
         case ("GET", 2) where s[0] == "config" && s[1] == "export": return exportConfig()
 
         case ("POST", 3) where s[0] == "channels" && s[2] == "sources":  return await addSources(s[1], req)
+        case ("POST", 3) where s[0] == "channels" && s[2] == "refresh":  return await refreshChannel(s[1])
         case ("GET", 3) where s[0] == "channels" && s[2] == "excludes":  return getExcludes(s[1])
         case ("PUT", 3) where s[0] == "channels" && s[2] == "excludes":  return putExcludes(s[1], req)
         case ("GET", 3) where s[0] == "channels" && s[2] == "rules":     return listRules(s[1])
@@ -172,16 +173,44 @@ public final class ConfigAPI {
         guard let id = Int(idStr) else { return .bad("bad id") }
         await ensurePlexConfigured()
         let items = (req.body?["items"] as? [[String: Any]]) ?? []
+        var results: [[String: Any]] = []
         for it in items {
             guard let rk = it.string("ratingKey") else { continue }
             let type = it.string("sourceType") ?? "show"
-            store.addSource(id, ratingKey: rk, sourceType: type, title: it.string("title"))
-            // Cache the show's episodes now so the channel has content to schedule.
-            if type == "show", let eps = try? await plex.episodes(showKey: rk) {
-                store.upsertMedia(eps)
-            }
+            let title = it.string("title")
+            store.addSource(id, ratingKey: rk, sourceType: type, title: title)
+            results.append(await cacheSource(rk, type: type, title: title))
         }
-        return .ok(["ok": true, "added": items.count])
+        // The web UI does r.results.reduce(...) — must be an array of {title,cached,error?}.
+        return .ok(["ok": true, "results": results])
+    }
+
+    /// Re-read a channel's sources from Plex (the "refresh" button).
+    private func refreshChannel(_ idStr: String) async -> Response {
+        guard let id = Int(idStr) else { return .bad("bad id") }
+        await ensurePlexConfigured()
+        var results: [[String: Any]] = []
+        for s in store.sources(id) {
+            results.append(await cacheSource(s.ratingKey, type: s.sourceType, title: s.title))
+        }
+        return .ok(["ok": true, "results": results])
+    }
+
+    /// Pull a source's playable media into the cache; returns {title,cached,error?}.
+    private func cacheSource(_ ratingKey: String, type: String, title: String?) async -> [String: Any] {
+        var cached = 0
+        var errorMsg: String?
+        if type == "show" {
+            do {
+                let eps = try await plex.episodes(showKey: ratingKey)
+                store.upsertMedia(eps)
+                cached = eps.count
+            } catch { errorMsg = error.localizedDescription }
+        }
+        // (movie sources need a metadata fetch for the part/duration — TODO)
+        var r: [String: Any] = ["title": title ?? ratingKey, "cached": cached]
+        if let errorMsg { r["error"] = errorMsg }
+        return r
     }
 
     /// What's on every enabled channel right now — generated deterministically

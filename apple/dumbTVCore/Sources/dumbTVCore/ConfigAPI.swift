@@ -100,10 +100,18 @@ public final class ConfigAPI {
     // MARK: - status
 
     private func status() -> Response {
-        .ok([
+        // The web UI reads `server` to advance past server-pick to library browse
+        // (and to show the unlink button). Mirror the Node shape.
+        var server: Any = NSNull()
+        if let uri = store.getSetting("plex_server_uri") {
+            server = ["name": store.getSetting("plex_server_name") ?? "Plex", "uri": uri, "local": false]
+        }
+        return .ok([
             "backend": "plex",
             "linked": store.getSetting("plex_token") != nil,
-            "counts": ["channels": store.allChannels().count],
+            "server": server,
+            "reachable": NSNull(),
+            "counts": ["channels": store.allChannels().count, "assets": store.assets().count],
             "orderingModes": OrderingMode.allCases.map { $0.rawValue },
         ])
     }
@@ -375,7 +383,7 @@ public final class ConfigAPI {
             store.setSetting("plex_token", token)
             let servers = try await plex.listServers(token: token)
             return .ok(["linked": true, "servers": servers.map(serverJSON)])
-        } catch { return Response(502, ["error": error.localizedDescription]) }
+        } catch { return Response(502, ["error": "Couldn't reach your Plex server: \(error.localizedDescription)"]) }
     }
 
     private func plexServers() async -> Response {
@@ -386,11 +394,13 @@ public final class ConfigAPI {
 
     private func plexSaveServer(_ req: Request) async -> Response {
         let b = req.body ?? [:]
-        // Accept an explicit uri, else the preferred connection from the posted server.
-        let uri = b.string("uri") ?? bestURI(from: b["connections"] as? [[String: Any]])
-        guard let uri, let access = b.string("accessToken") else {
-            return .bad("Need a server uri and accessToken")
-        }
+        guard let access = b.string("accessToken") else { return .bad("Need a server accessToken") }
+        let conns = b["connections"] as? [[String: Any]] ?? []
+        // Pick a connection that actually responds (local → WAN → relay). This is
+        // the fix for "can't connect": the local address is often unreachable from
+        // this machine even though the WAN/plex.direct one works.
+        let uri = await firstReachable(conns, token: access) ?? b.string("uri") ?? bestURI(from: conns)
+        guard let uri else { return .bad("No usable server address for that server") }
         store.setSetting("plex_server_uri", uri)
         store.setSetting("plex_access_token", access)
         store.setSetting("plex_server_name", b.string("name"))
@@ -406,12 +416,28 @@ public final class ConfigAPI {
     /// local → non-relay WAN → relay, mirroring PlexServer.preferredURI.
     private func bestURI(from conns: [[String: Any]]?) -> String? {
         guard let conns else { return nil }
+        return ordered(conns).first?["uri"] as? String
+    }
+    private func ordered(_ conns: [[String: Any]]) -> [[String: Any]] {
         func score(_ c: [String: Any]) -> Int {
             if (c["relay"] as? Bool) == true { return 2 }
             return (c["local"] as? Bool) == true ? 0 : 1
         }
-        return conns.filter { ($0["uri"] as? String)?.isEmpty == false }
-            .sorted { score($0) < score($1) }.first?["uri"] as? String
+        return conns.filter { ($0["uri"] as? String)?.isEmpty == false }.sorted { score($0) < score($1) }
+    }
+
+    /// The first connection that answers, in preference order. Probes /identity.
+    private func firstReachable(_ conns: [[String: Any]], token: String) async -> String? {
+        for c in ordered(conns) {
+            guard let uri = c["uri"] as? String, let url = URL(string: "\(uri)/identity?X-Plex-Token=\(token)")
+            else { continue }
+            var r = URLRequest(url: url); r.timeoutInterval = 4
+            if let (_, resp) = try? await URLSession.shared.data(for: r),
+               let code = (resp as? HTTPURLResponse)?.statusCode, (200..<400).contains(code) {
+                return uri
+            }
+        }
+        return nil
     }
 
     // MARK: - library browse (async)
@@ -421,7 +447,7 @@ public final class ConfigAPI {
         do {
             let secs = try await plex.sections()
             return .ok(["sections": secs.map { ["key": $0.key, "title": $0.title, "type": $0.type] }])
-        } catch { return Response(502, ["error": error.localizedDescription]) }
+        } catch { return Response(502, ["error": "Couldn't reach your Plex server: \(error.localizedDescription)"]) }
     }
 
     private func librarySectionItems(_ key: String, _ req: Request) async -> Response {
@@ -432,7 +458,7 @@ public final class ConfigAPI {
             return .ok(["items": items.map { i -> [String: Any] in
                 ["ratingKey": i.ratingKey, "title": i.title, "type": i.type, "thumb": i.thumb ?? NSNull()]
             }])
-        } catch { return Response(502, ["error": error.localizedDescription]) }
+        } catch { return Response(502, ["error": "Couldn't reach your Plex server: \(error.localizedDescription)"]) }
     }
 
     private func libraryEpisodes(_ showKey: String, _ req: Request) async -> Response {
@@ -452,7 +478,7 @@ public final class ConfigAPI {
                  "aired": m.aired ?? NSNull(), "durationMs": m.durationMs,
                  "excluded": excluded.contains(m.ratingKey)]
             }])
-        } catch { return Response(502, ["error": error.localizedDescription]) }
+        } catch { return Response(502, ["error": "Couldn't reach your Plex server: \(error.localizedDescription)"]) }
     }
 
     private func serverJSON(_ s: PlexServer) -> [String: Any] {

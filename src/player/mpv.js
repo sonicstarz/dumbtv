@@ -47,6 +47,7 @@ export class MpvPlayer extends EventEmitter {
       '--msg-level=all=warn',
     ];
     if (config.mpvFullscreen) args.push('--fullscreen');
+    if (config.mpvExtraArgs && config.mpvExtraArgs.length) args.push(...config.mpvExtraArgs);
 
     this.proc = spawn(config.mpvBinary, args, { stdio: ['ignore', 'ignore', 'pipe'] });
 

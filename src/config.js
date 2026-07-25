@@ -24,6 +24,9 @@ export const config = {
     process.env.DUMBTV_MPV_SOCKET ||
     path.join(os.tmpdir(), `dumbtv-mpv-${process.pid}.sock`),
   mpvFullscreen: process.env.DUMBTV_FULLSCREEN !== '0',
+  // Extra mpv flags (space-separated). On a console Pi (no desktop), render to
+  // HDMI via DRM: DUMBTV_MPV_ARGS="--vo=gpu --gpu-context=drm"
+  mpvExtraArgs: (process.env.DUMBTV_MPV_ARGS || '').split(' ').map((s) => s.trim()).filter(Boolean),
 
   // How often the engine re-checks what should be on air. 1s feels live
   // and costs nothing — it's one indexed SQLite read per channel.

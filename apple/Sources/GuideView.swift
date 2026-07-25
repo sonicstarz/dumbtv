@@ -80,52 +80,63 @@ private struct GuideGrid: View {
             let lane = max(1, geo.size.width - gutter)
             let now = engine.wallClock
 
-            ZStack(alignment: .topLeading) {
-                // Vertical half-hour gridlines behind everything, below the header.
-                ForEach(0...cols, id: \.self) { i in
-                    Rectangle().fill(Color.white.opacity(0.14)).frame(width: 1)
-                        .frame(maxHeight: .infinity, alignment: .top)
-                        .padding(.top, headerH + 4 * s)
-                        .offset(x: colX(i, lane: lane))
-                        .allowsHitTesting(false)
-                }
-
-                VStack(spacing: 4 * s) {
-                    // Time-axis labels (mono, like a printed listing).
-                    ZStack(alignment: .topLeading) {
-                        ForEach(0..<cols, id: \.self) { i in
-                            Text(hhmm(windowStart + Millis(i) * 30 * 60 * 1000))
-                                .font(Palette.mono(15 * s, .semibold))
-                                .foregroundStyle(Palette.ice)
-                                .fixedSize()
-                                .offset(x: colX(i, lane: lane) + 6 * s)
-                        }
-                        Text(hhmm(windowStart + Millis(cols) * 30 * 60 * 1000))
+            VStack(spacing: 4 * s) {
+                // Time-axis labels (mono, like a printed listing) — fixed header.
+                ZStack(alignment: .topLeading) {
+                    ForEach(0..<cols, id: \.self) { i in
+                        Text(hhmm(windowStart + Millis(i) * 30 * 60 * 1000))
                             .font(Palette.mono(15 * s, .semibold))
                             .foregroundStyle(Palette.ice)
-                            .frame(maxWidth: .infinity, alignment: .trailing)
+                            .fixedSize()
+                            .offset(x: colX(i, lane: lane) + 6 * s)
                     }
-                    .frame(maxWidth: .infinity, minHeight: headerH, alignment: .topLeading)
-
-                    ForEach(engine.guideProgramRows()) { row in
-                        GuideGridRow(row: row, gutter: gutter, lane: lane, windowStart: windowStart,
-                                     now: now, s: s,
-                                     isSelected: row.id == engine.guideSelection,
-                                     isCurrent: row.id == engine.currentIndex)
-                            .frame(height: rowH)
-                            .contentShape(Rectangle())
-                            .onTapGesture { engine.tune(to: row.id) }
-                    }
-                    Spacer(minLength: 0)
+                    Text(hhmm(windowStart + Millis(cols) * 30 * 60 * 1000))
+                        .font(Palette.mono(15 * s, .semibold))
+                        .foregroundStyle(Palette.ice)
+                        .frame(maxWidth: .infinity, alignment: .trailing)
                 }
+                .frame(maxWidth: .infinity, minHeight: headerH, alignment: .topLeading)
 
-                // The red now-line spans the rows (not the header).
-                if now >= windowStart && now <= windowStart + guideSpanMs {
-                    Rectangle().fill(Color.red).frame(width: 2)
-                        .frame(maxHeight: .infinity, alignment: .top)
-                        .padding(.top, headerH + 4 * s)
-                        .offset(x: x(now, lane: lane))
-                        .allowsHitTesting(false)
+                // Channels scroll; the arrow-selected row is kept in view.
+                ScrollViewReader { proxy in
+                    ScrollView(.vertical, showsIndicators: false) {
+                        VStack(spacing: 0) {
+                            ForEach(engine.guideProgramRows()) { row in
+                                let airing = row.programs.first { now >= $0.startUtc && now < $0.endUtc }
+                                GuideGridRow(row: row, gutter: gutter, lane: lane, windowStart: windowStart,
+                                             now: now, s: s,
+                                             isSelected: row.id == engine.guideSelection,
+                                             isCurrent: row.id == engine.currentIndex)
+                                    .frame(height: rowH)
+                                    .id(row.id)
+                                    .contentShape(Rectangle())
+                                    .onTapGesture { engine.tune(to: row.id) }
+                                    .accessibilityElement(children: .ignore)
+                                    .accessibilityLabel("Channel \(row.number), \(row.name). "
+                                        + "Now: \(airing?.title ?? "nothing scheduled"). Select to watch.")
+                                    .accessibilityAddTraits(row.id == engine.currentIndex ? .isSelected : [])
+                            }
+                        }
+                    }
+                    .onChange(of: engine.guideSelection) { _, sel in
+                        withAnimation { proxy.scrollTo(sel, anchor: .center) }
+                    }
+                }
+                // Column gridlines + the red now-line, over the scrolling rows.
+                .overlay(alignment: .topLeading) {
+                    ZStack(alignment: .topLeading) {
+                        ForEach(0...cols, id: \.self) { i in
+                            Rectangle().fill(Color.white.opacity(0.14)).frame(width: 1)
+                                .frame(maxHeight: .infinity)
+                                .offset(x: colX(i, lane: lane))
+                        }
+                        if now >= windowStart && now <= windowStart + guideSpanMs {
+                            Rectangle().fill(Color.red).frame(width: 2)
+                                .frame(maxHeight: .infinity)
+                                .offset(x: x(now, lane: lane))
+                        }
+                    }
+                    .allowsHitTesting(false)
                 }
             }
         }

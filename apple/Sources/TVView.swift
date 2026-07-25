@@ -42,12 +42,25 @@ struct TVView: View {
         }
         .onExitCommand { if engine.guideOpen { engine.guideOpen = false } }   // Esc / Menu closes the guide
         #endif
+        #if os(tvOS)
+        // The Siri remote has no keyboard, so the centre button IS the guide:
+        // press it while watching to open the guide, press it on a channel to
+        // tune. Arrows navigate; Menu closes. (Needs an on-device/sim pass.)
+        .onTapGesture { engine.guideOpen ? engine.guideSelect() : engine.toggleGuide() }
+        #endif
         .onKeyPress { press in
             engine.showBanner()
-            if press.characters == "1" { engine.toggleGuide(); return .handled }        // 1 = guide
+            let ch = press.characters
+            // Guide: G always (web muscle-memory), and 1 when you're not part-way
+            // through dialing — so a leading 1 opens the guide (there's no ch 1),
+            // but a trailing 1 (e.g. "21") still dials. Every other channel is
+            // reachable in the guide with the arrows.
+            if ch == "g" || ch == "G" { engine.toggleGuide(); return .handled }
+            if ch == "1" && engine.dialing.isEmpty { engine.toggleGuide(); return .handled }
             if press.key == .return { if engine.guideOpen { engine.guideSelect() }; return .handled }
-            if press.characters == " " { engine.blocked(); return .handled }            // no pause
-            if let c = press.characters.first, c.isNumber { engine.pressDigit(String(c)); return .handled }
+            if press.key == .escape { if engine.guideOpen { engine.guideOpen = false }; return .handled }
+            if ch == " " { engine.blocked(); return .handled }                          // no pause
+            if !engine.guideOpen, let c = ch.first, c.isNumber { engine.pressDigit(String(c)); return .handled }
             return .ignored
         }
         #if os(tvOS)
@@ -55,9 +68,11 @@ struct TVView: View {
         #endif
         #if os(iOS)
         // Touch: swipe up/down to change channel; a horizontal swipe would be a
-        // seek, so it no-ops with ⊘ (invariant #1).
+        // seek, so it no-ops with ⊘ (invariant #1). Disabled while the guide is
+        // open so a swipe there navigates the guide, not the channel underneath.
         .gesture(
             DragGesture(minimumDistance: 40).onEnded { v in
+                guard !engine.guideOpen else { return }
                 if abs(v.translation.height) > abs(v.translation.width) {
                     v.translation.height < 0 ? engine.channelUp() : engine.channelDown()
                 } else {

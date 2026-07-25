@@ -10,5 +10,11 @@
     <key>NSAllowsLocalNetworking</key>
     <true/>
   </dict>
+  <!-- iOS launch screen: the dumbTV dark field (ignored on tvOS/macOS). -->
+  <key>UILaunchScreen</key>
+  <dict>
+    <key>UIColorName</key>
+    <string>LaunchBackground</string>
+  </dict>
 </dict>
 </plist>

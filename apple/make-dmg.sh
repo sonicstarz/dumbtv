@@ -27,16 +27,21 @@ xcodebuild build -project dumbTV.xcodeproj -scheme dumbTV-macOS \
 APP="build/Build/Products/$CONFIG/dumbTV.app"
 [ -d "$APP" ] || { echo "error: $APP not found" >&2; exit 1; }
 
-STAGE="$(mktemp -d)/dumbTV"
+# Stage the .app OUTSIDE the build tree so we can delete the whole DerivedData
+# before packaging — on space-tight CI runners the multi-GB build folder (VLCKit
+# static libs + intermediates + module cache) is what starved hdiutil.
+STAGEROOT="$(mktemp -d)"
+STAGE="$STAGEROOT/dumbTV"
 mkdir -p "$STAGE"
 cp -R "$APP" "$STAGE/"
 ln -s /Applications "$STAGE/Applications"     # drag-to-install
 
-# The .app is now staged; drop the heavy build intermediates and SPM checkouts
-# (VLCKit's static libs are large) so hdiutil has room on space-tight CI runners.
-rm -rf build/Build/Intermediates.noindex build/SourcePackages build/Build/Products/*/*.swiftmodule 2>/dev/null || true
+echo "==> freeing DerivedData before packaging"
+rm -rf build
+mkdir -p build
 
 OUT="build/dumbTV.dmg"; rm -f "$OUT"
 hdiutil create -volname "dumbTV" -srcfolder "$STAGE" -ov -format UDZO "$OUT" >/dev/null
+rm -rf "$STAGEROOT" 2>/dev/null || true
 echo "==> created $OUT ($(du -h "$OUT" | cut -f1))"
 [ -z "${TEAM_ID:-}" ] && echo "    (unsigned — sign + notarize before public distribution)"

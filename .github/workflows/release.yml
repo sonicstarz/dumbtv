@@ -28,6 +28,11 @@ jobs:
           sudo rm -rf ~/Library/Developer/CoreSimulator/Caches/* || true
           sudo rm -rf ~/Library/Developer/CoreSimulator/Devices/* || true
           sudo rm -rf /Library/Developer/CoreSimulator/Volumes/* || true
+          # Toolchains this job doesn't use — the macOS runner's hostedtoolcache
+          # and bundled SDKs are many GB.
+          sudo rm -rf /Users/runner/hostedtoolcache /opt/hostedtoolcache || true
+          sudo rm -rf ~/.rustup ~/.cargo /usr/local/lib/android || true
+          sudo rm -rf ~/Library/Android/sdk /Applications/Xcode_2[0-5]*.app || true
           df -h / | tail -1
       - run: brew install xcodegen
       - name: Build .dmg (unsigned)

@@ -29,6 +29,8 @@ final class Engine: ObservableObject {
     @Published var currentIndex = 0
     @Published var now: Airing?
     @Published var guideOpen = false
+    /// Which row the arrow keys/remote have highlighted in the guide.
+    @Published var guideSelection = 0
     @Published var linked = false
     @Published var demo = false
     @Published var status = "Starting…"
@@ -37,11 +39,15 @@ final class Engine: ObservableObject {
     @Published var flash: String?
     /// Digits being dialed for direct channel entry, shown until they commit.
     @Published var dialing = ""
+    /// The channel banner auto-hides a few seconds after a change/interaction, so
+    /// the picture is unobstructed while you watch.
+    @Published var bannerVisible = true
 
     private var currentStart: Millis = -1
     private var tick: Timer?
     private var flashTask: Task<Void, Never>?
     private var dialTask: Task<Void, Never>?
+    private var bannerTask: Task<Void, Never>?
     private var serverURI = ""
     private var accessToken = ""
 
@@ -178,6 +184,7 @@ final class Engine: ObservableObject {
         currentStart = -1
         guideOpen = false
         sync()
+        showBanner()
     }
 
     // MARK: - remote / keyboard control (a cable box you turn the dial on)
@@ -190,6 +197,17 @@ final class Engine: ObservableObject {
         let next = ((currentIndex + delta) % channels.count + channels.count) % channels.count
         tune(to: next)
         showFlash("CH \(String(format: "%02d", channelNumber))")
+    }
+
+    // Guide navigation with the arrow keys / remote.
+    func toggleGuide() { guideOpen.toggle(); if guideOpen { guideSelection = currentIndex } }
+    func guideMove(_ delta: Int) {
+        guard !channels.isEmpty else { return }
+        guideSelection = min(max(guideSelection + delta, 0), channels.count - 1)
+    }
+    func guideSelect() {
+        guard channels.indices.contains(guideSelection) else { return }
+        tune(to: guideSelection)   // tune() also closes the guide
     }
 
     /// Invariant #1: pause/seek/resume do nothing on a live channel — flash ⊘.
@@ -225,6 +243,17 @@ final class Engine: ObservableObject {
         }
     }
 
+    /// Reveal the channel banner, then fade it out after a few seconds. Called on
+    /// channel/program changes and on any remote interaction.
+    func showBanner() {
+        bannerVisible = true
+        bannerTask?.cancel()
+        bannerTask = Task { @MainActor [weak self] in
+            try? await Task.sleep(nanoseconds: 4_500_000_000)
+            self?.bannerVisible = false
+        }
+    }
+
     private func startTicking() {
         status = ""
         sync()
@@ -242,6 +271,7 @@ final class Engine: ObservableObject {
         let p = airing.program
         guard p.startUtc != currentStart else { return }
         currentStart = p.startUtc
+        showBanner()   // a new program started — reveal the banner briefly
         guard let key = p.ratingKey, let media = ch.mediaByKey[key], let pk = media.partKey,
               let url = streamURL(pk) else { return }
         player.play(url: url, startSeconds: Int(airing.offsetMs / 1000))

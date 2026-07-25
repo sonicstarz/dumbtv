@@ -10,20 +10,27 @@ struct GuideView: View {
     var body: some View {
         VStack(spacing: 0) {
             header
-            ScrollView {
-                LazyVStack(spacing: 8) {
-                    ForEach(engine.guideRows()) { row in
-                        // A Button so a channel is selectable with the Siri remote
-                        // on tvOS (focus + click), and tappable on iOS/macOS.
-                        Button { engine.tune(to: row.id) } label: {
-                            GuideRowCard(row: row, isCurrent: row.id == engine.currentIndex)
+            ScrollViewReader { proxy in
+                ScrollView {
+                    LazyVStack(spacing: 8) {
+                        ForEach(engine.guideRows()) { row in
+                            // A Button so a channel is selectable with the Siri remote
+                            // on tvOS (focus + click), and tappable on iOS/macOS.
+                            Button { engine.tune(to: row.id) } label: {
+                                GuideRowCard(row: row, isCurrent: row.id == engine.currentIndex,
+                                             isSelected: row.id == engine.guideSelection)
+                            }
+                            .buttonStyle(.plain)
+                            .id(row.id)
+                            .accessibilityElement(children: .ignore)
+                            .accessibilityLabel("Channel \(row.number), \(row.name). Now: \(row.now?.program.title ?? "nothing"). Select to tune.")
                         }
-                        .buttonStyle(.plain)
-                        .accessibilityElement(children: .ignore)
-                        .accessibilityLabel("Channel \(row.number), \(row.name). Now: \(row.now?.program.title ?? "nothing"). Select to tune.")
                     }
+                    .padding(16)
                 }
-                .padding(16)
+                .onChange(of: engine.guideSelection) { _, sel in
+                    withAnimation { proxy.scrollTo(sel, anchor: .center) }
+                }
             }
         }
         .background(
@@ -58,11 +65,7 @@ struct GuideView: View {
 private struct GuideRowCard: View {
     let row: GuideEntry
     let isCurrent: Bool
-
-    static func time(_ ms: Millis) -> String {
-        let f = DateFormatter(); f.dateFormat = "h:mm"
-        return f.string(from: Date(timeIntervalSince1970: Double(ms) / 1000))
-    }
+    var isSelected: Bool = false
 
     private var episodeTag: String {
         guard let p = row.now?.program, let s = p.seasonNo, let e = p.episodeNo else { return "" }
@@ -90,29 +93,22 @@ private struct GuideRowCard: View {
                 ProgressView(value: row.now?.progress ?? 0).tint(Palette.amber)
             }
 
-            VStack(alignment: .leading, spacing: 3) {
+            VStack(alignment: .leading, spacing: 4) {
                 Text("NEXT").font(.system(size: 10, design: .monospaced)).foregroundStyle(Color(white: 0.75))
-                if row.upcoming.isEmpty {
-                    Text("—").font(.caption).foregroundStyle(Color(white: 0.85))
-                }
-                ForEach(Array(row.upcoming.prefix(3).enumerated()), id: \.offset) { _, p in
-                    HStack(spacing: 6) {
-                        Text(Self.time(p.startUtc))
-                            .font(.system(size: 11, design: .monospaced))
-                            .foregroundStyle(Palette.amber).frame(width: 52, alignment: .leading)
-                        Text(p.title)
-                            .font(.caption).foregroundStyle(Color(white: 0.85)).lineLimit(1)
-                    }
-                }
+                Text(row.next?.title ?? "—")
+                    .font(.subheadline).foregroundStyle(Color(white: 0.85)).lineLimit(2)
             }
-            .frame(width: 168, alignment: .leading)
+            .frame(width: 120, alignment: .leading)
         }
         .padding(12)
-        .background(isCurrent ? Palette.amber.opacity(0.22) : Color.white.opacity(0.06))
+        .background(isSelected ? Palette.amber.opacity(0.28)
+                    : isCurrent ? Palette.amber.opacity(0.16) : Color.white.opacity(0.06))
         .clipShape(RoundedRectangle(cornerRadius: 8))
         .overlay(
             RoundedRectangle(cornerRadius: 8)
-                .stroke(isCurrent ? Palette.amber : Color.clear, lineWidth: 2)
+                .stroke(isSelected ? Palette.amber : (isCurrent ? Palette.amber.opacity(0.5) : .clear),
+                        lineWidth: isSelected ? 3 : 2)
         )
+        .scaleEffect(isSelected ? 1.02 : 1)
     }
 }

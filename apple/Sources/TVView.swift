@@ -18,19 +18,29 @@ struct TVView: View {
         .focusable()
         #if os(tvOS) || os(macOS)
         .onMoveCommand { direction in
-            switch direction {
-            case .up:    engine.channelUp()
-            case .down:  engine.channelDown()
-            case .left, .right: engine.blocked()   // no seeking on live TV
-            @unknown default: break
+            if engine.guideOpen {
+                switch direction {
+                case .up:   engine.guideMove(-1)
+                case .down: engine.guideMove(+1)
+                default: break
+                }
+            } else {
+                switch direction {
+                case .up:    engine.channelUp()
+                case .down:  engine.channelDown()
+                case .left, .right: engine.blocked()   // no seeking on live TV
+                @unknown default: break
+                }
             }
         }
+        .onExitCommand { if engine.guideOpen { engine.guideOpen = false } }   // Esc / Menu closes the guide
         #endif
         .onKeyPress { press in
-            if press.characters == " " { engine.blocked(); return .handled }   // no pause
-            if let c = press.characters.first, c.isNumber {
-                engine.pressDigit(String(c)); return .handled
-            }
+            engine.showBanner()
+            if press.characters == "1" { engine.toggleGuide(); return .handled }        // 1 = guide
+            if press.key == .return { if engine.guideOpen { engine.guideSelect() }; return .handled }
+            if press.characters == " " { engine.blocked(); return .handled }            // no pause
+            if let c = press.characters.first, c.isNumber { engine.pressDigit(String(c)); return .handled }
             return .ignored
         }
         #if os(tvOS)
@@ -54,7 +64,7 @@ struct TVView: View {
     // Full-screen video with the channel banner and a GUIDE button.
     private var watchLayout: some View {
         ZStack {
-            VideoSurface(player: engine.player).ignoresSafeArea()
+            VideoLayer(player: engine.player).ignoresSafeArea()
 
             // Direct channel entry (top-right, like a real box), and the ⊘ /
             // channel-change flash (centre).
@@ -99,17 +109,22 @@ struct TVView: View {
                         .padding(.top, 10)
                 }
                 Spacer()
-                if let airing = engine.now {
-                    BannerView(engine: engine, airing: airing)
-                } else if !engine.status.isEmpty {
-                    Text(engine.status)
-                        .font(.system(.headline, design: .monospaced))
-                        .foregroundStyle(Palette.dim)
+                // The banner reveals on a channel/program change or a key press,
+                // then fades so the picture is unobstructed while you watch.
+                if engine.bannerVisible {
+                    if let airing = engine.now {
+                        BannerView(engine: engine, airing: airing).transition(.opacity)
+                    } else if !engine.status.isEmpty {
+                        Text(engine.status)
+                            .font(.system(.headline, design: .monospaced))
+                            .foregroundStyle(Palette.dim)
+                    }
                 }
             }
             .padding(.horizontal, 24)
             .padding(.top, 12)
             .padding(.bottom, 44)
+            .animation(.easeInOut(duration: 0.3), value: engine.bannerVisible)
         }
     }
 
@@ -117,7 +132,7 @@ struct TVView: View {
     private var guideLayout: some View {
         VStack(spacing: 0) {
             ZStack(alignment: .bottomLeading) {
-                VideoSurface(player: engine.player)
+                VideoLayer(player: engine.player)
                 if let airing = engine.now {
                     Text("\(String(format: "%02d", engine.channelNumber))  \(engine.channelName.uppercased())  ·  \(airing.program.title)")
                         .font(.system(size: 11, design: .monospaced))

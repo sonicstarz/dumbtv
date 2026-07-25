@@ -1,6 +1,23 @@
 import SwiftUI
 import dumbTVCore
 
+/// A bar that empties over the dial-commit window, so a partial channel number
+/// visibly counts down instead of silently jumping. Restarted per digit via
+/// `.id(dialing)` on the caller.
+struct DialCountdown: View {
+    let scale: CGFloat
+    @State private var empty = false
+    var body: some View {
+        GeometryReader { geo in
+            Rectangle().fill(Palette.amber)
+                .frame(width: geo.size.width)
+                .scaleEffect(x: empty ? 0 : 1, anchor: .leading)
+        }
+        .frame(height: 4 * scale)
+        .onAppear { withAnimation(.linear(duration: 1.5)) { empty = true } }
+    }
+}
+
 struct TVView: View {
     @ObservedObject var engine: Engine
     /// Where to configure this device (shown as a QR + URL until it's set up).
@@ -93,13 +110,21 @@ struct TVView: View {
             // Channel digits — Archivo Black on the dark band, square, like the
             // web TV's #digits.
             if !engine.dialing.isEmpty {
-                Text(engine.dialing)
-                    .font(Palette.display(56 * s))
-                    .foregroundStyle(Palette.amber).tracking(4)
-                    .padding(.horizontal, 26 * s).padding(.vertical, 12 * s)
-                    .background(Palette.band)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
-                    .padding(48 * s)
+                VStack(spacing: 8 * s) {
+                    Text(engine.dialing)
+                        .font(Palette.display(56 * s))
+                        .foregroundStyle(Palette.amber).tracking(4)
+                    // A depleting bar so you can SEE the ~1.5s commit window —
+                    // kids stop mashing and end up on the channel, not ⊘.
+                    // .id(dialing) remounts it on each digit, restarting the run.
+                    DialCountdown(scale: s).id(engine.dialing)
+                        .frame(width: 118 * s)
+                }
+                .padding(.horizontal, 26 * s).padding(.vertical, 14 * s)
+                .fixedSize()
+                .background(Palette.band)
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
+                .padding(48 * s)
             }
             // ⊘ / CH flash — plain giant glyph with a glow, no chip (web #nope).
             if let f = engine.flash {

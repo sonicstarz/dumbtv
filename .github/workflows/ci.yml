@@ -40,7 +40,7 @@ jobs:
         run: >
           xcodebuild build
           -project dumbTV.xcodeproj -scheme dumbTV-macOS
-          -destination 'platform=macOS'
+          -destination 'platform=macOS' -derivedDataPath build
           CODE_SIGNING_ALLOWED=NO -quiet
 
       - name: Sanity — VLCKit is a dynamic framework (LGPL gate #1)

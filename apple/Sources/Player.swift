@@ -1,5 +1,8 @@
 import SwiftUI
 import VLCKitSPM
+#if canImport(UIKit)
+import UIKit
+#endif
 
 #if os(macOS)
 typealias PlatformView = NSView
@@ -30,6 +33,11 @@ final class Player: ObservableObject {
     private var pendingSwap = false
     private var pendingSince: Date?
     private var poll: Timer?
+    #if os(macOS)
+    /// Held for the app's life so the display never sleeps mid-broadcast — a TV
+    /// stays on. Released on deinit.
+    private var awakeToken: NSObjectProtocol?
+    #endif
     /// If the incoming channel can't produce a frame in this long, cut over
     /// anyway — the bars + "please stand by" are more honest than a stale freeze.
     private let swapTimeout: TimeInterval = 15
@@ -63,6 +71,20 @@ final class Player: ObservableObject {
             guard let self else { return }
             Task { @MainActor in self.tick() }
         }
+
+        // Keep the display awake — a television doesn't dim itself while it's on.
+        #if os(macOS)
+        awakeToken = ProcessInfo.processInfo.beginActivity(
+            options: [.idleDisplaySleepDisabled, .userInitiated], reason: "dumbTV is a television")
+        #elseif canImport(UIKit)
+        UIApplication.shared.isIdleTimerDisabled = true
+        #endif
+    }
+
+    deinit {
+        #if os(macOS)
+        if let awakeToken { ProcessInfo.processInfo.endActivity(awakeToken) }
+        #endif
     }
 
     private func tick() {

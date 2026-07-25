@@ -140,14 +140,19 @@ public final class ConfigAPI {
         // The web UI reads `server` to advance past server-pick to library browse
         // (and to show the unlink button). Mirror the Node shape.
         var server: Any = NSNull()
+        let hasServer = store.getSetting("plex_server_uri") != nil
         if let uri = store.getSetting("plex_server_uri") {
             server = ["name": store.getSetting("plex_server_name") ?? "Plex", "uri": uri, "local": false]
         }
         return .ok([
             "backend": "plex",
+            "native": true,          // this is a native app; the TV is the app window, not /tv
             "linked": store.getSetting("plex_token") != nil,
             "server": server,
-            "reachable": NSNull(),
+            // We only keep a server whose connection responded at link time
+            // (firstReachable), so a configured server is reachable-until-proven-
+            // otherwise — the picture stands by if a stream later fails.
+            "reachable": hasServer ? true : NSNull(),
             "counts": ["channels": store.allChannels().count, "assets": store.assets().count],
             "orderingModes": OrderingMode.allCases.map { $0.rawValue },
         ])

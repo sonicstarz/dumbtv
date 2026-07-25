@@ -111,6 +111,10 @@ public final class SQLite {
 
     private func error(_ ctx: String) -> Error {
         let msg = db != nil ? String(cString: sqlite3_errmsg(db)) : "no handle"
+        // The Store deliberately uses `try?` at call sites (a failed read must
+        // never crash the TV), so this is the one place a SQL failure is visible.
+        // Log it — a swallowed write was previously indistinguishable from success.
+        print("dumbTV SQLite error — \(ctx): \(msg)")
         return NSError(domain: "SQLite", code: 1,
                        userInfo: [NSLocalizedDescriptionKey: "\(ctx): \(msg)"])
     }

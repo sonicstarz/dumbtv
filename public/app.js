@@ -501,6 +501,18 @@ async function loadStatus() {
   $('#navAssets').textContent = s.counts.assets || '';
   $('#navPlex').textContent = s.linked ? (s.reachable ? '●' : '!') : '—';
   $('#navPlex').style.color = s.linked && s.reachable ? 'var(--phosphor)' : 'var(--dim)';
+
+  // On the native apps the TV is the app window itself — a browser tab can't
+  // direct-play the library (VLCKit does that natively). Point users there
+  // instead of a browser /tv that would just show colour bars.
+  const tv = $('#openTv');
+  if (tv && s.native) {
+    tv.textContent = 'The TV is the app window';
+    tv.removeAttribute('href');
+    tv.removeAttribute('target');
+    tv.style.cursor = 'default';
+    tv.style.opacity = '0.6';
+  }
 }
 
 // ---------------------------------------------------------------- channels

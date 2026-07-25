@@ -48,6 +48,10 @@ final class EmbeddedServer {
                 self.respond(conn, to: req)
             } else if isComplete || error != nil {
                 conn.cancel()
+            } else if buf.count > 4_000_000 {
+                // Cap an unbounded/never-completing request (a config POST is a
+                // few KB; 4 MB is generous). Prevents runaway buffer growth.
+                conn.cancel()
             } else {
                 self.receive(conn, buffer: buf)   // headers or body still incomplete
             }
@@ -109,14 +113,24 @@ final class EmbeddedServer {
     // shared public/ assets are bundled (next Track G task).
 
     private func staticAsset(_ path: String) -> (Int, String, Data) {
-        let rel = (path == "/" ? "index.html" : String(path.drop(while: { $0 == "/" })))
-        if let webRoot = Bundle.main.resourceURL?.appendingPathComponent("web") {
-            let fileURL = webRoot.appendingPathComponent(rel)
-            if let data = try? Data(contentsOf: fileURL) {
-                return (200, Self.mime(rel), data)
-            }
+        let decoded = path.removingPercentEncoding ?? path
+        let rel = (decoded == "/" ? "index.html" : String(decoded.drop(while: { $0 == "/" })))
+        guard let webRoot = Bundle.main.resourceURL?.appendingPathComponent("web") else {
+            return decoded == "/"
+                ? (200, "text/html; charset=utf-8", Data(Self.placeholder.utf8))
+                : (404, "text/plain", Data("Not found".utf8))
         }
-        if path == "/" {   // web UI not bundled yet → placeholder
+        // Resolve `..` and reject anything that escapes the web root — otherwise
+        // GET /../../ would read files outside the bundle (path traversal).
+        let root = webRoot.standardizedFileURL.path
+        let fileURL = webRoot.appendingPathComponent(rel).standardizedFileURL
+        guard fileURL.path == root || fileURL.path.hasPrefix(root + "/") else {
+            return (403, "text/plain", Data("Forbidden".utf8))
+        }
+        if let data = try? Data(contentsOf: fileURL) {
+            return (200, Self.mime(rel), data)
+        }
+        if decoded == "/" {   // web UI not bundled yet → placeholder
             return (200, "text/html; charset=utf-8", Data(Self.placeholder.utf8))
         }
         return (404, "text/plain", Data("Not found".utf8))

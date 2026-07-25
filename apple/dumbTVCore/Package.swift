@@ -3,7 +3,7 @@ import PackageDescription
 
 let package = Package(
     name: "dumbTVCore",
-    platforms: [.macOS(.v13), .iOS(.v17), .tvOS(.v17)],
+    platforms: [.macOS(.v13), .iOS(.v16), .tvOS(.v17)],
     products: [
         .library(name: "dumbTVCore", targets: ["dumbTVCore"]),
     ],

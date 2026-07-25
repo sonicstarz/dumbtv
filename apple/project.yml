@@ -3,7 +3,7 @@ options:
   bundleIdPrefix: app.dumbtv
   createIntermediateGroups: true
   deploymentTarget:
-    iOS: "17.0"
+    iOS: "16.0"
     tvOS: "17.0"
 
 packages:
@@ -17,7 +17,7 @@ settings:
   base:
     SWIFT_VERSION: "5.0"
     MARKETING_VERSION: "1.1.0"
-    CURRENT_PROJECT_VERSION: "5"
+    CURRENT_PROJECT_VERSION: "6"
     GENERATE_INFOPLIST_FILE: YES
     INFOPLIST_FILE: Info-shared.plist          # base for ATS; Xcode merges generated keys on top
     # dumbTV reaches the user's Plex server and serves its own setup page on the

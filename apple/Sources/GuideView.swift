@@ -118,7 +118,9 @@ private struct GuideGrid: View {
                             }
                         }
                     }
-                    .onChange(of: engine.guideSelection) { _, sel in
+                    // Single-arg onChange (works iOS 16 / macOS 13+); the two-arg
+                    // form is iOS 17+ and would block the lower iOS floor.
+                    .onChange(of: engine.guideSelection) { sel in
                         withAnimation { proxy.scrollTo(sel, anchor: .center) }
                     }
                 }

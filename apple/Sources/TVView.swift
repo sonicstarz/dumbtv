@@ -37,8 +37,11 @@ struct TVView: View {
                 }
             }
         }
-        .focusable()
+        // Focus + keyboard/remote input is macOS/tvOS only (iOS uses the swipe
+        // gesture below). Keeping these off iOS lets the iOS deployment target
+        // drop below 17 — .focusable()/.onKeyPress are iOS 17+.
         #if os(tvOS) || os(macOS)
+        .focusable()
         .onMoveCommand { direction in
             if engine.guideOpen {
                 switch direction {
@@ -65,6 +68,7 @@ struct TVView: View {
         // lands here: open the guide while watching, tune while in it.
         .onTapGesture { engine.guideOpen ? engine.guideSelect() : engine.toggleGuide() }
         #endif
+        #if os(tvOS) || os(macOS)
         .onKeyPress { press in
             engine.showBanner()
             let ch = press.characters
@@ -80,6 +84,7 @@ struct TVView: View {
             if !engine.guideOpen, let c = ch.first, c.isNumber { engine.pressDigit(String(c)); return .handled }
             return .ignored
         }
+        #endif
         #if os(tvOS)
         .onPlayPauseCommand { engine.blocked() }
         #endif

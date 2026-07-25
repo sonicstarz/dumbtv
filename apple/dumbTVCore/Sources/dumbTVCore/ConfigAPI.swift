@@ -89,7 +89,7 @@ public final class ConfigAPI {
         case ("GET", 2) where s[0] == "llm" && s[1] == "status":      return .ok(["configured": false, "model": NSNull()])
         case ("GET", 1) where s[0] == "assets":                       return .ok(["assets": []])
         case ("GET", 1) where s[0] == "onair":                        return onair()
-        case ("GET", 1) where s[0] == "guide":                        return .ok(["from": nowMs(), "channels": []])
+        case ("GET", 1) where s[0] == "guide":                        return guide(req)
 
         default: return .notFound("No route for \(m) \(req.path)")
         }
@@ -297,6 +297,32 @@ public final class ConfigAPI {
             "channels": store.allChannels().map(channelJSON),
             "rules": allRules().map(ruleJSON),
         ])
+    }
+
+    /// The listings grid: every channel's programs over the next `hours`,
+    /// generated deterministically from the Store. Matches the web guide shape:
+    /// { channels: [{ number, name, programs: [{startUtc,endUtc,title,…}] }] }.
+    private func guide(_ req: Request) -> Response {
+        let from = req.query["from"].flatMap { Int64($0) } ?? nowMs()
+        let hours = min(12, max(1, req.query["hours"].flatMap { Int($0) } ?? 3))
+        let window = Int64(hours) * 3_600_000
+        let genWindow = window + 6 * 3_600_000     // extra so edge-spanning blocks appear
+        let channels: [[String: Any]] = store.allChannels().filter { $0.enabled }.map { c in
+            let buckets = store.library(forChannel: c.id).sourceBuckets()
+            let programs = buckets.isEmpty ? []
+                : Generator.generate(channel: c.spec, buckets: buckets, now: from, windowMs: genWindow)
+            let inRange = programs.filter {
+                $0.endUtc > from && $0.startUtc < from + window &&
+                ($0.kind == .episode || $0.kind == .movie || $0.kind == .offair)
+            }
+            return ["number": c.number, "name": c.name,
+                    "programs": inRange.map { p -> [String: Any] in
+                        ["startUtc": p.startUtc, "endUtc": p.endUtc, "title": p.title, "kind": p.kind.rawValue,
+                         "subtitle": p.subtitle ?? NSNull(), "seasonNo": p.seasonNo ?? NSNull(),
+                         "episodeNo": p.episodeNo ?? NSNull()]
+                    }]
+        }
+        return .ok(["from": from, "hours": hours, "channels": channels])
     }
 
     /// A channel's real program blocks over a day range — for the calendar view.

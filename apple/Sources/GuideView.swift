@@ -36,19 +36,22 @@ struct GuideView: View {
 
 /// The grid itself: a fixed left gutter of channel numbers/names, then a lane
 /// where programs are positioned by time. One GeometryReader gives the lane
-/// width so blocks, tick labels, and the now-line all share the same mapping.
+/// width so blocks, tick labels, gridlines, and the now-line share one mapping.
 private struct GuideGrid: View {
     @ObservedObject var engine: Engine
     let windowStart: Millis
 
     private let gutter: CGFloat = 108
-    private let rowH: CGFloat = 60
-    private let headerH: CGFloat = 18
+    private let rowH: CGFloat = 62
+    private let headerH: CGFloat = 20
     private let cols = 3   // 30-min columns across the 90-min span
 
     /// Map a time to an x within [gutter, gutter + lane].
     private func x(_ t: Millis, lane: CGFloat) -> CGFloat {
         gutter + CGFloat(Double(t - windowStart) / Double(guideSpanMs)) * lane
+    }
+    private func colX(_ i: Int, lane: CGFloat) -> CGFloat {
+        gutter + CGFloat(i) / CGFloat(cols) * lane
     }
 
     var body: some View {
@@ -56,34 +59,50 @@ private struct GuideGrid: View {
             let lane = max(1, geo.size.width - gutter)
             let now = engine.wallClock
 
-            VStack(spacing: 6) {
-                // Time-axis labels: 10:30 · 11:00 · 11:30 · 12:00
-                ZStack(alignment: .topLeading) {
-                    ForEach(0...cols, id: \.self) { i in
-                        Text(hhmm(windowStart + Millis(i) * 30 * 60 * 1000))
-                            .font(.system(size: 12, design: .monospaced))
-                            .foregroundStyle(Color(white: 0.85))
-                            .fixedSize()
-                            .offset(x: gutter + CGFloat(i) / CGFloat(cols) * lane)
-                    }
+            ZStack(alignment: .topLeading) {
+                // Vertical column gridlines behind everything, below the header.
+                ForEach(0...cols, id: \.self) { i in
+                    Rectangle().fill(Color.white.opacity(0.14)).frame(width: 1)
+                        .frame(maxHeight: .infinity, alignment: .top)
+                        .padding(.top, headerH + 4)
+                        .offset(x: colX(i, lane: lane))
+                        .allowsHitTesting(false)
                 }
-                .frame(maxWidth: .infinity, minHeight: headerH, alignment: .topLeading)
 
-                ForEach(engine.guideProgramRows()) { row in
-                    GuideGridRow(row: row, gutter: gutter, lane: lane, windowStart: windowStart,
-                                 isSelected: row.id == engine.guideSelection,
-                                 isCurrent: row.id == engine.currentIndex)
-                        .frame(height: rowH)
-                        .contentShape(Rectangle())
-                        .onTapGesture { engine.tune(to: row.id) }
+                VStack(spacing: 6) {
+                    // Header: "GUIDE" over the gutter, then the time-axis labels.
+                    ZStack(alignment: .topLeading) {
+                        Text("GUIDE")
+                            .font(.system(size: 13, design: .monospaced)).bold()
+                            .foregroundStyle(Palette.amber).tracking(2)
+                        ForEach(0...cols, id: \.self) { i in
+                            Text(hhmm(windowStart + Millis(i) * 30 * 60 * 1000))
+                                .font(.system(size: 12, design: .monospaced))
+                                .foregroundStyle(Color(white: 0.85))
+                                .fixedSize()
+                                .offset(x: colX(i, lane: lane) + 4)
+                        }
+                    }
+                    .frame(maxWidth: .infinity, minHeight: headerH, alignment: .topLeading)
+
+                    ForEach(engine.guideProgramRows()) { row in
+                        GuideGridRow(row: row, gutter: gutter, lane: lane, windowStart: windowStart,
+                                     now: now,
+                                     isSelected: row.id == engine.guideSelection,
+                                     isCurrent: row.id == engine.currentIndex)
+                            .frame(height: rowH)
+                            .contentShape(Rectangle())
+                            .onTapGesture { engine.tune(to: row.id) }
+                    }
+                    Spacer(minLength: 0)
                 }
-                Spacer(minLength: 0)
-            }
-            // The red now-line spans the rows (not the header).
-            .overlay(alignment: .topLeading) {
+
+                // The red now-line spans the rows (not the header).
                 if now >= windowStart && now <= windowStart + guideSpanMs {
                     Rectangle().fill(Color.red).frame(width: 2)
-                        .offset(x: x(now, lane: lane), y: headerH + 6)
+                        .frame(maxHeight: .infinity, alignment: .top)
+                        .padding(.top, headerH + 4)
+                        .offset(x: x(now, lane: lane))
                         .allowsHitTesting(false)
                 }
             }
@@ -91,12 +110,13 @@ private struct GuideGrid: View {
     }
 }
 
-/// One channel row: gutter (number + name), then its programs as blocks.
+/// One channel row: gutter (▶ + number + name), then its programs as blocks.
 private struct GuideGridRow: View {
     let row: GuideProgramRow
     let gutter: CGFloat
     let lane: CGFloat
     let windowStart: Millis
+    let now: Millis
     let isSelected: Bool
     let isCurrent: Bool
 
@@ -114,21 +134,31 @@ private struct GuideGridRow: View {
 
     var body: some View {
         HStack(spacing: 0) {
-            VStack(spacing: 2) {
-                Text(String(format: "%02d", row.number))
-                    .font(.system(size: 22, weight: .heavy)).foregroundStyle(Palette.amber)
-                Text(row.name.uppercased())
-                    .font(.system(size: 8, design: .monospaced))
-                    .foregroundStyle(Color(white: 0.82))
-                    .multilineTextAlignment(.center).lineLimit(2)
+            ZStack {
+                VStack(spacing: 2) {
+                    Text(String(format: "%02d", row.number))
+                        .font(.system(size: 22, weight: .heavy)).foregroundStyle(Palette.amber)
+                    Text(row.name.uppercased())
+                        .font(.system(size: 8, design: .monospaced))
+                        .foregroundStyle(Color(white: 0.82))
+                        .multilineTextAlignment(.center).lineLimit(2)
+                }
+                // ▶ marks the channel you're tuned to, like the screenshot.
+                if isCurrent {
+                    Image(systemName: "play.fill")
+                        .font(.system(size: 12)).foregroundStyle(Palette.amber)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(.leading, 4)
+                }
             }
             .frame(width: gutter)
 
             ZStack(alignment: .leading) {
                 ForEach(row.programs) { p in
                     let sx = clampX(p.startUtc), ex = clampX(p.endUtc)
-                    ProgramBlock(title: p.title, subtitle: sub(p))
-                        .frame(width: max(ex - sx - 2, 1), alignment: .leading)
+                    ProgramBlock(title: p.title, subtitle: sub(p),
+                                 airingNow: now >= p.startUtc && now < p.endUtc)
+                        .frame(width: max(ex - sx, 1), alignment: .leading)
                         .offset(x: sx)
                 }
             }
@@ -144,22 +174,26 @@ private struct GuideGridRow: View {
     }
 }
 
-/// A single program cell in the grid.
+/// A single program cell in the grid. The one currently airing underlines its
+/// subtitle, matching the printed-guide look.
 private struct ProgramBlock: View {
     let title: String
     let subtitle: String
+    let airingNow: Bool
     var body: some View {
         VStack(alignment: .leading, spacing: 2) {
             Text(title).font(.system(size: 13, weight: .semibold))
                 .foregroundStyle(.white).lineLimit(1)
             if !subtitle.isEmpty {
                 Text(subtitle).font(.system(size: 11))
-                    .foregroundStyle(Palette.amber).lineLimit(1)
+                    .foregroundStyle(Palette.amber)
+                    .underline(airingNow, color: Palette.amber)
+                    .lineLimit(1)
             }
         }
         .padding(.horizontal, 8).padding(.vertical, 6)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-        .background(Color.white.opacity(0.07))
+        .background(Color.white.opacity(airingNow ? 0.10 : 0.05))
         .overlay(Rectangle().stroke(Color.white.opacity(0.18), lineWidth: 1))
     }
 }
@@ -182,7 +216,7 @@ struct NowPlayingPanel: View {
                         .foregroundStyle(Palette.amber).tracking(2)
                     HStack(spacing: 10) {
                         Text(String(format: "%02d", engine.channelNumber))
-                            .font(.system(size: 24, weight: .heavy)).foregroundStyle(.white)
+                            .font(.system(size: 24, weight: .heavy)).foregroundStyle(Palette.amber)
                         Text(engine.channelName.uppercased())
                             .font(.system(size: 20, weight: .heavy)).foregroundStyle(.white)
                     }

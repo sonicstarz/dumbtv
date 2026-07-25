@@ -167,6 +167,7 @@ struct BannerView: View {
         HStack(spacing: 0) {
             Rectangle().fill(Palette.amber).frame(width: 5)
             VStack(alignment: .leading, spacing: 8) {
+                // Row 1: channel · clock
                 HStack(alignment: .firstTextBaseline, spacing: 12) {
                     Text(String(format: "%02d", engine.channelNumber))
                         .font(.system(size: 34, weight: .heavy)).foregroundStyle(Palette.amber)
@@ -176,18 +177,24 @@ struct BannerView: View {
                     Text(hhmm(engine.wallClock))
                         .font(.system(.caption, design: .monospaced)).foregroundStyle(Palette.dim)
                 }
-                Text(airing.program.title)
-                    .font(.system(size: 24, weight: .semibold)).foregroundStyle(.white).lineLimit(1)
+                // Row 2: title · time range
+                HStack(alignment: .firstTextBaseline) {
+                    Text(airing.program.title)
+                        .font(.system(size: 24, weight: .semibold)).foregroundStyle(.white).lineLimit(1)
+                    Spacer(minLength: 16)
+                    Text("\(hhmm(airing.program.startUtc)) – \(hhmm(airing.program.endUtc))")
+                        .font(.system(.subheadline, design: .monospaced)).foregroundStyle(Palette.amber)
+                        .fixedSize()
+                }
+                // Row 3: episode · NEXT
                 HStack(alignment: .firstTextBaseline) {
                     if let sub = airing.program.subtitle {
                         Text(episodeTag + sub).font(.subheadline).foregroundStyle(Palette.dim).lineLimit(1)
                     }
-                    Spacer()
-                    Text("\(hhmm(airing.program.startUtc)) – \(hhmm(airing.program.endUtc))")
-                        .font(.system(.subheadline, design: .monospaced)).foregroundStyle(Palette.amber)
-                }
-                if let n = engine.nextUp {
-                    Text("NEXT  \(n.title)").font(.subheadline).foregroundStyle(Palette.dim).lineLimit(1)
+                    Spacer(minLength: 16)
+                    if let n = engine.nextUp {
+                        Text("NEXT  \(n.title)").font(.subheadline).foregroundStyle(Palette.dim).lineLimit(1)
+                    }
                 }
             }
             .padding(16)

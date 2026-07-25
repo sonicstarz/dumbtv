@@ -15,7 +15,24 @@ final class Player: ObservableObject {
     @Published var videoActive = false
     private var poll: Timer?
 
+    // One persistent view is VLC's `drawable`, set once and never reassigned.
+    // The watch and guide layouts move THIS view between them, so the video
+    // output follows instead of going black on re-attach (a single vout).
+    #if os(macOS)
+    let videoView: NSView = {
+        let v = NSView(); v.wantsLayer = true
+        v.layer?.backgroundColor = NSColor.black.cgColor
+        return v
+    }()
+    #else
+    let videoView: UIView = {
+        let v = UIView(); v.backgroundColor = .black
+        return v
+    }()
+    #endif
+
     init() {
+        vlc.drawable = videoView
         poll = Timer.scheduledTimer(withTimeInterval: 0.25, repeats: true) { [weak self] _ in
             guard let self else { return }
             Task { @MainActor in
@@ -76,27 +93,46 @@ struct ColorBars: View {
 /// A SwiftUI surface for a Player's video output. VLCKit takes any platform
 /// view as its `drawable`, so the only per-platform code in the whole app is
 /// the representable wrapper below.
+// The representable hosts a fresh container each time, then moves the Player's
+// single persistent `videoView` (VLC's drawable) into it. Because the drawable
+// object never changes, the video output survives the watch↔guide re-parent.
 #if os(macOS)
 struct VideoSurface: NSViewRepresentable {
     let player: Player
     func makeNSView(context: Context) -> NSView {
-        let v = NSView()
-        v.wantsLayer = true
-        v.layer?.backgroundColor = NSColor.black.cgColor
-        player.vlc.drawable = v
-        return v
+        let container = NSView()
+        container.wantsLayer = true
+        container.layer?.backgroundColor = NSColor.black.cgColor
+        attach(to: container)
+        return container
     }
-    func updateNSView(_ nsView: NSView, context: Context) {}
+    func updateNSView(_ nsView: NSView, context: Context) { attach(to: nsView) }
+    private func attach(to container: NSView) {
+        let v = player.videoView
+        guard v.superview != container else { return }
+        v.removeFromSuperview()
+        v.frame = container.bounds
+        v.autoresizingMask = [.width, .height]
+        container.addSubview(v)
+    }
 }
 #else
 struct VideoSurface: UIViewRepresentable {
     let player: Player
     func makeUIView(context: Context) -> UIView {
-        let v = UIView()
-        v.backgroundColor = .black
-        player.vlc.drawable = v
-        return v
+        let container = UIView()
+        container.backgroundColor = .black
+        attach(to: container)
+        return container
     }
-    func updateUIView(_ uiView: UIView, context: Context) {}
+    func updateUIView(_ uiView: UIView, context: Context) { attach(to: uiView) }
+    private func attach(to container: UIView) {
+        let v = player.videoView
+        guard v.superview != container else { return }
+        v.removeFromSuperview()
+        v.frame = container.bounds
+        v.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        container.addSubview(v)
+    }
 }
 #endif

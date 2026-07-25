@@ -43,9 +43,9 @@ struct TVView: View {
         .onExitCommand { if engine.guideOpen { engine.guideOpen = false } }   // Esc / Menu closes the guide
         #endif
         #if os(tvOS)
-        // The Siri remote has no keyboard, so the centre button IS the guide:
-        // press it while watching to open the guide, press it on a channel to
-        // tune. Arrows navigate; Menu closes. (Needs an on-device/sim pass.)
+        // The root is now the only focusable view (the in-picture GUIDE control
+        // is plain text on tvOS), so it owns focus and the Siri remote's select
+        // lands here: open the guide while watching, tune while in it.
         .onTapGesture { engine.guideOpen ? engine.guideSelect() : engine.toggleGuide() }
         #endif
         .onKeyPress { press in
@@ -118,6 +118,9 @@ struct TVView: View {
                             .background(Palette.amber)
                     }
                     Spacer()
+                    #if !os(tvOS)
+                    // On tvOS the whole picture is the guide button (select);
+                    // a nested button here would fight the focus engine.
                     Button { engine.guideOpen = true } label: {
                         Text("GUIDE")
                             .font(Palette.mono(12, .bold))
@@ -125,6 +128,13 @@ struct TVView: View {
                             .padding(.horizontal, 12).padding(.vertical, 8)
                             .background(Palette.band)
                     }
+                    #else
+                    Text("GUIDE ▸ press select")
+                        .font(Palette.mono(12, .bold))
+                        .foregroundStyle(Palette.amber).tracking(2)
+                        .padding(.horizontal, 12).padding(.vertical, 8)
+                        .background(Palette.band)
+                    #endif
                 }
                 if engine.demo, let url = configURL {
                     HStack { SetupCard(url: url); Spacer() }

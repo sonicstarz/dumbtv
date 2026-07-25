@@ -1,0 +1,61 @@
+name: Release
+
+# Tag a version (e.g. `git tag v1.0.0 && git push --tags`) to build the desktop
+# artifacts and publish a GitHub Release. The Raspberry Pi install is script-based
+# (pi/install.sh) — no artifact needed.
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  macos-dmg:
+    name: macOS .dmg
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+      - run: brew install xcodegen
+      - name: Build .dmg (unsigned)
+        run: cd apple && ./make-dmg.sh
+        # For a notarized build, set TEAM_ID + signing secrets and notarize here.
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: apple/build/dumbTV.dmg
+          fail_on_unmatched_files: true
+          body: |
+            ### dumbTV ${{ github.ref_name }}
+            - **macOS:** `dumbTV.dmg` (below)
+            - **Windows:** `dumbTV-Setup.exe` (below)
+            - **Raspberry Pi:** `curl -fsSL https://raw.githubusercontent.com/${{ github.repository }}/main/pi/install.sh | bash`
+
+  windows-exe:
+    name: Windows installer
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - name: Install app deps (builds better-sqlite3)
+        run: npm ci --omit=dev
+      - name: Assemble payload (app + node.exe + mpv.exe + launcher)
+        shell: pwsh
+        run: |
+          $p = "windows/payload"
+          New-Item -ItemType Directory -Force $p,"$p/node","$p/mpv" | Out-Null
+          Copy-Item -Recurse -Force src,public,package.json,package-lock.json,node_modules,media $p
+          Copy-Item windows/dumbTV.cmd $p
+          Copy-Item (Get-Command node).Source "$p/node/node.exe"
+          choco install mpv -y --no-progress
+          Copy-Item (Get-Command mpv).Source "$p/mpv/mpv.exe"
+      - name: Build installer (Inno Setup)
+        shell: pwsh
+        run: |
+          choco install innosetup -y --no-progress
+          $ver = "${{ github.ref_name }}".TrimStart('v')
+          & "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe" "/DAppVersion=$ver" windows/dumbtv.iss
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: dist/dumbTV-Setup.exe
+          fail_on_unmatched_files: true

@@ -6,3 +6,7 @@ media/**
 *.log
 .DS_Store
 .env
+
+# Windows packaging build output
+windows/payload/
+dist/

@@ -20,9 +20,11 @@ struct TVView: View {
         .onMoveCommand { direction in
             if engine.guideOpen {
                 switch direction {
-                case .up:   engine.guideMove(-1)
-                case .down: engine.guideMove(+1)
-                default: break
+                case .up:    engine.guideMove(-1)
+                case .down:  engine.guideMove(+1)
+                case .left:  engine.guideShiftHalfHours(-1)   // scroll the axis back
+                case .right: engine.guideShiftHalfHours(+1)   // …and forward, by 30 min
+                @unknown default: break
                 }
             } else {
                 switch direction {
@@ -128,26 +130,27 @@ struct TVView: View {
         }
     }
 
-    // Video minimized to the top, guide filling the rest.
+    // Top: the live picture beside a NOW PLAYING panel. Bottom: the grid guide.
     private var guideLayout: some View {
-        VStack(spacing: 0) {
-            ZStack(alignment: .bottomLeading) {
+        VStack(spacing: 12) {
+            HStack(spacing: 12) {
                 VideoLayer(player: engine.player)
-                if let airing = engine.now {
-                    Text("\(String(format: "%02d", engine.channelNumber))  \(engine.channelName.uppercased())  ·  \(airing.program.title)")
-                        .font(.system(size: 11, design: .monospaced))
-                        .foregroundStyle(Palette.amber)
-                        .lineLimit(1)
-                        .padding(6)
-                        .background(.black.opacity(0.6))
-                        .padding(8)
-                }
+                    .aspectRatio(16.0 / 9.0, contentMode: .fit)
+                    .frame(maxWidth: 460)
+                    .clipShape(RoundedRectangle(cornerRadius: 8))
+                    .overlay(RoundedRectangle(cornerRadius: 8).stroke(Palette.amber, lineWidth: 3))
+                NowPlayingPanel(engine: engine)
             }
             .frame(height: 210)
-            .clipped()
+            .padding(.horizontal, 12)
+            .padding(.top, 12)
+
             GuideView(engine: engine)
         }
-        .ignoresSafeArea(edges: .bottom)
+        .background(
+            LinearGradient(colors: [Palette.prevue1, Palette.prevue2],
+                           startPoint: .top, endPoint: .bottom)
+        )
     }
 }
 
@@ -160,10 +163,6 @@ struct BannerView: View {
         return String(format: "S%02dE%02d  ", s, e)
     }
 
-    private var clock: String {
-        let f = DateFormatter(); f.dateFormat = "h:mm a"; return f.string(from: Date())
-    }
-
     var body: some View {
         HStack(spacing: 0) {
             Rectangle().fill(Palette.amber).frame(width: 5)
@@ -174,15 +173,22 @@ struct BannerView: View {
                     Text(engine.channelName.uppercased())
                         .font(.system(.caption, design: .monospaced)).foregroundStyle(Palette.dim)
                     Spacer()
-                    Text(clock)
+                    Text(hhmm(engine.wallClock))
                         .font(.system(.caption, design: .monospaced)).foregroundStyle(Palette.dim)
                 }
                 Text(airing.program.title)
-                    .font(.system(size: 24, weight: .semibold)).foregroundStyle(.white)
-                if let sub = airing.program.subtitle {
-                    Text(episodeTag + sub).font(.subheadline).foregroundStyle(Palette.dim)
+                    .font(.system(size: 24, weight: .semibold)).foregroundStyle(.white).lineLimit(1)
+                HStack(alignment: .firstTextBaseline) {
+                    if let sub = airing.program.subtitle {
+                        Text(episodeTag + sub).font(.subheadline).foregroundStyle(Palette.dim).lineLimit(1)
+                    }
+                    Spacer()
+                    Text("\(hhmm(airing.program.startUtc)) – \(hhmm(airing.program.endUtc))")
+                        .font(.system(.subheadline, design: .monospaced)).foregroundStyle(Palette.amber)
                 }
-                ProgressView(value: airing.progress).tint(Palette.amber)
+                if let n = engine.nextUp {
+                    Text("NEXT  \(n.title)").font(.subheadline).foregroundStyle(Palette.dim).lineLimit(1)
+                }
             }
             .padding(16)
         }

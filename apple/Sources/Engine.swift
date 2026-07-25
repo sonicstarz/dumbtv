@@ -18,6 +18,24 @@ struct GuideEntry: Identifiable {
     let upcoming: [Program]   // the next few programs, with start times
 }
 
+/// One channel's row in the timeline grid — every program that overlaps the
+/// visible time window, laid out left-to-right by start/end like a cable guide.
+struct GuideProgramRow: Identifiable {
+    let id: Int          // channel index
+    let number: Int
+    let name: String
+    let programs: [Program]
+}
+
+/// Format a UTC millisecond instant as a wall clock, e.g. "10:35 PM".
+func hhmm(_ ms: Millis) -> String {
+    let f = DateFormatter(); f.dateFormat = "h:mm a"
+    return f.string(from: Date(timeIntervalSince1970: Double(ms) / 1000))
+}
+
+/// The visible span of the grid guide (90 min → 3 half-hour columns).
+let guideSpanMs: Millis = 90 * 60 * 1000
+
 /// The once-a-second loop that makes reality match the schedule — the Swift
 /// counterpart of `src/player/engine.js`. Re-derives from the clock, never a timer.
 @MainActor
@@ -28,9 +46,15 @@ final class Engine: ObservableObject {
     @Published var channels: [ChannelRuntime] = []
     @Published var currentIndex = 0
     @Published var now: Airing?
-    @Published var guideOpen = false
+    @Published var guideOpen = false {
+        // Opening the guide snaps the highlight to the channel you're watching
+        // and the time axis to now — so it always opens on "what's on."
+        didSet { if guideOpen && !oldValue { guideSelection = currentIndex; resetGuideWindow() } }
+    }
     /// Which row the arrow keys/remote have highlighted in the guide.
     @Published var guideSelection = 0
+    /// Left edge of the visible time axis (floored to :30). ←→ shift it by 30 min.
+    @Published var guideWindowStart: Millis = 0
     @Published var linked = false
     @Published var demo = false
     @Published var status = "Starting…"
@@ -53,6 +77,14 @@ final class Engine: ObservableObject {
 
     var channelName: String { channels.indices.contains(currentIndex) ? channels[currentIndex].spec.name : "" }
     var channelNumber: Int { channels.indices.contains(currentIndex) ? channels[currentIndex].spec.number : 0 }
+    var wallClock: Millis { nowMs() }
+
+    /// The program that follows what's currently airing on this channel — the
+    /// banner's "NEXT" line.
+    var nextUp: Program? {
+        guard channels.indices.contains(currentIndex) else { return nil }
+        return Resolver.upNext(channels[currentIndex].programs, at: nowMs(), count: 1).first
+    }
 
     private func nowMs() -> Millis { Millis(Date().timeIntervalSince1970 * 1000) }
     private func streamURL(_ partKey: String) -> URL? {
@@ -200,7 +232,7 @@ final class Engine: ObservableObject {
     }
 
     // Guide navigation with the arrow keys / remote.
-    func toggleGuide() { guideOpen.toggle(); if guideOpen { guideSelection = currentIndex } }
+    func toggleGuide() { guideOpen.toggle() }   // didSet snaps selection + time axis
     func guideMove(_ delta: Int) {
         guard !channels.isEmpty else { return }
         guideSelection = min(max(guideSelection + delta, 0), channels.count - 1)
@@ -208,6 +240,27 @@ final class Engine: ObservableObject {
     func guideSelect() {
         guard channels.indices.contains(guideSelection) else { return }
         tune(to: guideSelection)   // tune() also closes the guide
+    }
+
+    /// Snap the time axis to the current half-hour so the guide opens on "now."
+    func resetGuideWindow() {
+        let half: Millis = 30 * 60 * 1000
+        guideWindowStart = (nowMs() / half) * half
+    }
+    /// ←→ scroll the guide forward/back in 30-minute steps; never earlier than now.
+    func guideShiftHalfHours(_ delta: Int) {
+        let half: Millis = 30 * 60 * 1000
+        let floor = (nowMs() / half) * half
+        guideWindowStart = max(floor, guideWindowStart + Millis(delta) * half)
+    }
+
+    /// Every channel's programs that overlap the visible time window, for the grid.
+    func guideProgramRows() -> [GuideProgramRow] {
+        let end = guideWindowStart + guideSpanMs
+        return channels.enumerated().map { i, ch in
+            let visible = ch.programs.filter { $0.endUtc > guideWindowStart && $0.startUtc < end }
+            return GuideProgramRow(id: i, number: ch.spec.number, name: ch.spec.name, programs: visible)
+        }
     }
 
     /// Invariant #1: pause/seek/resume do nothing on a live channel — flash ⊘.

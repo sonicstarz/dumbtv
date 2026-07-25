@@ -72,8 +72,49 @@ final class Engine: ObservableObject {
     private var flashTask: Task<Void, Never>?
     private var dialTask: Task<Void, Never>?
     private var bannerTask: Task<Void, Never>?
+    private var reloadTask: Task<Void, Never>?
     private var serverURI = ""
     private var accessToken = ""
+    /// The shared Store, kept so config changes made in the web UI can rebuild
+    /// the lineup live (see the .dumbTVConfigChanged observer below).
+    private var store: Store?
+
+    init() {
+        // The embedded web server mutates the same Store this engine reads.
+        // ConfigAPI broadcasts after each mutation; debounce (mutations come in
+        // bursts — create channel, add sources…) and rebuild the lineup.
+        NotificationCenter.default.addObserver(
+            forName: .dumbTVConfigChanged, object: nil, queue: .main
+        ) { [weak self] _ in
+            Task { @MainActor in self?.scheduleReload() }
+        }
+    }
+
+    private func scheduleReload() {
+        reloadTask?.cancel()
+        reloadTask = Task { @MainActor [weak self] in
+            try? await Task.sleep(nanoseconds: 800_000_000)
+            guard !Task.isCancelled else { return }
+            self?.reloadFromStore()
+        }
+    }
+
+    /// Rebuild the lineup from the Store after a web-UI change, keeping the
+    /// channel you're watching tuned (the generator is deterministic, so an
+    /// unchanged channel re-derives the identical schedule and playback never
+    /// restarts — sync() sees the same airing).
+    func reloadFromStore() {
+        guard let store else { return }
+        let tunedId = channels.indices.contains(currentIndex) ? channels[currentIndex].spec.id : nil
+        guard loadFromStore(store) else { return }   // nothing configured yet — keep what's playing
+        if let tunedId, let idx = channels.firstIndex(where: { $0.spec.id == tunedId }) {
+            currentIndex = idx
+        } else {
+            currentIndex = min(max(0, currentIndex), channels.count - 1)
+            currentStart = -1          // tuned channel is gone — retune to what's here
+        }
+        guideSelection = min(guideSelection, channels.count - 1)
+    }
 
     var channelName: String { channels.indices.contains(currentIndex) ? channels[currentIndex].spec.name : "" }
     var channelNumber: Int { channels.indices.contains(currentIndex) ? channels[currentIndex].spec.number : 0 }
@@ -129,6 +170,7 @@ final class Engine: ObservableObject {
     /// the built-in demo. This is how the player and the web config share one
     /// source of truth on a self-contained device.
     func bootstrap(store: Store?) async {
+        self.store = store          // kept even if empty — a later web-UI change upgrades us live
         if let store, loadFromStore(store) { return }
         await bootstrapFromEnvIfPresent()
     }
@@ -155,6 +197,7 @@ final class Engine: ObservableObject {
         guard !built.isEmpty else { return false }
         channels = built
         linked = true
+        demo = false          // real lineup now — drop the DEMO badge if we started in demo
         status = ""
         startTicking()
         return true

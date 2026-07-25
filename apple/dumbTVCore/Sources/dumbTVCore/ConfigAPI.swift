@@ -32,10 +32,24 @@ public final class ConfigAPI {
         static func notFound(_ msg: String = "Not found") -> Response { Response(404, ["error": msg]) }
     }
 
-    /// Route a request. Returns 404 for anything unmatched. Swift can't bind
+    /// Route a request, then broadcast a change notification for successful
+    /// mutations so the running player rebuilds its lineup without a restart
+    /// (the web UI and the TV share one Store in one process).
+    public func handle(_ req: Request) async -> Response {
+        let resp = await route(req)
+        let linkedViaPin = req.method.uppercased() == "GET"
+            && req.path.hasPrefix("/api/plex/pin/")
+            && (resp.json as? [String: Any])?["linked"] as? Bool == true
+        if resp.status < 400 && (req.method.uppercased() != "GET" || linkedViaPin) {
+            NotificationCenter.default.post(name: .dumbTVConfigChanged, object: nil)
+        }
+        return resp
+    }
+
+    /// The actual router. Returns 404 for anything unmatched. Swift can't bind
     /// inside array-literal patterns, so we switch on (method, segment-count)
     /// and read the path segments explicitly.
-    public func handle(_ req: Request) async -> Response {
+    private func route(_ req: Request) async -> Response {
         let parts = req.path.split(separator: "/").map(String.init)  // ["api","channels","3"]
         guard parts.first == "api" else { return .notFound() }
         let s = Array(parts.dropFirst())
@@ -571,4 +585,11 @@ extension Dictionary where Key == String, Value == Any {
         guard let s = self[k] as? String, !s.isEmpty else { return nil }
         return s
     }
+}
+
+public extension Notification.Name {
+    /// Posted by ConfigAPI after any successful config mutation (channel edits,
+    /// sources added, Plex linked/unlinked). The player observes it and reloads
+    /// its lineup from the shared Store, so web-UI changes appear live.
+    static let dumbTVConfigChanged = Notification.Name("dumbTVConfigChanged")
 }

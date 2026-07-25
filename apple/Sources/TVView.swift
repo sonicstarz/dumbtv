@@ -75,40 +75,40 @@ struct TVView: View {
 
             // Direct channel entry (top-right, like a real box), and the ⊘ /
             // channel-change flash (centre).
+            // Channel digits — Archivo Black on the dark band, square, like the
+            // web TV's #digits.
             if !engine.dialing.isEmpty {
                 Text(engine.dialing)
-                    .font(.system(size: 64 * s, weight: .heavy, design: .monospaced))
-                    .foregroundStyle(.white)
-                    .padding(.horizontal, 28 * s).padding(.vertical, 14 * s)
-                    .background(.black.opacity(0.6)).clipShape(RoundedRectangle(cornerRadius: 12))
+                    .font(Palette.display(56 * s))
+                    .foregroundStyle(Palette.amber).tracking(4)
+                    .padding(.horizontal, 26 * s).padding(.vertical, 12 * s)
+                    .background(Palette.band)
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
-                    .padding(40 * s)
+                    .padding(48 * s)
             }
+            // ⊘ / CH flash — plain giant glyph with a glow, no chip (web #nope).
             if let f = engine.flash {
                 Text(f)
-                    .font(.system(size: 68 * s, weight: .heavy, design: .monospaced))
-                    .foregroundStyle(Palette.amber)
-                    .padding(30 * s)
-                    .background(.black.opacity(0.55)).clipShape(RoundedRectangle(cornerRadius: 14))
+                    .font(Palette.display(88 * s))
+                    .foregroundStyle(.white.opacity(0.85))
+                    .shadow(color: .black.opacity(0.9), radius: 15)
             }
             VStack {
                 HStack {
                     if engine.demo {
                         Text("DEMO")
-                            .font(.system(.caption2, design: .monospaced)).bold()
+                            .font(Palette.mono(11, .bold))
                             .foregroundStyle(.black)
                             .padding(.horizontal, 8).padding(.vertical, 4)
                             .background(Palette.amber)
-                            .clipShape(Capsule())
                     }
                     Spacer()
                     Button { engine.guideOpen = true } label: {
                         Text("GUIDE")
-                            .font(.system(.caption, design: .monospaced)).bold()
-                            .foregroundStyle(Palette.amber)
+                            .font(Palette.mono(12, .bold))
+                            .foregroundStyle(Palette.amber).tracking(2)
                             .padding(.horizontal, 12).padding(.vertical, 8)
-                            .background(.black.opacity(0.6))
-                            .clipShape(Capsule())
+                            .background(Palette.band)
                     }
                 }
                 if engine.demo, let url = configURL {
@@ -182,32 +182,32 @@ struct BannerView: View {
                 VStack(alignment: .leading, spacing: 10 * s) {
                     HStack(alignment: .firstTextBaseline, spacing: 16 * s) {
                         Text(String(format: "%02d", engine.channelNumber))
-                            .font(.system(size: 52 * s, weight: .heavy)).foregroundStyle(Palette.amber)
+                            .font(Palette.display(46 * s)).foregroundStyle(Palette.amber)
                         Text(engine.channelName.uppercased())
-                            .font(.system(size: 22 * s, weight: .heavy)).foregroundStyle(.white)
-                            .shadow(color: .black.opacity(0.6), radius: 2, y: 1)
+                            .font(Palette.mono(19 * s, .semibold)).foregroundStyle(Palette.dim)
+                            .tracking(4 * s)
                     }
                     Text(airing.program.title)
-                        .font(.system(size: 36 * s, weight: .bold)).foregroundStyle(.white)
+                        .font(.system(size: 36 * s, weight: .semibold)).foregroundStyle(Palette.tape)
                         .lineLimit(1).minimumScaleFactor(0.6)
                     if let sub = airing.program.subtitle {
                         Text(episodeTag + sub)
-                            .font(.system(size: 20 * s)).foregroundStyle(Color(white: 0.88))
+                            .font(.system(size: 20 * s)).foregroundStyle(Palette.dim)
                             .lineLimit(1)
                     }
                 }
                 Spacer(minLength: 24 * s)
                 VStack(alignment: .trailing, spacing: 12 * s) {
                     Text(hhmm(engine.wallClock))
-                        .font(.system(size: 28 * s, weight: .semibold)).foregroundStyle(.white)
+                        .font(Palette.mono(26 * s, .semibold)).foregroundStyle(.white)
                     Text("\(hhmm(airing.program.startUtc)) – \(hhmm(airing.program.endUtc))")
-                        .font(.system(size: 20 * s, weight: .semibold)).foregroundStyle(Palette.amber)
+                        .font(Palette.mono(19 * s, .semibold)).foregroundStyle(Palette.amber)
                     if let n = engine.nextUp {
                         HStack(spacing: 10 * s) {
-                            Text("NEXT").foregroundStyle(Color(white: 0.7))
-                            Text(n.title).foregroundStyle(.white)
+                            Text("NEXT").foregroundStyle(Palette.dim)
+                            Text(n.title).foregroundStyle(Palette.tape)
                         }
-                        .font(.system(size: 19 * s, weight: .semibold))
+                        .font(Palette.mono(17 * s, .semibold))
                         .lineLimit(1)
                     }
                 }
@@ -218,7 +218,7 @@ struct BannerView: View {
         // Hug the content height — without this the amber bar (a greedy
         // Rectangle) stretches the band to fill the whole screen.
         .fixedSize(horizontal: false, vertical: true)
-        .background(.black.opacity(0.66))
-        .clipShape(RoundedRectangle(cornerRadius: 6 * s))
+        // rgba(6,6,10,.82), square — the web TV's banner band, no rounding.
+        .background(Palette.band)
     }
 }

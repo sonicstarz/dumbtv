@@ -34,6 +34,14 @@ public final class SQLite {
         return sqlite3_exec(db, sql, nil, nil, nil) == SQLITE_OK
     }
 
+    /// Total rows inserted/updated/deleted on this connection since open —
+    /// a cheap change stamp. The player polls it to notice web-UI edits even
+    /// if a change notification is ever missed.
+    public func totalChanges() -> Int {
+        lock.lock(); defer { lock.unlock() }
+        return Int(sqlite3_total_changes(db))
+    }
+
     /// INSERT/UPDATE/DELETE with bindings. Returns the last inserted rowid.
     @discardableResult
     public func run(_ sql: String, _ params: [Value] = []) throws -> Int64 {

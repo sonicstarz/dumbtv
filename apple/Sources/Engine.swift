@@ -78,6 +78,8 @@ final class Engine: ObservableObject {
     /// The shared Store, kept so config changes made in the web UI can rebuild
     /// the lineup live (see the .dumbTVConfigChanged observer below).
     private var store: Store?
+    /// Last-seen SQLite change counter — polled in sync() as a fallback signal.
+    private var lastChangeCounter = -1
 
     init() {
         // The embedded web server mutates the same Store this engine reads.
@@ -187,9 +189,11 @@ final class Engine: ObservableObject {
         var built: [ChannelRuntime] = []
         for c in cfgs {
             let buckets = store.library(forChannel: c.id).sourceBuckets()
-            guard !buckets.isEmpty else { continue }   // no media cached yet
-            let programs = Generator.generate(channel: c.spec, buckets: buckets,
-                                              now: now, windowMs: 24 * 3_600_000)
+            // A channel with no cached media still gets a row — the guide shows
+            // "NO PROGRAMMING" instead of silently hiding it, so a channel you
+            // just made in the web UI is always visibly there.
+            let programs = buckets.isEmpty ? [] : Generator.generate(
+                channel: c.spec, buckets: buckets, now: now, windowMs: 24 * 3_600_000)
             var lookup: [String: Media] = [:]
             for m in buckets.flatMap({ $0 }) { lookup[m.ratingKey] = m }
             built.append(ChannelRuntime(spec: c.spec, programs: programs, mediaByKey: lookup))
@@ -360,9 +364,31 @@ final class Engine: ObservableObject {
     }
 
     private func sync() {
+        // Belt and braces for web-UI sync: any DB write bumps SQLite's change
+        // counter on the shared connection. Poll it once a second so the lineup
+        // converges even if a change notification is ever missed.
+        if let store {
+            let counter = store.sql.totalChanges()
+            if counter != lastChangeCounter {
+                lastChangeCounter = counter
+                scheduleReload()
+            }
+        }
         guard channels.indices.contains(currentIndex) else { return }
         let ch = channels[currentIndex]
-        guard let airing = Resolver.nowOn(ch.programs, at: nowMs()) else { return }
+        guard let airing = Resolver.nowOn(ch.programs, at: nowMs()) else {
+            // Nothing scheduled on this channel (no shows added yet, or the
+            // cache failed). Stop cleanly: bars + an honest status line.
+            if currentStart != -2 {
+                currentStart = -2
+                now = nil
+                player.stop()
+                status = "NO PROGRAMMING — ADD SHOWS IN THE WEB CONFIG"
+                showBanner()
+            }
+            return
+        }
+        if !status.isEmpty { status = "" }
         now = airing
         let p = airing.program
         guard p.startUtc != currentStart else { return }

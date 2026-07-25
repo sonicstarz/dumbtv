@@ -99,6 +99,10 @@ final class EmbeddedServer {
       <li><a href="https://www.gnu.org/licenses/old-licenses/lgpl-2.1.html">Full LGPL v2.1 text</a></li>
     </ul>
     <p style="color:#666">dumbTV's own code is separate from the LGPL library and is not covered by it.</p>
+    <h2>Archivo Black</h2>
+    <p>The display typeface is <b>Archivo Black</b>, &copy; the Archivo Black Project Authors
+    (Omnibus-Type), licensed under the <b>SIL Open Font License 1.1</b>. The license text is
+    bundled with the app as <code>ArchivoBlack-OFL.txt</code>.</p>
     """
 
     // MARK: - static web UI (bundled). Falls back to a placeholder until the

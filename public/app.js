@@ -479,21 +479,23 @@ async function loadStatus() {
   try {
     state.status = await api('/api/status');
   } catch {
-    $('#tallyText').textContent = 'OFFLINE';
+    // The server didn't answer — the dumbTV app/backend is gone. Grey the
+    // whole page out so it's obvious this UI is dead until it's back.
+    $('#tallyDot').classList.add('off');
+    $('#tallyText').textContent = 'APP NOT RUNNING';
+    document.body.classList.add('offline');
     return;
   }
+  document.body.classList.remove('offline');
   const s = state.status;
   state.orderingModes = s.orderingModes || [];
 
   const dot = $('#tallyDot');
   const txt = $('#tallyText');
-  if (s.player?.driver === 'mpv') {
-    dot.classList.remove('off');
-    txt.textContent = 'ON AIR';
-  } else {
-    dot.classList.add('off');
-    txt.textContent = 'BROWSER ONLY';
-  }
+  // The dot is lit whenever the backend is alive — this page is served BY the
+  // player, so a response means dumbTV is running right here.
+  dot.classList.remove('off');
+  txt.textContent = s.player?.driver === 'mpv' ? 'ON AIR' : 'CONNECTED';
 
   $('#navChannels').textContent = s.counts.channels || '';
   $('#navAssets').textContent = s.counts.assets || '';
@@ -1504,7 +1506,7 @@ async function boot() {
   }
 
   setInterval(refreshOnAir, 5000);
-  setInterval(loadStatus, 15000);
+  setInterval(loadStatus, 5000);   // heartbeat — greys the page fast if the app quits
   setInterval(() => {
     if ($('#view-guide').classList.contains('active')) {
       $('#guideClock').textContent = clock(Date.now());

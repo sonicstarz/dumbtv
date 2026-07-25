@@ -182,6 +182,30 @@ public actor PlexClient {
         }
     }
 
+    /// One movie's playable metadata (part key + duration) from
+    /// `/library/metadata/{ratingKey}` — the movie counterpart of episodes().
+    public func movie(ratingKey: String) async throws -> Media? {
+        let mc = try await containerGet("/library/metadata/\(ratingKey)")
+        guard let m = (mc["Metadata"] as? [[String: Any]])?.first else { return nil }
+        let media = m["Media"] as? [[String: Any]]
+        let part = (media?.first?["Part"] as? [[String: Any]])?.first
+        let partKey = part?["key"] as? String
+        let dur = (m["duration"] as? Int).map(Int64.init) ?? 0
+        guard let partKey, dur > 0 else { return nil }
+        return Media(
+            ratingKey: "\(m["ratingKey"] ?? ratingKey)",
+            parentKey: nil,
+            kind: .movie,
+            title: m["title"] as? String ?? "Movie",
+            showTitle: nil,
+            seasonNo: nil,
+            episodeNo: nil,
+            aired: m["originallyAvailableAt"] as? String,
+            durationMs: dur,
+            partKey: partKey
+        )
+    }
+
     /// A URL VLCKit can direct-play. No transcoding, ever.
     public func streamURL(partKey: String) -> URL? {
         guard let serverURI, let accessToken else { return nil }

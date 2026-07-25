@@ -1,8 +1,20 @@
 import SwiftUI
 import dumbTVCore
 
+#if os(macOS)
+/// Closing the TV window quits the app. Deliberate: the embedded config server
+/// dies with it, and the web UI greys out — no "window gone but the backend is
+/// secretly still running" state to reason about.
+final class AppDelegate: NSObject, NSApplicationDelegate {
+    func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool { true }
+}
+#endif
+
 @main
 struct dumbTVApp: App {
+    #if os(macOS)
+    @NSApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
+    #endif
     /// The player, owned at app scope so the macOS menu bar can drive it.
     @StateObject private var engine = Engine()
     /// The on-device config backend: one persistent Store shared by the embedded

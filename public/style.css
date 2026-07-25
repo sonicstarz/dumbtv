@@ -611,3 +611,31 @@ button:disabled { opacity: 0.45; cursor: not-allowed; }
 .cal-block.offair .cb-title { color: var(--dim); }
 .cal-block .cb-sub { display: block; font: 500 9px var(--mono); color: var(--phosphor); opacity: .85; margin-top: 1px; }
 .cal-block .prem { font: 700 8px var(--mono); background: var(--tally); color: #fff; padding: 0 3px; border-radius: 3px; vertical-align: 1px; }
+
+/* ---------- offline (the dumbTV app/backend stopped answering) ---------- */
+/* This page is served BY the player. When the heartbeat fails, grey out
+   everything and say so plainly — no half-alive UI. */
+body.offline .rail,
+body.offline .main {
+  opacity: .35;
+  filter: grayscale(1);
+  pointer-events: none;
+  user-select: none;
+}
+body.offline::after {
+  content: 'DUMBTV IS NOT RUNNING — this page is served by the dumbTV app. Open the app to reconnect.';
+  position: fixed;
+  left: 50%;
+  top: 72px;
+  transform: translateX(-50%);
+  max-width: min(92vw, 640px);
+  text-align: center;
+  background: var(--tally);
+  color: #fff;
+  font-family: var(--mono);
+  font-size: 13px;
+  letter-spacing: .05em;
+  padding: 12px 18px;
+  z-index: 99;
+  box-shadow: 0 8px 30px rgba(0,0,0,.5);
+}

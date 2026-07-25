@@ -220,8 +220,19 @@ public final class ConfigAPI {
                 store.upsertMedia(eps)
                 cached = eps.count
             } catch { errorMsg = error.localizedDescription }
+        } else {
+            // Movies: one metadata fetch for the part key + duration. Before
+            // this, movie sources silently cached 0 and the channel sat at
+            // "no programming" with no error — the worst kind of quiet.
+            do {
+                if let m = try await plex.movie(ratingKey: ratingKey) {
+                    store.upsertMedia([m])
+                    cached = 1
+                } else {
+                    errorMsg = "No playable file found for this movie"
+                }
+            } catch { errorMsg = error.localizedDescription }
         }
-        // (movie sources need a metadata fetch for the part/duration — TODO)
         var r: [String: Any] = ["title": title ?? ratingKey, "cached": cached]
         if let errorMsg { r["error"] = errorMsg }
         return r

@@ -47,9 +47,15 @@ final class Player: ObservableObject {
         }
         views = [makeView(), makeView()]
         vlcs = views.map { v in
-            // A little more caching smooths WAN streaming; the freeze-and-swap
-            // hides the buffering gap so it never shows on screen.
-            let p = VLCMediaPlayer(options: ["--network-caching=4000"])
+            // network-caching smooths WAN streaming (the freeze-and-swap hides
+            // the buffering gap). normvol levels loudness so one show isn't a
+            // whisper and the next a shout — 1990s cable had a compressor too.
+            let p = VLCMediaPlayer(options: [
+                "--network-caching=4000",
+                "--audio-filter=normvol",
+                "--norm-buff-size=10",
+                "--norm-max-level=1.6",
+            ])
             p.drawable = v
             return p
         }
@@ -118,25 +124,29 @@ struct VideoLayer: View {
     }
 }
 
-/// SMPTE-style colour bars with a "please stand by" ident — shown only when
-/// there is no picture at all (first tune-in, or a stream that failed).
+/// Colour bars exactly like the web TV's: a strip of bars over a black footer
+/// with a station ident. Shown only when there is no picture at all.
 struct ColorBars: View {
+    var title: String = "PLEASE STAND BY"
+    var message: String = "One moment — tuning"
     private let bars: [Color] = [
-        Color(white: 0.75), Color(red: 0.75, green: 0.75, blue: 0),
+        Color(red: 0.75, green: 0.75, blue: 0.75), Color(red: 0.75, green: 0.75, blue: 0),
         Color(red: 0, green: 0.75, blue: 0.75), Color(red: 0, green: 0.75, blue: 0),
         Color(red: 0.75, green: 0, blue: 0.75), Color(red: 0.75, green: 0, blue: 0),
         Color(red: 0, green: 0, blue: 0.75),
     ]
     var body: some View {
-        ZStack {
+        VStack(spacing: 0) {
             HStack(spacing: 0) { ForEach(bars.indices, id: \.self) { bars[$0] } }
-            Text("● PLEASE STAND BY")
-                .font(.system(.subheadline, design: .monospaced)).bold()
-                .foregroundStyle(.white)
-                .padding(.horizontal, 16).padding(.vertical, 9)
-                .background(.black.opacity(0.6)).clipShape(Capsule())
-                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
-                .padding(.bottom, 64)
+            VStack(spacing: 10) {
+                Text(title)
+                    .font(Palette.display(26)).foregroundStyle(Palette.amber)
+                Text(message)
+                    .font(Palette.mono(13)).foregroundStyle(Palette.dim)
+            }
+            .frame(maxWidth: .infinity)
+            .frame(height: 130)
+            .background(Color.black)
         }
         .ignoresSafeArea()
     }

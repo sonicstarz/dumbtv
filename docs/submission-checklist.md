@@ -3,20 +3,24 @@
 Everything that's *ready* the moment Apple Developer enrollment clears. Steps
 marked 🔴 need the account; 🟡 need a quick decision.
 
-## 0. Decide up front
-- 🟡 **Bundle-ID strategy.** Today the targets use **separate** IDs
-  (`app.dumbtv.ios/.tvos/.mac`) → that's **three App Store listings**. For **one
-  cross-platform "dumbTV" listing** (iPhone/iPad/Apple TV/Mac on a single
-  product page), set all three targets to the **same** ID (e.g. `app.dumbtv.app`)
-  in `project.yml`, then `xcodegen generate`. *Recommended: unify.*
-- 🟡 **Price** (free / paid) and **age rating** answers (see `app-store-metadata.md`).
+## 0. Decisions — RESOLVED
+- ✅ **Bundle ID: unified** to **`app.dumbtv.app`** across all three targets
+  (one cross-platform "dumbTV" listing; universal purchase). Set in `project.yml`.
+- ✅ **Team ID: `B875CKJ7J5`** (set in `project.yml` base settings).
+- ✅ **Price: Free** — no in-app purchase, so no tax/banking needed.
+- ✅ **Platforms: all three** (iOS + macOS + tvOS) submitted together.
 
-## 1. When enrollment clears 🔴
-1. **Team ID** — developer.apple.com → Membership → copy the Team ID.
-2. **App Store Connect** → reserve the name **"dumbTV"** (fallback ready if taken),
-   create the app record(s), select the platforms.
-3. Certificates/App IDs — no manual work needed; the release script uses
-   `-allowProvisioningUpdates` so automatic signing creates them.
+## 1. Account setup 🔴 (Apple sites — only the account holder)
+1. **Sign the agreement** — App Store Connect → Business → Agreements, Tax, and
+   Banking → accept the Program License Agreement. (Free app → nothing else.)
+2. **Register the App ID** — developer.apple.com → Certificates, Identifiers &
+   Profiles → Identifiers → **+** → App IDs → App → **Explicit**, Bundle ID
+   `app.dumbtv.app`, no capabilities → Register.
+3. **Create the app record** — App Store Connect → Apps → **+** → platforms
+   iOS/macOS/tvOS, name **dumbTV**, Bundle ID `app.dumbtv.app`, SKU `dumbtv-app`,
+   Full Access.
+4. **Add your Apple ID to Xcode** — Xcode → Settings → Accounts → **+** (Apple
+   ID), so automatic signing can create certs/profiles.
 
 ## 2. Build + export (one command) 🔴
 ```bash
@@ -44,9 +48,10 @@ overrides — no project.yml edit needed. (Or set `DEVELOPMENT_TEAM` in
 - ✅ macOS App Sandbox entitlements, `build-release.sh`, `ExportOptions-AppStore.plist`
 - ✅ Demo mode (App Review path), 45 tests, CI
 
-## Still to do before *tvOS* specifically can submit
-- 🔴/build **tvOS layered app icon** (Brand Assets) — iOS + macOS can submit without it.
-- **Launch screens** (iOS auto-generates a blank one; a branded one is optional).
+## tvOS specifics — DONE
+- ✅ **tvOS layered app icon** (Brand Assets: App Icon front/back layers, Top
+  Shelf + Wide, App Store icon) — real assets present in `Assets.xcassets`.
+- Launch screen: iOS auto-generates one; a branded one is optional.
 
 ## Separate: notarized .dmg (GitHub direct download, macOS)
 Not App Store — uses **Developer ID** signing + notarization:

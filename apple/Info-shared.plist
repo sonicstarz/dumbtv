@@ -16,5 +16,12 @@
     <key>UIColorName</key>
     <string>LaunchBackground</string>
   </dict>
+  <!-- dumbTV uses only exempt encryption (HTTPS to Plex); declaring this skips
+       the export-compliance question on every App Store Connect upload. -->
+  <key>ITSAppUsesNonExemptEncryption</key>
+  <false/>
+  <!-- App Store category (macOS; harmless elsewhere). -->
+  <key>LSApplicationCategoryType</key>
+  <string>public.app-category.entertainment</string>
 </dict>
 </plist>

@@ -169,19 +169,30 @@ private struct GuideGridRow: View {
     var body: some View {
         HStack(spacing: 0) {
             ZStack {
-                VStack(spacing: 3 * s) {
-                    Text(String(format: "%02d", row.number))
-                        .font(Palette.display(22 * s)).foregroundStyle(Palette.amber)
-                    Text(row.name.uppercased())
-                        .font(Palette.mono(8 * s))
-                        .foregroundStyle(Palette.ice)
-                        .multilineTextAlignment(.center).lineLimit(2)
+                HStack(spacing: 6 * s) {
+                    // Channel art — a kid finds "the Batman channel" by the
+                    // poster, not the call letters.
+                    if let art = row.art {
+                        AsyncImage(url: art) { img in
+                            img.resizable().aspectRatio(contentMode: .fill)
+                        } placeholder: { Color.white.opacity(0.08) }
+                        .frame(width: 34 * s, height: 50 * s)
+                        .clipped()
+                    }
+                    VStack(spacing: 3 * s) {
+                        Text(String(format: "%02d", row.number))
+                            .font(Palette.display(22 * s)).foregroundStyle(Palette.amber)
+                        Text(row.name.uppercased())
+                            .font(Palette.mono(8 * s))
+                            .foregroundStyle(Palette.ice)
+                            .multilineTextAlignment(.center).lineLimit(2)
+                    }
                 }
                 if isCurrent {
                     Image(systemName: "play.fill")
                         .font(.system(size: 13 * s)).foregroundStyle(Palette.amber)
                         .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding(.leading, 6 * s)
+                        .padding(.leading, 4 * s)
                 }
             }
             .frame(width: gutter)
@@ -258,33 +269,44 @@ struct NowPlayingPanel: View {
     var body: some View {
         Group {
             if let a = engine.now {
-                VStack(alignment: .leading, spacing: 10 * s) {
-                    Text("NOW PLAYING")
-                        .font(Palette.mono(14 * s, .semibold))
-                        .foregroundStyle(Palette.amber).tracking(3)
-                    HStack(alignment: .firstTextBaseline, spacing: 12 * s) {
-                        Text(String(format: "%02d", engine.channelNumber))
-                            .font(Palette.display(22 * s)).foregroundStyle(Palette.amber)
-                        Text(engine.channelName.uppercased())
-                            .font(Palette.display(20 * s)).foregroundStyle(.white)
+                HStack(alignment: .top, spacing: 16 * s) {
+                    // Channel poster, like the box art corner of a listings mag.
+                    if let art = engine.channelArtURL(engine.currentIndex) {
+                        AsyncImage(url: art) { img in
+                            img.resizable().aspectRatio(contentMode: .fill)
+                        } placeholder: { Color.white.opacity(0.08) }
+                        .frame(width: 88 * s, height: 128 * s)
+                        .clipped()
+                        .border(Palette.amber.opacity(0.6), width: 2)
                     }
-                    Text(a.program.title)
-                        .font(Palette.display(30 * s)).foregroundStyle(.white)
-                        .lineLimit(1).minimumScaleFactor(0.5)
-                    if let sub = a.program.subtitle {
-                        Text(epTag(a.program) + sub)
-                            .font(.system(size: 20 * s)).foregroundStyle(Palette.ice)
-                            .lineLimit(1)
+                    VStack(alignment: .leading, spacing: 10 * s) {
+                        Text("NOW PLAYING")
+                            .font(Palette.mono(14 * s, .semibold))
+                            .foregroundStyle(Palette.amber).tracking(3)
+                        HStack(alignment: .firstTextBaseline, spacing: 12 * s) {
+                            Text(String(format: "%02d", engine.channelNumber))
+                                .font(Palette.display(22 * s)).foregroundStyle(Palette.amber)
+                            Text(engine.channelName.uppercased())
+                                .font(Palette.display(20 * s)).foregroundStyle(.white)
+                        }
+                        Text(a.program.title)
+                            .font(Palette.display(30 * s)).foregroundStyle(.white)
+                            .lineLimit(1).minimumScaleFactor(0.5)
+                        if let sub = a.program.subtitle {
+                            Text(epTag(a.program) + sub)
+                                .font(.system(size: 20 * s)).foregroundStyle(Palette.ice)
+                                .lineLimit(1)
+                        }
+                        Spacer(minLength: 4 * s)
+                        RetroBar(progress: a.progress)
+                        HStack {
+                            Text("\(hhmm(a.program.startUtc)) – \(hhmm(a.program.endUtc))")
+                                .foregroundStyle(Palette.amber)
+                            Spacer()
+                            Text(hhmm(engine.wallClock)).foregroundStyle(.white)
+                        }
+                        .font(Palette.mono(16 * s, .semibold))
                     }
-                    Spacer(minLength: 4 * s)
-                    RetroBar(progress: a.progress)
-                    HStack {
-                        Text("\(hhmm(a.program.startUtc)) – \(hhmm(a.program.endUtc))")
-                            .foregroundStyle(Palette.amber)
-                        Spacer()
-                        Text(hhmm(engine.wallClock)).foregroundStyle(.white)
-                    }
-                    .font(Palette.mono(16 * s, .semibold))
                 }
                 .padding(22 * s)
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)

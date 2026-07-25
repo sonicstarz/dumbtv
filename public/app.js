@@ -309,9 +309,11 @@ async function renderCalendar() {
       const height = Math.max(13, ((e - s) / HOUR_MS) * PX_PER_HOUR);
       const off = p.kind === 'offair';
       const se = p.seasonNo && p.episodeNo ? ` S${p.seasonNo}·E${p.episodeNo}` : '';
+      // Episode-title-first: on a one-show channel, sixty "VeggieTales" pills
+      // are unreadable — "Gideon: Tuba Warrior" is what you actually scan for.
       const label = off
         ? escapeHtml(p.title || 'Off air')
-        : `${p.isPremiere ? '<span class="prem">NEW</span> ' : ''}${escapeHtml(p.title || 'Program')}`;
+        : `${p.isPremiere ? '<span class="prem">NEW</span> ' : ''}${escapeHtml(p.subtitle || p.title || 'Program')}`;
       const sub = off ? '' : `<span class="cb-sub">${fmtTime(p.startUtc)}${se}</span>`;
       blocks += `<div class="cal-block${off ? ' offair' : ''}" style="top:${top}px;height:${height}px"
         title="${escapeHtml((p.title || '') + ' — ' + fmtTime(p.startUtc))}">
@@ -352,7 +354,7 @@ async function loadSettings() {
   $('#pinSave').textContent = s.configured && !s.authed ? 'Unlock' : 'Save';
 
   const cfg = await api('/api/settings');
-  $('#tzStatus').textContent = `Active: ${cfg.activeTimezone}${cfg.timezone ? '' : ' (this device — no override set)'}`;
+  $('#tzStatus').textContent = `Active: ${cfg.activeTimezone || Intl.DateTimeFormat().resolvedOptions().timeZone}${cfg.timezone ? '' : ' (this device — no override set)'}`;
   $('#tzInput').value = cfg.timezone || '';
   $('#dispFill').value = cfg.displayFill === 'fill' ? 'fill' : 'fit';
   $('#dispCaptions').checked = !!cfg.captions;
@@ -489,6 +491,9 @@ async function loadStatus() {
   document.body.classList.remove('offline');
   const s = state.status;
   state.orderingModes = s.orderingModes || [];
+  // Native app (Mac/iOS/tvOS): hide Node-only surfaces (folder scan, PDF print,
+  // mpv display knobs, AI assist) instead of showing buttons that can't work.
+  document.body.classList.toggle('native', !!s.native);
 
   const dot = $('#tallyDot');
   const txt = $('#tallyText');
@@ -543,7 +548,7 @@ function renderChannels() {
         ? c.sources
             .map(
               (s) => `<span class="chip">${escapeHtml(s.title)}
-                <span class="n">${s.itemCount}</span>
+                <span class="n">${s.itemCount ?? ''}</span>
                 ${s.sourceType === 'show' ? `<button class="chip-filter" data-filter="${c.id}:${s.id}" title="Choose which episodes air">⛃</button>` : ''}
                 <button data-rm="${c.id}:${s.id}" title="Remove">&times;</button></span>`
             )
@@ -556,7 +561,6 @@ function renderChannels() {
           <h3>${escapeHtml(c.name)}</h3>
           <div class="meta">
             <b>${mode ? mode.label : c.orderingMode}</b> ·
-            ${c.slotMinutes} min slots ·
             ${c.adsEnabled ? `up to ${c.maxAdsPerBreak} ads per break` : 'no ads'} ·
             ${dark}
           </div>
@@ -798,7 +802,7 @@ function renderProposal(back, p) {
       });
       await api(`/api/channels/${id}/sources`, {
         method: 'POST',
-        body: { items: sources.map((s) => ({ ratingKey: s.ratingKey, sourceType: s.sourceType, title: s.title })) },
+        body: { items: sources.map((s) => ({ ratingKey: s.ratingKey, sourceType: s.sourceType, title: s.title, thumb: s.thumb || null })) },
       });
       back.remove();
       toast('Channel created from the suggestion.');
@@ -1124,6 +1128,7 @@ async function openPicker(channelId) {
             ratingKey: i.ratingKey,
             sourceType: type === 'movie' ? 'movie' : 'show',
             title: i.title,
+            thumb: i.thumb || null,   // doubles as the channel's artwork
           })),
         },
       });
@@ -1208,22 +1213,27 @@ async function loadGuide() {
       const cellStart = start + i * slotMs;
       const cellEnd = cellStart + slotMs;
       const p = ch.programs.find((x) => x.startUtc < cellEnd && x.endUtc > cellStart);
-      const live = Date.now() >= cellStart && Date.now() < cellEnd;
 
       if (!p) {
+        const live = Date.now() >= cellStart && Date.now() < cellEnd;
         html += `<div class="g-slot ${live ? 'live' : ''}"><div class="ps">—</div></div>`;
         continue;
       }
-      const isStart = p.startUtc >= cellStart && p.startUtc < cellEnd;
+      // Merge the columns this program covers into ONE block (no "(cont.)" spam)
+      // — a 2½-hour movie reads as a single wide cell, like a printed guide.
+      let span = 1;
+      while (i + span < cols && p.endUtc > start + (i + span) * slotMs) span++;
+      const blockEnd = start + (i + span) * slotMs;
+      const live = Date.now() >= cellStart && Date.now() < blockEnd;
       const ep =
         p.seasonNo != null && p.episodeNo != null
           ? `S${String(p.seasonNo).padStart(2, '0')}E${String(p.episodeNo).padStart(2, '0')} `
           : '';
-      html += `<div class="g-slot ${p.kind === 'offair' ? 'offair' : ''} ${live ? 'live' : ''}">
-        ${isStart ? `<div class="pt">${escapeHtml(p.title)}</div>
-          <div class="ps">${p.subtitle ? ep + escapeHtml(p.subtitle) : clock(p.startUtc)}</div>`
-          : `<div class="ps">${escapeHtml(p.title)} (cont.)</div>`}
+      html += `<div class="g-slot ${p.kind === 'offair' ? 'offair' : ''} ${live ? 'live' : ''}" style="grid-column: span ${span}">
+        <div class="pt">${escapeHtml(p.title)}</div>
+        <div class="ps">${p.subtitle ? ep + escapeHtml(p.subtitle) : `${clock(p.startUtc)} – ${clock(p.endUtc)}`}</div>
       </div>`;
+      i += span - 1;
     }
   }
 
@@ -1394,8 +1404,8 @@ async function loadSetup() {
               <div class="mono" style="font-size:11.5px;color:var(--dim)">${escapeHtml(sv.uri)}</div>
               ${sv.relayOnly ? '<div style="color:var(--tally);font-size:12px;margin-top:4px">Only reachable through Plex relay — direct play will struggle. Get this on the same network if you can.</div>' : ''}
             </div>
-            <button class="sm ${s.server && s.server.uri === sv.uri ? '' : 'primary'}" data-sv='${escapeHtml(JSON.stringify(sv))}'>
-              ${s.server && s.server.uri === sv.uri ? 'In use' : 'Use this one'}
+            <button class="sm ${s.server && (s.server.uri === sv.uri || s.server.name === sv.name) ? '' : 'primary'}" data-sv='${escapeHtml(JSON.stringify(sv))}'>
+              ${s.server && (s.server.uri === sv.uri || s.server.name === sv.name) ? '● In use' : 'Use this one'}
             </button>
           </div>`
         )

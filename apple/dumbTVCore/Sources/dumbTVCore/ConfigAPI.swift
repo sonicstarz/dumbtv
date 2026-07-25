@@ -18,15 +18,21 @@ public final class ConfigAPI {
         public let path: String                   // "/api/channels/3"
         public let query: [String: String]
         public let body: [String: Any]?           // parsed JSON object, if any
-        public init(method: String, path: String, query: [String: String] = [:], body: [String: Any]? = nil) {
-            self.method = method; self.path = path; self.query = query; self.body = body
+        public let cookie: String?                // raw Cookie header (PIN session)
+        public init(method: String, path: String, query: [String: String] = [:],
+                    body: [String: Any]? = nil, cookie: String? = nil) {
+            self.method = method; self.path = path; self.query = query
+            self.body = body; self.cookie = cookie
         }
     }
 
     public struct Response {
         public let status: Int
         public let json: Any                       // JSON-serialisable (Dictionary/Array/scalar)
-        public init(_ status: Int, _ json: Any) { self.status = status; self.json = json }
+        public let setCookie: String?              // Set-Cookie header, when logging in
+        public init(_ status: Int, _ json: Any, setCookie: String? = nil) {
+            self.status = status; self.json = json; self.setCookie = setCookie
+        }
         static func ok(_ j: Any = ["ok": true]) -> Response { Response(200, j) }
         static func bad(_ msg: String) -> Response { Response(400, ["error": msg]) }
         static func notFound(_ msg: String = "Not found") -> Response { Response(404, ["error": msg]) }
@@ -36,8 +42,15 @@ public final class ConfigAPI {
     /// mutations so the running player rebuilds its lineup without a restart
     /// (the web UI and the TV share one Store in one process).
     public func handle(_ req: Request) async -> Response {
-        let resp = await route(req)
         let isMutation = req.method.uppercased() != "GET"
+        // The household PIN gates mutations (channel edits, rules, settings,
+        // player control). Reads and the auth endpoints themselves stay open —
+        // the TV never asks for a PIN.
+        if isMutation, Auth.isConfigured(store), !req.path.hasPrefix("/api/auth/"),
+           !Auth.tokenValid(store, token: Auth.cookieToken(req.cookie)) {
+            return Response(401, ["error": "Locked — enter the PIN in Settings to make changes."])
+        }
+        let resp = await route(req)
         // A successful config change rebuilds the affected channel's FUTURE
         // schedule (append-only — what's airing is untouched), so added shows /
         // edits show up without a restart.
@@ -119,12 +132,33 @@ public final class ConfigAPI {
         case ("GET", 4) where s[0] == "library" && s[1] == "show" && s[3] == "episodes":
             return await libraryEpisodes(s[2], req)
 
-        // --- stubs so the shared web UI degrades gracefully (features not yet
-        //     ported on Apple: auth PIN, Jellyfin, LLM, assets, guide/on-air) ---
-        case ("GET", 2) where s[0] == "auth" && s[1] == "status":     return .ok(["configured": false, "authed": true])
+        // --- household PIN (gates mutations; the TV never asks) ---
+        case ("GET", 2) where s[0] == "auth" && s[1] == "status":
+            return .ok(["configured": Auth.isConfigured(store),
+                        "authed": !Auth.isConfigured(store)
+                            || Auth.tokenValid(store, token: Auth.cookieToken(req.cookie))])
+        case ("POST", 2) where s[0] == "auth" && s[1] == "setup":  return authSetup(req)
+        case ("POST", 2) where s[0] == "auth" && s[1] == "login":  return authLogin(req)
+        case ("POST", 2) where s[0] == "auth" && s[1] == "logout":
+            Auth.logout(store); return .ok()
+
+        // --- player (the native TV) ---
+        case ("GET", 1) where s[0] == "player":                    return playerState()
+        case ("POST", 2) where s[0] == "player" && s[1] == "tune": return playerTune(req)
+
+        // --- schedule dry-run for the rule editor ---
+        case ("GET", 3) where s[0] == "channels" && s[2] == "preview": return preview(s[1], req)
+
+        // --- commercials (Plex-imported; no local folder on Apple) ---
+        case ("GET", 1) where s[0] == "assets":                       return listAssets()
+        case ("DELETE", 2) where s[0] == "assets":                    return deleteAsset(s[1])
+        case ("POST", 2) where s[0] == "assets" && s[1] == "import-plex":  return await importPlexAds(req)
+        case ("POST", 2) where s[0] == "assets" && s[1] == "refresh-plex": return await refreshPlexAds()
+
+        // --- stubs so the shared web UI degrades gracefully (features not on
+        //     Apple: Jellyfin backend, LLM suggestions) ---
         case ("GET", 2) where s[0] == "jellyfin" && s[1] == "status": return .ok(["configured": false, "active": false, "server": NSNull()])
         case ("GET", 2) where s[0] == "llm" && s[1] == "status":      return .ok(["configured": false, "model": NSNull()])
-        case ("GET", 1) where s[0] == "assets":                       return .ok(["assets": []])
         case ("GET", 1) where s[0] == "onair":                        return onair()
         case ("GET", 1) where s[0] == "guide":                        return guide(req)
 
@@ -144,9 +178,16 @@ public final class ConfigAPI {
         if let uri = store.getSetting("plex_server_uri") {
             server = ["name": store.getSetting("plex_server_name") ?? "Plex", "uri": uri, "local": false]
         }
+        var player: Any = NSNull()
+        if let idStr = store.getSetting("player_channel_id"), let id = Int(idStr), let c = store.channel(id) {
+            player = ["driver": "native", "channel": ["id": c.id, "number": c.number, "name": c.name]]
+        } else {
+            player = ["driver": "native", "channel": NSNull()]
+        }
         return .ok([
             "backend": "plex",
             "native": true,          // this is a native app; the TV is the app window, not /tv
+            "player": player,
             "linked": store.getSetting("plex_token") != nil,
             "server": server,
             // We only keep a server whose connection responded at link time
@@ -219,7 +260,8 @@ public final class ConfigAPI {
             guard let rk = it.string("ratingKey") else { continue }
             let type = it.string("sourceType") ?? "show"
             let title = it.string("title")
-            store.addSource(id, ratingKey: rk, sourceType: type, title: title)
+            store.addSource(id, ratingKey: rk, sourceType: type, title: title,
+                            thumb: it.string("thumb"))
             results.append(await cacheSource(rk, type: type, title: title))
         }
         // The web UI does r.results.reduce(...) — must be an array of {title,cached,error?}.
@@ -364,6 +406,9 @@ public final class ConfigAPI {
         .ok([
             "dvrSlots": store.getInt("dvr_slots", 6),
             "timezone": store.getSetting("timezone") ?? NSNull(),
+            // What the schedule actually anchors to right now (the web UI shows
+            // "Active: …" — previously undefined on Apple).
+            "activeTimezone": store.getSetting("timezone") ?? TimeZone.current.identifier,
             "loudnessTarget": Int(store.getSetting("loudness_target") ?? "") ?? -23,
             "displayFill": store.getSetting("display_fill") ?? "fit",
             "captions": store.getInt("captions", 0),
@@ -435,6 +480,123 @@ public final class ConfigAPI {
                  "isPremiere": p.airingNo == 1]
             },
         ])
+    }
+
+    // MARK: - auth (household PIN)
+
+    private func authSetup(_ req: Request) -> Response {
+        guard let pin = req.body?.string("pin"), pin.range(of: #"^\d{4,6}$"#, options: .regularExpression) != nil else {
+            return .bad("PIN must be 4–6 digits")
+        }
+        // Changing an existing PIN requires being unlocked (the mutation gate in
+        // handle() already enforces that), so just set it.
+        Auth.setPin(store, pin: pin)
+        return Response(200, ["ok": true], setCookie: Auth.sessionCookieHeader(store))
+    }
+
+    private func authLogin(_ req: Request) -> Response {
+        guard let pin = req.body?.string("pin") else { return .bad("PIN required") }
+        guard Auth.verifyPin(store, pin: pin) else { return Response(403, ["error": "Wrong PIN"]) }
+        return Response(200, ["ok": true], setCookie: Auth.sessionCookieHeader(store))
+    }
+
+    // MARK: - player (native TV)
+
+    private func playerState() -> Response {
+        var channel: Any = NSNull()
+        if let idStr = store.getSetting("player_channel_id"), let id = Int(idStr),
+           let c = store.channel(id) {
+            channel = ["id": c.id, "number": c.number, "name": c.name]
+        }
+        return .ok(["driver": "native", "channel": channel])
+    }
+
+    /// The web UI's Watch button / ON AIR strip tap. The engine observes the
+    /// notification and changes the channel on the actual TV.
+    private func playerTune(_ req: Request) -> Response {
+        var id = req.body?.int("channelId")
+        if id == nil, let n = req.body?.int("number") {
+            id = store.allChannels().first { $0.number == n }?.id
+        }
+        guard let id, store.channel(id) != nil else { return .notFound("No such channel") }
+        NotificationCenter.default.post(name: .dumbTVTuneRequested, object: nil,
+                                        userInfo: ["channelId": id])
+        return .ok(["ok": true, "channelId": id])
+    }
+
+    // MARK: - schedule preview (dry run for the rule editor)
+
+    private func preview(_ idStr: String, _ req: Request) -> Response {
+        guard let id = Int(idStr), let c = store.channel(id) else { return .notFound("No such channel") }
+        let days = min(30, max(1, req.query["days"].flatMap { Int($0) } ?? 7))
+        let from = nowMs()
+        let until = from + Millis(days) * DAY
+        let built = RuleScheduler.buildChannelPrograms(
+            channel: c, rules: Scheduler.effectiveRules(c, store.rules(c.id)),
+            library: store.library(forChannel: c.id), airings: store.airings(c.id),
+            from: from, until: until, clock: .device)
+        return .ok([
+            "from": from, "until": until,
+            "conflicts": built.conflicts.map { ["rule": $0.rule, "at": $0.at, "lostTo": $0.lostTo] },
+            "programs": built.rows.map { p -> [String: Any] in
+                ["startUtc": p.startUtc, "endUtc": p.endUtc, "kind": p.kind.rawValue,
+                 "title": p.title, "subtitle": p.subtitle ?? NSNull(),
+                 "ruleId": p.ruleId ?? NSNull()]
+            },
+        ])
+    }
+
+    // MARK: - commercials (assets)
+
+    private func listAssets() -> Response {
+        .ok(["assets": store.assets().map { a -> [String: Any] in
+            ["id": a.id, "title": a.title, "kind": a.kind, "durationMs": a.durationMs,
+             "tags": a.tags, "path": a.path]
+        }])
+    }
+
+    private func deleteAsset(_ idStr: String) -> Response {
+        guard let id = Int(idStr) else { return .bad("bad id") }
+        store.deleteAsset(id)
+        return .ok()
+    }
+
+    /// Pull every item of a Plex library into the ad pool — the Apple analogue
+    /// of the Node build's folder scan (nothing to copy onto the device).
+    private func importPlexAds(_ req: Request) async -> Response {
+        guard let sectionKey = req.body?.string("sectionKey") else { return .bad("sectionKey required") }
+        await ensurePlexConfigured()
+        do {
+            let items = try await plex.sectionItems(key: sectionKey, type: "movie")
+            var imported = 0
+            for item in items {
+                if let m = try? await plex.movie(ratingKey: item.ratingKey), let pk = m.partKey {
+                    store.upsertAsset(path: "plex:\(m.ratingKey)", title: m.title, kind: "ad",
+                                      durationMs: m.durationMs, ratingKey: m.ratingKey, partKey: pk)
+                    imported += 1
+                }
+            }
+            // Remember the section so refresh-plex can re-pull it later.
+            var sections = Set((store.getSetting("ad_sections") ?? "").split(separator: ",").map(String.init))
+            sections.insert(sectionKey)
+            store.setSetting("ad_sections", sections.joined(separator: ","))
+            return .ok(["imported": imported])
+        } catch {
+            return Response(502, ["error": "Couldn't read that Plex library: \(error.localizedDescription)"])
+        }
+    }
+
+    private func refreshPlexAds() async -> Response {
+        let sections = (store.getSetting("ad_sections") ?? "").split(separator: ",").map(String.init)
+        var results: [[String: Any]] = []
+        for key in sections {
+            let r = await importPlexAds(Request(method: "POST", path: "/api/assets/import-plex",
+                                                body: ["sectionKey": key]))
+            if let j = r.json as? [String: Any], let n = j["imported"] as? Int {
+                results.append(["section": key, "imported": n])
+            }
+        }
+        return .ok(["sections": sections, "results": results])
     }
 
     // MARK: - Plex link (async)
@@ -577,7 +739,9 @@ public final class ConfigAPI {
             "enabled": c.enabled,
             "sources": store.sources(c.id).map { s -> [String: Any] in
                 ["id": s.id, "ratingKey": s.ratingKey, "sourceType": s.sourceType,
-                 "title": s.title ?? NSNull()]
+                 "title": s.title ?? NSNull(), "thumb": s.thumb ?? NSNull(),
+                 // The web UI's chip count badge ("37" next to the show name).
+                 "itemCount": store.mediaCount(forSource: s.ratingKey)]
             },
         ]
     }
@@ -626,4 +790,7 @@ public extension Notification.Name {
     /// sources added, Plex linked/unlinked). The player observes it and reloads
     /// its lineup from the shared Store, so web-UI changes appear live.
     static let dumbTVConfigChanged = Notification.Name("dumbTVConfigChanged")
+    /// Posted when the web UI asks the TV to change channel (Watch button /
+    /// ON AIR strip). userInfo: ["channelId": Int].
+    static let dumbTVTuneRequested = Notification.Name("dumbTVTuneRequested")
 }

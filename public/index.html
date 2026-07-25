@@ -87,9 +87,10 @@
     <!-- ---------------- commercials ---------------- -->
     <section class="view" id="view-commercials">
       <h2 class="title">Commercials</h2>
-      <p class="lede">Drop video files into the media folder and they become the ad breaks between shows. Sub-folders turn into tags, so <span class="mono">media/ads/90s/toys/</span> tags everything inside it <span class="mono">90s, toys</span>.</p>
+      <p class="lede" data-native-hide>Drop video files into the media folder and they become the ad breaks between shows. Sub-folders turn into tags, so <span class="mono">media/ads/90s/toys/</span> tags everything inside it <span class="mono">90s, toys</span>.</p>
+      <p class="lede" data-node-hide>Make a Plex library of ad clips, import it here, and they become the ad breaks between shows. Turn on ads per channel in its settings.</p>
 
-      <div class="card">
+      <div class="card" data-native-hide>
         <h3>Media folder</h3>
         <p class="sub mono" id="mediaPath">—</p>
         <button class="primary" id="scanAssets">Scan for new files</button>
@@ -183,14 +184,14 @@
           <button class="sm" id="schPreview">Preview 7 days</button>
           <button class="primary" id="schApply">Apply changes</button>
           <span style="flex:1"></span>
-          <div><label>PRINT</label>
+          <div data-native-hide><label>PRINT</label>
             <select id="printDays" style="width:120px">
               <option value="1">Today</option>
               <option value="3">3 days</option>
               <option value="7" selected>This week</option>
             </select>
           </div>
-          <button class="sm" id="printGuide">Open PDF ↗</button>
+          <button class="sm" id="printGuide" data-native-hide>Open PDF ↗</button>
         </div>
         <p class="hint">Preview is a dry run — nothing airs until you Apply. The PDF is a printable grid straight from the schedule.</p>
       </div>
@@ -287,7 +288,7 @@
           <button class="primary" id="pinSave">Save</button>
           <button class="sm" id="pinLogout" style="display:none">Log out</button>
         </div>
-        <p class="hint">Gates channel and rule edits. The TV never asks for it. Forgot it? Delete the <span class="mono">pin_hash</span> row in the settings table.</p>
+        <p class="hint">Gates channel and rule edits so kids on the network can't rearrange the lineup. The TV never asks for it. Forgot it? Reset dumbTV's data on the device it runs on.</p>
       </div>
 
       <div class="card">
@@ -301,7 +302,7 @@
         <p class="hint">The schedule is anchored to local midnight. A headless Pi often boots on UTC — set the zone so <span class="mono">08:00</span> means 8am where the TV is.</p>
       </div>
 
-      <div class="card">
+      <div class="card" data-native-hide>
         <h3>Display</h3>
         <p class="sub">How the picture fills the screen, and whether captions show. Applies to the TV.</p>
         <div class="row" style="align-items:flex-end;gap:16px;flex-wrap:wrap">
@@ -319,7 +320,7 @@
         <p class="hint">On the TV, <span class="mono">C</span> toggles captions and the picture setting drives mpv panscan. Browser captions depend on the file exposing subtitle tracks.</p>
       </div>
 
-      <div class="card">
+      <div class="card" data-native-hide>
         <h3>AI assist <span class="sub" id="llmState">—</span></h3>
         <p class="sub">Optional. Point dumbTV at a local Ollama or any OpenAI-compatible endpoint to get channel suggestions. It only proposes — you always review and apply.</p>
         <div class="field"><label>BASE URL</label><input id="llmUrl" placeholder="http://localhost:11434/v1" style="width:100%"></div>

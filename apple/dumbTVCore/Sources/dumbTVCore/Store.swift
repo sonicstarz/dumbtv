@@ -10,6 +10,9 @@ public final class Store {
     public init(path: String) throws {
         sql = try SQLite(path: path)
         sql.exec(Self.schema)
+        // Migrations for columns added after the schema shipped (ALTER fails
+        // harmlessly when the column already exists).
+        sql.exec("ALTER TABLE channel_sources ADD COLUMN thumb TEXT;")
     }
 
     private func nowMs() -> Millis { Millis(Date().timeIntervalSince1970 * 1000) }
@@ -77,14 +80,17 @@ public final class Store {
     public func sources(_ channelId: Int) -> [ChannelSource] {
         ((try? sql.query("SELECT * FROM channel_sources WHERE channel_id=? ORDER BY id", [.int(Int64(channelId))])) ?? [])
             .map { ChannelSource(id: Int($0.int("id") ?? 0), ratingKey: $0.text("rating_key") ?? "",
-                                 sourceType: $0.text("source_type") ?? "show", title: $0.text("title")) }
+                                 sourceType: $0.text("source_type") ?? "show", title: $0.text("title"),
+                                 thumb: $0.text("thumb")) }
     }
     @discardableResult
-    public func addSource(_ channelId: Int, ratingKey: String, sourceType: String, title: String?) -> Int {
+    public func addSource(_ channelId: Int, ratingKey: String, sourceType: String, title: String?,
+                          thumb: String? = nil) -> Int {
         Int((try? sql.run("""
-            INSERT OR IGNORE INTO channel_sources(channel_id,rating_key,source_type,title)
-            VALUES(?,?,?,?)
-            """, [.int(Int64(channelId)), .text(ratingKey), .text(sourceType), title.map { .text($0) } ?? .null])) ?? 0)
+            INSERT OR IGNORE INTO channel_sources(channel_id,rating_key,source_type,title,thumb)
+            VALUES(?,?,?,?,?)
+            """, [.int(Int64(channelId)), .text(ratingKey), .text(sourceType),
+                  title.map { .text($0) } ?? .null, thumb.map { .text($0) } ?? .null])) ?? 0)
     }
     public func deleteSource(_ id: Int, channelId: Int) {
         _ = try? sql.run("DELETE FROM channel_sources WHERE id=? AND channel_id=?",
@@ -246,6 +252,33 @@ public final class Store {
 
     public func assets() -> [Asset] {
         ((try? sql.query("SELECT * FROM assets ORDER BY kind,title")) ?? []).map(Self.asset)
+    }
+
+    /// Insert or refresh one commercial/bumper (deduped on `path`). Returns the
+    /// asset row id, or 0 when the insert failed.
+    @discardableResult
+    public func upsertAsset(path: String, title: String, kind: String, durationMs: Millis,
+                            tags: String = "", ratingKey: String? = nil, partKey: String? = nil) -> Int {
+        Int((try? sql.run("""
+            INSERT INTO assets(path,title,kind,duration_ms,tags,rating_key,part_key)
+            VALUES(?,?,?,?,?,?,?)
+            ON CONFLICT(path) DO UPDATE SET
+                title=excluded.title,kind=excluded.kind,duration_ms=excluded.duration_ms,
+                tags=excluded.tags,rating_key=excluded.rating_key,part_key=excluded.part_key
+            """, [.text(path), .text(title), .text(kind), .int(durationMs), .text(tags),
+                  ratingKey.map { .text($0) } ?? .null, partKey.map { .text($0) } ?? .null])) ?? 0)
+    }
+
+    public func deleteAsset(_ id: Int) {
+        _ = try? sql.run("DELETE FROM assets WHERE id=?", [.int(Int64(id))])
+    }
+
+    /// The number of playable items cached for one source (a show's episodes,
+    /// or the movie itself) — shown as the count badge on web-UI source chips.
+    public func mediaCount(forSource ratingKey: String) -> Int {
+        Int(((try? sql.query("""
+            SELECT COUNT(*) n FROM media WHERE (parent_key=? OR rating_key=?) AND part_key IS NOT NULL
+            """, [.text(ratingKey), .text(ratingKey)])) ?? []).first?.int("n") ?? 0)
     }
 
     // MARK: - airings

@@ -85,9 +85,12 @@ public struct ChannelSource: Identifiable, Hashable, Sendable {
     public var ratingKey: String
     public var sourceType: String
     public var title: String?
+    /// Plex poster path for this source — doubles as the channel's artwork.
+    public var thumb: String?
 
-    public init(id: Int, ratingKey: String, sourceType: String, title: String? = nil) {
-        self.id = id; self.ratingKey = ratingKey; self.sourceType = sourceType; self.title = title
+    public init(id: Int, ratingKey: String, sourceType: String, title: String? = nil, thumb: String? = nil) {
+        self.id = id; self.ratingKey = ratingKey; self.sourceType = sourceType
+        self.title = title; self.thumb = thumb
     }
 }
 

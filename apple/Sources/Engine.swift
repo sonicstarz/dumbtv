@@ -6,6 +6,10 @@ struct ChannelRuntime {
     let spec: ChannelSpec
     let programs: [Program]
     let mediaByKey: [String: Media]
+    /// Commercials/bumpers by asset id (ad programs carry assetId, not ratingKey).
+    var assetsById: [Int: Asset] = [:]
+    /// Poster art for the channel (its first source's Plex thumb path).
+    var artThumb: String? = nil
 }
 
 /// A single row of the guide at a moment in time.
@@ -25,6 +29,7 @@ struct GuideProgramRow: Identifiable {
     let number: Int
     let name: String
     let programs: [Program]
+    var art: URL? = nil  // channel poster (first source's Plex thumb)
 }
 
 /// Format a UTC millisecond instant as a wall clock, e.g. "10:35 PM". The
@@ -97,6 +102,18 @@ final class Engine: ObservableObject {
             forName: .dumbTVConfigChanged, object: nil, queue: .main
         ) { [weak self] _ in
             Task { @MainActor in self?.scheduleReload() }
+        }
+        // The web UI's Watch button / ON AIR strip → change the actual TV.
+        NotificationCenter.default.addObserver(
+            forName: .dumbTVTuneRequested, object: nil, queue: .main
+        ) { [weak self] note in
+            let id = note.userInfo?["channelId"] as? Int
+            Task { @MainActor in
+                guard let self, let id,
+                      let idx = self.channels.firstIndex(where: { $0.spec.id == id }) else { return }
+                self.tune(to: idx)
+                self.showFlash("CH \(String(format: "%02d", self.channelNumber))")
+            }
         }
     }
 
@@ -200,13 +217,16 @@ final class Engine: ObservableObject {
         Scheduler.topUp(store: store, now: now)
         lastTopUp = now
 
+        let assetsById = Dictionary(uniqueKeysWithValues: store.assets().map { ($0.id, $0) })
         var built: [ChannelRuntime] = []
         for c in cfgs {
             // Read the persisted timeline: a little behind now (to catch the
             // program already airing) out to two days ahead for the guide.
             let programs = store.programs(c.id, from: now - HOUR, to: now + 2 * DAY)
             let lookup = store.library(forChannel: c.id).mediaByKey
-            built.append(ChannelRuntime(spec: c.spec, programs: programs, mediaByKey: lookup))
+            built.append(ChannelRuntime(spec: c.spec, programs: programs, mediaByKey: lookup,
+                                        assetsById: assetsById,
+                                        artThumb: store.sources(c.id).first?.thumb))
         }
         guard !built.isEmpty else { return false }
         channels = built
@@ -272,6 +292,13 @@ final class Engine: ObservableObject {
         currentIndex = index
         currentStart = -1
         guideOpen = false
+        // Record what the TV is on so the web UI can highlight it (status.player).
+        // Advance our own change-counter watermark so this write doesn't trigger
+        // a pointless lineup reload.
+        if let store {
+            store.setSetting("player_channel_id", String(channels[index].spec.id))
+            lastChangeCounter = store.sql.totalChanges()
+        }
         sync()
         showBanner()
     }
@@ -311,13 +338,26 @@ final class Engine: ObservableObject {
         guideWindowStart = max(floor, guideWindowStart + Millis(delta) * half)
     }
 
-    /// Every channel's programs that overlap the visible time window, for the grid.
+    /// Every channel's programs that overlap the visible time window, for the
+    /// grid. Ad breaks/filler are folded into the show's block like a printed
+    /// listing — only episodes, movies, and off-air spans are rows in the guide.
     func guideProgramRows() -> [GuideProgramRow] {
         let end = guideWindowStart + guideSpanMs
         return channels.enumerated().map { i, ch in
-            let visible = ch.programs.filter { $0.endUtc > guideWindowStart && $0.startUtc < end }
-            return GuideProgramRow(id: i, number: ch.spec.number, name: ch.spec.name, programs: visible)
+            let visible = ch.programs.filter {
+                $0.endUtc > guideWindowStart && $0.startUtc < end &&
+                ($0.kind == .episode || $0.kind == .movie || $0.kind == .offair)
+            }
+            return GuideProgramRow(id: i, number: ch.spec.number, name: ch.spec.name,
+                                   programs: visible, art: channelArtURL(i))
         }
+    }
+
+    /// Full URL for a channel's poster art (its first source's Plex thumb).
+    func channelArtURL(_ index: Int) -> URL? {
+        guard channels.indices.contains(index), let thumb = channels[index].artThumb,
+              !serverURI.isEmpty, !accessToken.isEmpty else { return nil }
+        return URL(string: "\(serverURI)\(thumb)?X-Plex-Token=\(accessToken)")
     }
 
     /// Invariant #1: pause/seek/resume do nothing on a live channel — flash ⊘.
@@ -406,10 +446,14 @@ final class Engine: ObservableObject {
         currentStart = p.startUtc
         showBanner()   // a new program started — reveal the banner briefly
 
-        // Playable program → stream it. Otherwise it's off-air / dead air (a
-        // channel with no content, or a scheduled blackout): stand by, no stream.
+        // Playable program → stream it. Ads/bumpers resolve via assetId. Anything
+        // else is off-air / dead air: stand by, no stream.
         if let key = p.ratingKey, let media = ch.mediaByKey[key], let pk = media.partKey,
            let url = streamURL(pk) {
+            status = ""
+            player.play(url: url, startSeconds: Int(airing.offsetMs / 1000))
+        } else if let aid = p.assetId, let asset = ch.assetsById[aid], let pk = asset.partKey,
+                  let url = streamURL(pk) {
             status = ""
             player.play(url: url, startSeconds: Int(airing.offsetMs / 1000))
         } else {

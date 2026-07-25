@@ -554,11 +554,45 @@ button:disabled { opacity: 0.45; cursor: not-allowed; }
 }
 
 @media (max-width: 860px) {
+  /* Phone layout — the QR code sends people HERE, so this is the first thing
+     most users see. The rail becomes one horizontal scrollable tab strip
+     instead of a full-screen column that pushed all content below the fold. */
   .shell { flex-direction: column; }
-  .rail { width: 100%; border-right: 0; border-bottom: 1px solid var(--line); }
+  .rail {
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 2px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+    padding: 8px 10px;
+    position: sticky;
+    top: 61px;                 /* below the topbar */
+    z-index: 30;
+    background: var(--panel);
+  }
+  .rail::-webkit-scrollbar { display: none; }
+  .rail h2, .rail hr { display: none; }   /* section headers are desktop chrome */
+  .rail .navlink {
+    white-space: nowrap;
+    width: auto;
+    padding: 8px 12px;
+    border-radius: 999px;
+    border: 1px solid var(--line);
+    flex-shrink: 0;
+  }
+  .rail .navlink.active { border-color: var(--amber); }
   .main { padding: 20px 16px 60px; }
   .chan { grid-template-columns: 52px 1fr; }
   .chan-actions { grid-column: 1 / -1; flex-direction: row; flex-wrap: wrap; }
+  /* The ON AIR strip scrolls; the brand tightens so the tally stays visible. */
+  .brand span { display: none; }
+  .brand { padding: 12px 14px; }
+  .onair-item .prog { max-width: 130px; }
 }
 
 /* ---- schedule + rules (Backend v2) ---- */
@@ -639,3 +673,10 @@ body.offline::after {
   z-index: 99;
   box-shadow: 0 8px 30px rgba(0,0,0,.5);
 }
+
+/* ---------- native app (Mac/iOS/tvOS) ---------- */
+/* Surfaces that only exist on the Node/Pi build (folder scan, PDF print, mpv
+   display knobs, AI assist) hide instead of presenting buttons that 404. */
+body.native [data-native-hide] { display: none !important; }
+/* Inverse: copy only meant for the native app. */
+body:not(.native) [data-node-hide] { display: none !important; }

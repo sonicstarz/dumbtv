@@ -60,10 +60,11 @@ final class EmbeddedServer {
 
     private func respond(_ conn: NWConnection, to req: HTTPRequest) {
         Task {
-            let (status, contentType, body) = await self.buildResponse(req)
+            let (status, contentType, body, setCookie) = await self.buildResponse(req)
             var head = "HTTP/1.1 \(status) \(Self.reason(status))\r\n"
             head += "Content-Type: \(contentType)\r\n"
             head += "Content-Length: \(body.count)\r\n"
+            if let setCookie { head += "Set-Cookie: \(setCookie)\r\n" }
             head += "Access-Control-Allow-Origin: *\r\n"
             head += "Connection: close\r\n\r\n"
             var out = Data(head.utf8); out.append(body)
@@ -71,18 +72,20 @@ final class EmbeddedServer {
         }
     }
 
-    private func buildResponse(_ req: HTTPRequest) async -> (Int, String, Data) {
+    private func buildResponse(_ req: HTTPRequest) async -> (Int, String, Data, String?) {
         if req.path.hasPrefix("/api/") {
             let jsonBody = req.body.flatMap { try? JSONSerialization.jsonObject(with: $0) as? [String: Any] }
-            let apiReq = ConfigAPI.Request(method: req.method, path: req.path, query: req.query, body: jsonBody)
+            let apiReq = ConfigAPI.Request(method: req.method, path: req.path, query: req.query,
+                                           body: jsonBody, cookie: req.headers["cookie"])
             let r = await api.handle(apiReq)
             let data = (try? JSONSerialization.data(withJSONObject: r.json)) ?? Data("{}".utf8)
-            return (r.status, "application/json", data)
+            return (r.status, "application/json", data, r.setCookie)
         }
         if req.path == "/licenses" {
-            return (200, "text/html; charset=utf-8", Data(Self.licensesHTML.utf8))
+            return (200, "text/html; charset=utf-8", Data(Self.licensesHTML.utf8), nil)
         }
-        return staticAsset(req.path)
+        let (s, t, d) = staticAsset(req.path)
+        return (s, t, d, nil)
     }
 
     // LGPL compliance (see docs/vlckit-licensing.md): make users aware VLCKit is

@@ -141,9 +141,27 @@ struct TVView: View {
                         .padding(.top, 10)
                 }
                 Spacer()
+                // One-time coach mark — the guide is invisible until you know
+                // the key, so say it once, then never again.
+                if engine.showGuideHint {
+                    HStack {
+                        #if os(tvOS)
+                        Text("PRESS SELECT FOR THE GUIDE")
+                        #else
+                        Text("PRESS  G  FOR THE GUIDE")
+                        #endif
+                        Spacer()
+                    }
+                    .font(Palette.mono(13 * s, .bold))
+                    .foregroundStyle(Palette.amber).tracking(2)
+                    .padding(.bottom, 8 * s)
+                    .transition(.opacity)
+                }
             }
             .padding(.horizontal, 24 * s)
             .padding(.top, 12 * s)
+            .padding(.bottom, 120 * s)   // keep the hint clear of the banner
+            .animation(.easeInOut(duration: 0.4), value: engine.showGuideHint)
 
             // The banner reveals on a channel/program change or a key press, then
             // fades so the picture is unobstructed. A wide lower-third band.

@@ -206,6 +206,12 @@ public actor PlexClient {
         )
     }
 
+    /// The poster path for any item (show or movie) — used as channel art.
+    public func thumbPath(ratingKey: String) async throws -> String? {
+        let mc = try await containerGet("/library/metadata/\(ratingKey)")
+        return (mc["Metadata"] as? [[String: Any]])?.first?["thumb"] as? String
+    }
+
     /// A URL VLCKit can direct-play. No transcoding, ever.
     public func streamURL(partKey: String) -> URL? {
         guard let serverURI, let accessToken else { return nil }

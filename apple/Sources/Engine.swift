@@ -77,6 +77,9 @@ final class Engine: ObservableObject {
     /// The channel banner auto-hides a few seconds after a change/interaction, so
     /// the picture is unobstructed while you watch.
     @Published var bannerVisible = true
+    /// First-run coach mark: nothing on screen says the guide exists until you
+    /// know the key. Shown once, then remembered in the Store.
+    @Published var showGuideHint = false
 
     private var currentStart: Millis = -1
     private var tick: Timer?
@@ -198,8 +201,21 @@ final class Engine: ObservableObject {
     /// source of truth on a self-contained device.
     func bootstrap(store: Store?) async {
         self.store = store          // kept even if empty — a later web-UI change upgrades us live
+        showGuideHintOnce()
         if let store, loadFromStore(store) { return }
         await bootstrapFromEnvIfPresent()
+    }
+
+    /// Surface "press G for the guide" for a few seconds, exactly once ever.
+    private func showGuideHintOnce() {
+        guard let store, store.getSetting("guide_hint_shown") == nil else { return }
+        store.setSetting("guide_hint_shown", "1")
+        lastChangeCounter = store.sql.totalChanges()   // our own write — no reload
+        showGuideHint = true
+        Task { @MainActor [weak self] in
+            try? await Task.sleep(nanoseconds: 12_000_000_000)
+            self?.showGuideHint = false
+        }
     }
 
     /// Build runtimes from the persisted, append-only schedule. Programs come
@@ -316,7 +332,10 @@ final class Engine: ObservableObject {
     }
 
     // Guide navigation with the arrow keys / remote.
-    func toggleGuide() { guideOpen.toggle() }   // didSet snaps selection + time axis
+    func toggleGuide() {
+        guideOpen.toggle()                       // didSet snaps selection + time axis
+        showGuideHint = false                    // they found it — hint's job is done
+    }
     func guideMove(_ delta: Int) {
         guard !channels.isEmpty else { return }
         guideSelection = min(max(guideSelection + delta, 0), channels.count - 1)

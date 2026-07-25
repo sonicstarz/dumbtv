@@ -92,6 +92,13 @@ public final class Store {
             """, [.int(Int64(channelId)), .text(ratingKey), .text(sourceType),
                   title.map { .text($0) } ?? .null, thumb.map { .text($0) } ?? .null])) ?? 0)
     }
+    /// Backfill artwork for sources added before the thumb column existed
+    /// (only fills blanks — a picker-provided thumb wins).
+    public func fillSourceThumb(_ ratingKey: String, thumb: String) {
+        _ = try? sql.run("UPDATE channel_sources SET thumb=? WHERE rating_key=? AND thumb IS NULL",
+                         [.text(thumb), .text(ratingKey)])
+    }
+
     public func deleteSource(_ id: Int, channelId: Int) {
         _ = try? sql.run("DELETE FROM channel_sources WHERE id=? AND channel_id=?",
                          [.int(Int64(id)), .int(Int64(channelId))])

@@ -302,6 +302,11 @@ public final class ConfigAPI {
                 }
             } catch { errorMsg = error.localizedDescription }
         }
+        // Backfill channel art for sources that predate the thumb column —
+        // one metadata fetch, only when the source has no thumb yet.
+        if let thumb = (try? await plex.thumbPath(ratingKey: ratingKey)) ?? nil {
+            store.fillSourceThumb(ratingKey, thumb: thumb)
+        }
         var r: [String: Any] = ["title": title ?? ratingKey, "cached": cached]
         if let errorMsg { r["error"] = errorMsg }
         return r

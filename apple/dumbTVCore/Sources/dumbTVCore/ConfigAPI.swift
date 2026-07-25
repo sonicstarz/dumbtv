@@ -168,6 +168,23 @@ public final class ConfigAPI {
 
     private func nowMs() -> Int64 { Int64(Date().timeIntervalSince1970 * 1000) }
 
+    static func orderingLabel(_ m: OrderingMode) -> String {
+        switch m {
+        case .sequential:    return "In order"
+        case .release_order: return "By air date"
+        case .shuffle:       return "Shuffle"
+        case .marathon:      return "Marathon"
+        }
+    }
+    static func orderingBlurb(_ m: OrderingMode) -> String {
+        switch m {
+        case .sequential:    return "Plays each show's episodes in order, rotating between the shows on this channel."
+        case .release_order: return "Every episode interleaved by its original air date."
+        case .shuffle:       return "Randomized — but deterministic, so the printed guide stays true."
+        case .marathon:      return "Plays several in a row from one show before moving to the next."
+        }
+    }
+
     // MARK: - status
 
     private func status() -> Response {
@@ -195,7 +212,11 @@ public final class ConfigAPI {
             // otherwise — the picture stands by if a stream later fails.
             "reachable": hasServer ? true : NSNull(),
             "counts": ["channels": store.allChannels().count, "assets": store.assets().count],
-            "orderingModes": OrderingMode.allCases.map { $0.rawValue },
+            // {id,label,blurb} — the web UI renders the ORDER dropdown + its
+            // helper text from this (raw strings showed "undefined").
+            "orderingModes": OrderingMode.allCases.map { m -> [String: Any] in
+                ["id": m.rawValue, "label": Self.orderingLabel(m), "blurb": Self.orderingBlurb(m)]
+            },
         ])
     }
 

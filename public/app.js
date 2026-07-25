@@ -899,49 +899,63 @@ function openSettings(channelId) {
     </div>
 
     <div class="row" style="margin-top:16px">
-      <div class="field">
+      <div class="field" style="flex:1">
         <label>ORDER</label>
         <select id="fMode">${modes}</select>
       </div>
-      <div class="field"><label>MARATHON SIZE</label><input id="fMar" type="number" min="1" max="12" value="${c.marathonSize}" style="width:96px"></div>
-      <div class="field"><label>SLOT MINUTES</label><input id="fSlot" type="number" min="5" max="120" step="5" value="${c.slotMinutes}" style="width:110px"></div>
+      <div class="field" id="fMarWrap"><label>EPISODES PER RUN</label><input id="fMar" type="number" min="1" max="12" value="${c.marathonSize}" style="width:130px"></div>
     </div>
     <p class="hint" id="modeBlurb"></p>
 
-    <div class="row" style="margin-top:18px">
-      <div class="field">
-        <label>ADS</label>
-        <label style="display:flex;gap:8px;align-items:center;font-family:var(--sans);font-size:14px;color:var(--tape);letter-spacing:0">
-          <input id="fAds" type="checkbox" ${c.adsEnabled ? 'checked' : ''}> Run commercials
-        </label>
+    <div class="row" style="margin-top:20px">
+      <div class="field" style="flex:1">
+        <label>BEDTIME — CHANNEL GOES OFF AIR</label>
+        <div class="chips" id="bedPresets" style="margin-bottom:10px">
+          <button type="button" class="chip-btn" data-bed="">Always on</button>
+          <button type="button" class="chip-btn" data-bed="20:00|07:00">Off 8pm – 7am</button>
+          <button type="button" class="chip-btn" data-bed="21:00|07:00">Off 9pm – 7am</button>
+          <button type="button" class="chip-btn" data-bed="19:30|09:00">Off 7:30pm – 9am</button>
+        </div>
+        <div class="row" style="align-items:flex-end">
+          <div class="field"><label>OFF AT</label><input id="fDarkStart" type="time" value="${c.darkStart || ''}"></div>
+          <div class="field"><label>BACK AT</label><input id="fDarkEnd" type="time" value="${c.darkEnd || ''}"></div>
+        </div>
       </div>
-      <div class="field"><label>MAX PER BREAK</label><input id="fMaxAds" type="number" min="0" max="30" value="${c.maxAdsPerBreak}" style="width:110px"></div>
-      <div class="field" style="flex:1"><label>AD TAGS (OPTIONAL)</label><input id="fTags" value="${escapeHtml(c.adTags || '')}" placeholder="90s, toys" style="width:100%"></div>
     </div>
+    <p class="hint">During off-air hours the channel shows colour bars — handy for a kids' channel at bedtime.</p>
 
-    <div class="row" style="margin-top:18px">
-      <div class="field"><label>AD TIMING</label>
-        <select id="fTiming">
-          <option value="continuous" ${c.timingMode === 'continuous' ? 'selected' : ''}>Continuous — exact ad count, no grid</option>
-          <option value="grid" ${c.timingMode === 'grid' ? 'selected' : ''}>Grid — lands on :00 / :30</option>
-          <option value="auto" ${c.timingMode === 'auto' ? 'selected' : ''}>Auto — slot rounded to 5 min</option>
-        </select>
+    <details style="margin-top:22px">
+      <summary style="cursor:pointer;font:600 13px var(--mono);letter-spacing:.08em;color:var(--dim)">ADVANCED — COMMERCIALS &amp; TIMING</summary>
+      <div style="margin-top:16px">
+        <div class="row">
+          <div class="field">
+            <label>ADS</label>
+            <label style="display:flex;gap:8px;align-items:center;font-family:var(--sans);font-size:14px;color:var(--tape);letter-spacing:0">
+              <input id="fAds" type="checkbox" ${c.adsEnabled ? 'checked' : ''}> Run commercials
+            </label>
+          </div>
+          <div class="field"><label>MAX PER BREAK</label><input id="fMaxAds" type="number" min="0" max="30" value="${c.maxAdsPerBreak}" style="width:110px"></div>
+          <div class="field" style="flex:1"><label>AD TAGS (OPTIONAL)</label><input id="fTags" value="${escapeHtml(c.adTags || '')}" placeholder="90s, toys" style="width:100%"></div>
+        </div>
+        <div class="row" style="margin-top:16px">
+          <div class="field"><label>AD TIMING</label>
+            <select id="fTiming">
+              <option value="continuous" ${c.timingMode === 'continuous' ? 'selected' : ''}>Continuous — exact ad count</option>
+              <option value="grid" ${c.timingMode === 'grid' ? 'selected' : ''}>Grid — lands on :00 / :30</option>
+              <option value="auto" ${c.timingMode === 'auto' ? 'selected' : ''}>Auto — slot rounded to 5 min</option>
+            </select>
+          </div>
+          <div class="field"><label>ADS BETWEEN SHOWS</label><input id="fAdsBetween" type="number" min="0" max="20" value="${c.adsBetween ?? 4}" style="width:120px"></div>
+          <div class="field"><label>REPEAT COOLDOWN (days)</label><input id="fCooldown" type="number" min="0" max="30" value="${c.cooldownDays ?? 0}" style="width:130px"></div>
+          <div class="field"><label>WHEN A PINNED EVENT HITS</label>
+            <select id="fOverrun">
+              <option value="protect" ${c.overrunPolicy === 'protect' ? 'selected' : ''}>Protect — finish the show first</option>
+              <option value="cutin" ${c.overrunPolicy === 'cutin' ? 'selected' : ''}>Cut in — hard cut to the event</option>
+            </select>
+          </div>
+        </div>
       </div>
-      <div class="field"><label>ADS BETWEEN SHOWS</label><input id="fAdsBetween" type="number" min="0" max="20" value="${c.adsBetween ?? 4}" style="width:120px"></div>
-      <div class="field"><label>REPEAT COOLDOWN (days)</label><input id="fCooldown" type="number" min="0" max="30" value="${c.cooldownDays ?? 0}" style="width:130px"></div>
-      <div class="field"><label>WHEN A PINNED EVENT HITS</label>
-        <select id="fOverrun">
-          <option value="protect" ${c.overrunPolicy === 'protect' ? 'selected' : ''}>Protect — finish the show first</option>
-          <option value="cutin" ${c.overrunPolicy === 'cutin' ? 'selected' : ''}>Cut in — hard cut to the event</option>
-        </select>
-      </div>
-    </div>
-
-    <div class="row" style="margin-top:18px">
-      <div class="field"><label>GOES DARK AT</label><input id="fDarkStart" type="time" value="${c.darkStart || ''}"></div>
-      <div class="field"><label>COMES BACK AT</label><input id="fDarkEnd" type="time" value="${c.darkEnd || ''}"></div>
-    </div>
-    <p class="hint">Leave both blank to broadcast around the clock. During dark hours the channel shows colour bars.</p>
+    </details>
 
     <div class="row" style="margin-top:26px;justify-content:flex-end">
       <button class="ghost" id="fCancel">Cancel</button>
@@ -953,11 +967,28 @@ function openSettings(channelId) {
   const blurb = () => {
     const m = state.orderingModes.find((x) => x.id === $('#fMode', back).value);
     $('#modeBlurb', back).textContent = m ? m.blurb : '';
-    $('#fMar', back).closest('.field').style.display =
+    $('#fMarWrap', back).style.display =
       $('#fMode', back).value === 'marathon' ? '' : 'none';
   };
   $('#fMode', back).addEventListener('change', blurb);
   blurb();
+
+  // Bedtime quick-presets fill the time inputs (and highlight the active one).
+  const syncBed = () => {
+    const cur = `${$('#fDarkStart', back).value}|${$('#fDarkEnd', back).value}`;
+    $$('#bedPresets .chip-btn', back).forEach((b) =>
+      b.classList.toggle('on', (b.dataset.bed || '|') === (cur === '|' ? '' : cur)));
+  };
+  $$('#bedPresets .chip-btn', back).forEach((btn) =>
+    btn.addEventListener('click', () => {
+      const [s, e] = (btn.dataset.bed || '').split('|');
+      $('#fDarkStart', back).value = s || '';
+      $('#fDarkEnd', back).value = e || '';
+      syncBed();
+    }));
+  $('#fDarkStart', back).addEventListener('input', syncBed);
+  $('#fDarkEnd', back).addEventListener('input', syncBed);
+  syncBed();
 
   $('#fCancel', back).addEventListener('click', () => back.remove());
 
@@ -989,7 +1020,6 @@ function openSettings(channelId) {
           name: $('#fName', back).value,
           orderingMode: $('#fMode', back).value,
           marathonSize: Number($('#fMar', back).value),
-          slotMinutes: Number($('#fSlot', back).value),
           adsEnabled: $('#fAds', back).checked,
           maxAdsPerBreak: Number($('#fMaxAds', back).value),
           adTags: $('#fTags', back).value,

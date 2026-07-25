@@ -32,6 +32,10 @@ mkdir -p "$STAGE"
 cp -R "$APP" "$STAGE/"
 ln -s /Applications "$STAGE/Applications"     # drag-to-install
 
+# The .app is now staged; drop the heavy build intermediates and SPM checkouts
+# (VLCKit's static libs are large) so hdiutil has room on space-tight CI runners.
+rm -rf build/Build/Intermediates.noindex build/SourcePackages build/Build/Products/*/*.swiftmodule 2>/dev/null || true
+
 OUT="build/dumbTV.dmg"; rm -f "$OUT"
 hdiutil create -volname "dumbTV" -srcfolder "$STAGE" -ov -format UDZO "$OUT" >/dev/null
 echo "==> created $OUT ($(du -h "$OUT" | cut -f1))"

@@ -23,7 +23,11 @@ jobs:
         run: |
           df -h / | tail -1
           sudo rm -rf /Applications/Xcode_1*.app || true   # keep the active (26.x); frees ~90 GB
+          # A macOS build needs no simulators — the runtimes are several GB each.
+          sudo rm -rf /Library/Developer/CoreSimulator/Profiles/Runtimes/* || true
           sudo rm -rf ~/Library/Developer/CoreSimulator/Caches/* || true
+          sudo rm -rf ~/Library/Developer/CoreSimulator/Devices/* || true
+          sudo rm -rf /Library/Developer/CoreSimulator/Volumes/* || true
           df -h / | tail -1
       - run: brew install xcodegen
       - name: Build .dmg (unsigned)

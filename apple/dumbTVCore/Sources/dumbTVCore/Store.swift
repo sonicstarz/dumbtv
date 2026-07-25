@@ -166,6 +166,82 @@ public final class Store {
                          [.text(ratingKey), .text(ratingKey)])) ?? []).map(Self.media)
     }
 
+    // MARK: - programs (the persisted, append-only schedule)
+
+    /// Append generated programs. The schedule is append-only — callers extend
+    /// forward and only ever delete `start_utc >= now`, so what's airing survives.
+    public func insertPrograms(_ programs: [Program]) {
+        guard !programs.isEmpty else { return }
+        try? sql.transaction {
+            for p in programs {
+                _ = try sql.run("""
+                    INSERT INTO programs(channel_id,start_utc,end_utc,duration_ms,kind,rating_key,
+                        asset_id,title,subtitle,season_no,episode_no,slot_start,rule_id,airing_no)
+                    VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+                    """, [
+                        .int(Int64(p.channelId)), .int(p.startUtc), .int(p.endUtc), .int(p.durationMs),
+                        .text(p.kind.rawValue), p.ratingKey.map { .text($0) } ?? .null,
+                        p.assetId.map { .int(Int64($0)) } ?? .null, .text(p.title),
+                        p.subtitle.map { .text($0) } ?? .null,
+                        p.seasonNo.map { .int(Int64($0)) } ?? .null, p.episodeNo.map { .int(Int64($0)) } ?? .null,
+                        .int(p.slotStart), p.ruleId.map { .int(Int64($0)) } ?? .null, .int(Int64(p.airingNo))])
+            }
+        }
+    }
+
+    /// Programs overlapping [from, to), ascending by start — the guide/calendar read.
+    public func programs(_ channelId: Int, from: Millis, to: Millis) -> [Program] {
+        ((try? sql.query("""
+            SELECT * FROM programs WHERE channel_id=? AND end_utc>? AND start_utc<? ORDER BY start_utc
+            """, [.int(Int64(channelId)), .int(from), .int(to)])) ?? []).map(Self.program)
+    }
+
+    /// The end of whatever is airing at `at` on this channel (nil if there's a hole).
+    public func programEndIfAiring(_ channelId: Int, at: Millis) -> Millis? {
+        ((try? sql.query("""
+            SELECT MAX(end_utc) e FROM programs WHERE channel_id=? AND start_utc<=? AND end_utc>?
+            """, [.int(Int64(channelId)), .int(at), .int(at)])) ?? []).first?.int("e")
+    }
+
+    /// The end of the last program that started before `ts` (for hole-fill rebuilds).
+    public func lastProgramEndBefore(_ channelId: Int, _ ts: Millis) -> Millis? {
+        ((try? sql.query("""
+            SELECT MAX(end_utc) e FROM programs WHERE channel_id=? AND start_utc<?
+            """, [.int(Int64(channelId)), .int(ts)])) ?? []).first?.int("e")
+    }
+
+    /// True if something is scheduled at `ts` on this channel.
+    public func hasProgramAt(_ channelId: Int, _ ts: Millis) -> Bool {
+        programEndIfAiring(channelId, at: ts) != nil
+    }
+
+    /// Drop programs starting at or after `ts` — the append-only edit boundary.
+    public func deleteProgramsFrom(_ channelId: Int, _ ts: Millis) {
+        _ = try? sql.run("DELETE FROM programs WHERE channel_id=? AND start_utc>=?",
+                         [.int(Int64(channelId)), .int(ts)])
+    }
+
+    /// Delete an off-air / filler placeholder airing at `ts` (real content is
+    /// left alone). Regenerate uses this so a channel that just received its
+    /// first content starts playing it now instead of waiting out a long
+    /// "No content selected" span that would otherwise look already-covered.
+    public func deletePlaceholderAiring(_ channelId: Int, _ ts: Millis) {
+        _ = try? sql.run("""
+            DELETE FROM programs WHERE channel_id=? AND start_utc<=? AND end_utc>? AND kind IN ('offair','filler')
+            """, [.int(Int64(channelId)), .int(ts), .int(ts)])
+    }
+
+    static func program(_ r: Row) -> Program {
+        Program(
+            channelId: r.intOr("channel_id", 0), startUtc: r.int("start_utc") ?? 0,
+            endUtc: r.int("end_utc") ?? 0, kind: ProgramKind(rawValue: r.text("kind") ?? "") ?? .filler,
+            ratingKey: r.text("rating_key"), assetId: r.int("asset_id").map(Int.init),
+            title: r.text("title") ?? "", subtitle: r.text("subtitle"),
+            seasonNo: r.int("season_no").map(Int.init), episodeNo: r.int("episode_no").map(Int.init),
+            slotStart: r.int("slot_start"), ruleId: r.int("rule_id").map(Int.init),
+            airingNo: r.intOr("airing_no", 1))
+    }
+
     // MARK: - assets
 
     public func assets() -> [Asset] {
@@ -179,6 +255,18 @@ public final class Store {
                                        [.int(Int64(channelId)), .text(ratingKey)])) ?? []).first
         else { return AiringState() }
         return AiringState(count: r.intOr("count", 0), lastAired: r.int("last_aired"))
+    }
+    /// Every airing counter for a channel, keyed by ratingKey — what the
+    /// rotation iterator needs to space repeats out across builds.
+    public func airings(_ channelId: Int) -> [String: AiringState] {
+        var out: [String: AiringState] = [:]
+        for r in (try? sql.query("SELECT rating_key,count,last_aired FROM airings WHERE channel_id=?",
+                                 [.int(Int64(channelId))])) ?? [] {
+            if let rk = r.text("rating_key") {
+                out[rk] = AiringState(count: r.intOr("count", 0), lastAired: r.int("last_aired"))
+            }
+        }
+        return out
     }
     public func setAiring(_ channelId: Int, _ ratingKey: String, _ s: AiringState) {
         _ = try? sql.run("""

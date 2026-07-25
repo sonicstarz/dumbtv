@@ -80,6 +80,8 @@ final class Engine: ObservableObject {
     private var store: Store?
     /// Last-seen SQLite change counter — polled in sync() as a fallback signal.
     private var lastChangeCounter = -1
+    /// When the schedule was last extended forward (hourly top-up in sync()).
+    private var lastTopUp: Millis = 0
 
     init() {
         // The embedded web server mutates the same Store this engine reads.
@@ -177,25 +179,27 @@ final class Engine: ObservableObject {
         await bootstrapFromEnvIfPresent()
     }
 
-    /// Build runtimes from the persisted channels + cached library. The
-    /// generator is deterministic, so this matches what the config UI's guide
-    /// shows. Returns false if nothing is configured/cached yet (caller falls back).
+    /// Build runtimes from the persisted, append-only schedule. Programs come
+    /// from the `programs` table (via Scheduler.topUp), NOT regenerated from
+    /// `now` — so the schedule survives restarts and matches the guide exactly.
+    /// Returns false if nothing is configured yet (caller falls back).
     private func loadFromStore(_ store: Store) -> Bool {
         let cfgs = store.allChannels().filter { $0.enabled }
         guard !cfgs.isEmpty else { return false }
         serverURI = store.getSetting("plex_server_uri") ?? ""
         accessToken = store.getSetting("plex_access_token") ?? ""
         let now = nowMs()
+        // Extend every channel's schedule to the horizon (idempotent; cheap when
+        // already covered). This persists new rows and never rewrites aired ones.
+        Scheduler.topUp(store: store, now: now)
+        lastTopUp = now
+
         var built: [ChannelRuntime] = []
         for c in cfgs {
-            let buckets = store.library(forChannel: c.id).sourceBuckets()
-            // A channel with no cached media still gets a row — the guide shows
-            // "NO PROGRAMMING" instead of silently hiding it, so a channel you
-            // just made in the web UI is always visibly there.
-            let programs = buckets.isEmpty ? [] : Generator.generate(
-                channel: c.spec, buckets: buckets, now: now, windowMs: 24 * 3_600_000)
-            var lookup: [String: Media] = [:]
-            for m in buckets.flatMap({ $0 }) { lookup[m.ratingKey] = m }
+            // Read the persisted timeline: a little behind now (to catch the
+            // program already airing) out to two days ahead for the guide.
+            let programs = store.programs(c.id, from: now - HOUR, to: now + 2 * DAY)
+            let lookup = store.library(forChannel: c.id).mediaByKey
             built.append(ChannelRuntime(spec: c.spec, programs: programs, mediaByKey: lookup))
         }
         guard !built.isEmpty else { return false }
@@ -374,29 +378,38 @@ final class Engine: ObservableObject {
                 scheduleReload()
             }
         }
+        // Slide the loaded window forward and extend the DB roughly hourly, so a
+        // long-running TV never reaches the edge of what was generated at boot.
+        if let store, nowMs() - lastTopUp > HOUR {
+            lastTopUp = nowMs()
+            Scheduler.topUp(store: store, now: nowMs())
+            scheduleReload()
+        }
+
         guard channels.indices.contains(currentIndex) else { return }
         let ch = channels[currentIndex]
         guard let airing = Resolver.nowOn(ch.programs, at: nowMs()) else {
-            // Nothing scheduled on this channel (no shows added yet, or the
-            // cache failed). Stop cleanly: bars + an honest status line.
-            if currentStart != -2 {
-                currentStart = -2
-                now = nil
-                player.stop()
-                status = "NO PROGRAMMING — ADD SHOWS IN THE WEB CONFIG"
-                showBanner()
-            }
+            // The loaded window ran out (should be rare — the top-up above
+            // refills it). Reload from the Store to slide forward.
+            if currentStart != -2 { currentStart = -2; now = nil; player.stop(); scheduleReload() }
             return
         }
-        if !status.isEmpty { status = "" }
         now = airing
         let p = airing.program
         guard p.startUtc != currentStart else { return }
         currentStart = p.startUtc
         showBanner()   // a new program started — reveal the banner briefly
-        guard let key = p.ratingKey, let media = ch.mediaByKey[key], let pk = media.partKey,
-              let url = streamURL(pk) else { return }
-        player.play(url: url, startSeconds: Int(airing.offsetMs / 1000))
+
+        // Playable program → stream it. Otherwise it's off-air / dead air (a
+        // channel with no content, or a scheduled blackout): stand by, no stream.
+        if let key = p.ratingKey, let media = ch.mediaByKey[key], let pk = media.partKey,
+           let url = streamURL(pk) {
+            status = ""
+            player.play(url: url, startSeconds: Int(airing.offsetMs / 1000))
+        } else {
+            player.stop()
+            status = p.kind == .offair ? (p.subtitle ?? p.title) : "One moment please"
+        }
     }
 
     /// Guide rows for every channel at the current instant.

@@ -37,13 +37,35 @@ public final class ConfigAPI {
     /// (the web UI and the TV share one Store in one process).
     public func handle(_ req: Request) async -> Response {
         let resp = await route(req)
-        let linkedViaPin = req.method.uppercased() == "GET"
+        let isMutation = req.method.uppercased() != "GET"
+        // A successful config change rebuilds the affected channel's FUTURE
+        // schedule (append-only — what's airing is untouched), so added shows /
+        // edits show up without a restart.
+        if resp.status < 400 && isMutation { regenerateForMutation(req) }
+        let linkedViaPin = !isMutation
             && req.path.hasPrefix("/api/plex/pin/")
             && (resp.json as? [String: Any])?["linked"] as? Bool == true
-        if resp.status < 400 && (req.method.uppercased() != "GET" || linkedViaPin) {
+        if resp.status < 400 && (isMutation || linkedViaPin) {
             NotificationCenter.default.post(name: .dumbTVConfigChanged, object: nil)
         }
         return resp
+    }
+
+    /// After a mutation, rebuild the future of whatever it touched. Channel- and
+    /// rule-scoped edits rebuild that one channel; broader changes (new channel,
+    /// settings, Plex, import) rebuild them all. Deterministic + append-only, so
+    /// this is cheap and never disturbs the currently-airing program.
+    private func regenerateForMutation(_ req: Request) {
+        let now = nowMs()
+        let s = Array(req.path.split(separator: "/").map(String.init).dropFirst())  // drop "api"
+        if s.count >= 2, s[0] == "channels", let id = Int(s[1]) {
+            Scheduler.regenerate(store: store, channelId: id, now: now)
+        } else if s.count >= 2, s[0] == "rules", let rid = Int(s[1]),
+                  let ch = store.allChannels().first(where: { store.rules($0.id).contains { $0.id == rid } }) {
+            Scheduler.regenerate(store: store, channelId: ch.id, now: now)
+        } else {
+            Scheduler.regenerateAll(store: store, now: now)
+        }
     }
 
     /// The actual router. Returns 404 for anything unmatched. Swift can't bind
@@ -244,14 +266,15 @@ public final class ConfigAPI {
     private func onair() -> Response {
         let now = nowMs()
         let channels: [[String: Any]] = store.allChannels().filter { $0.enabled }.map { c in
+            Scheduler.ensureCoverage(store: store, channelId: c.id, now: now)  // JIT for brand-new channels
             var nowObj: Any = NSNull()
-            let buckets = store.library(forChannel: c.id).sourceBuckets()
-            if !buckets.isEmpty {
-                let programs = Generator.generate(channel: c.spec, buckets: buckets, now: now, windowMs: 24 * 3_600_000)
-                if let a = Resolver.nowOn(programs, at: now) {
-                    nowObj = ["title": a.program.title, "subtitle": a.program.subtitle ?? NSNull(),
-                              "progress": a.progress]
-                }
+            if let a = Resolver.nowOn(store.programs(c.id, from: now - HOUR, to: now + DAY), at: now) {
+                let p = a.program
+                nowObj = ["title": p.title, "subtitle": p.subtitle ?? NSNull(),
+                          "progress": a.progress, "kind": p.kind.rawValue,
+                          "startUtc": p.startUtc, "endUtc": p.endUtc,
+                          "offsetMs": a.offsetMs, "durationMs": p.durationMs,
+                          "seasonNo": p.seasonNo ?? NSNull(), "episodeNo": p.episodeNo ?? NSNull()]
             }
             return ["channel": ["id": c.id, "number": c.number, "name": c.name], "now": nowObj]
         }
@@ -368,14 +391,10 @@ public final class ConfigAPI {
         let from = req.query["from"].flatMap { Int64($0) } ?? nowMs()
         let hours = min(12, max(1, req.query["hours"].flatMap { Int($0) } ?? 3))
         let window = Int64(hours) * 3_600_000
-        let genWindow = window + 6 * 3_600_000     // extra so edge-spanning blocks appear
         let channels: [[String: Any]] = store.allChannels().filter { $0.enabled }.map { c in
-            let buckets = store.library(forChannel: c.id).sourceBuckets()
-            let programs = buckets.isEmpty ? []
-                : Generator.generate(channel: c.spec, buckets: buckets, now: from, windowMs: genWindow)
-            let inRange = programs.filter {
-                $0.endUtc > from && $0.startUtc < from + window &&
-                ($0.kind == .episode || $0.kind == .movie || $0.kind == .offair)
+            Scheduler.ensureCoverage(store: store, channelId: c.id, now: from)
+            let inRange = store.programs(c.id, from: from, to: from + window).filter {
+                $0.kind == .episode || $0.kind == .movie || $0.kind == .offair
             }
             return ["number": c.number, "name": c.name,
                     "programs": inRange.map { p -> [String: Any] in
@@ -397,11 +416,10 @@ public final class ConfigAPI {
         let days = min(14, max(1, req.query["days"].flatMap { Int($0) } ?? 7))
         let window = Int64(days) * 24 * 3_600_000
         let to = from + window
-        let buckets = store.library(forChannel: cid).sourceBuckets()
-        let programs = buckets.isEmpty ? []
-            : Generator.generate(channel: c.spec, buckets: buckets, now: from, windowMs: window)
-        let inRange = programs.filter {
-            $0.endUtc > from && $0.startUtc < to && ($0.kind == .episode || $0.kind == .movie)
+        _ = c   // channel existence already validated above
+        Scheduler.ensureCoverage(store: store, channelId: cid, now: from)
+        let inRange = store.programs(cid, from: from, to: to).filter {
+            $0.kind == .episode || $0.kind == .movie
         }
         return .ok([
             "from": from, "to": to,

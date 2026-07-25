@@ -110,14 +110,16 @@ final class Player: ObservableObject {
     func stop() { vlcs.forEach { $0.stop() }; pendingSwap = false }
 }
 
-/// Both players' surfaces stacked; only the front one is visible, so the swap
-/// is a single-frame hard cut. Colour bars cover cold start/buffering.
+/// Both players' persistent views live in ONE container; the visible one is
+/// chosen by z-order (front on top, fully covering the other). Both keep
+/// decoding, so the freeze-and-swap is a clean cut. Passing `front` in makes
+/// SwiftUI re-run the representable's update on every swap — that re-parent is
+/// exactly what the guide toggle did, which is why the guide "fixed" the black.
 struct VideoLayer: View {
     @ObservedObject var player: Player
     var body: some View {
         ZStack {
-            VideoSurface(view: player.views[0]).opacity(player.front == 0 ? 1 : 0)
-            VideoSurface(view: player.views[1]).opacity(player.front == 1 ? 1 : 0)
+            VideoSurface(player: player, front: player.front)
             if !player.videoActive { ColorBars().transition(.opacity) }
         }
         .animation(.easeInOut(duration: 0.2), value: player.videoActive)
@@ -152,45 +154,53 @@ struct ColorBars: View {
     }
 }
 
-/// Hosts one player's persistent video view. A fresh container is created per
-/// representable, then the SAME platform view is moved into it — the drawable
-/// object never changes, so VLC's video output survives every re-parent
-/// (watch ↔ guide, and the front/back stack above).
+/// Hosts BOTH persistent video views in a single container and orders them so
+/// the `front` player's view is on top. The drawable objects never change, so
+/// the video output survives every re-parent (watch ↔ guide) and every swap.
+/// `front` is a stored input: when it changes, SwiftUI re-runs update and the
+/// new front view comes to the top — a hard cut, no black, no opacity games.
 #if os(macOS)
 struct VideoSurface: NSViewRepresentable {
-    let view: NSView
+    let player: Player
+    let front: Int
     func makeNSView(context: Context) -> NSView {
         let container = NSView()
         container.wantsLayer = true
         container.layer?.backgroundColor = NSColor.black.cgColor
-        attach(to: container)
+        arrange(container)
         return container
     }
-    func updateNSView(_ nsView: NSView, context: Context) { attach(to: nsView) }
-    private func attach(to container: NSView) {
-        guard view.superview != container else { return }
-        view.removeFromSuperview()
-        view.frame = container.bounds
-        view.autoresizingMask = [.width, .height]
-        container.addSubview(view)
+    func updateNSView(_ container: NSView, context: Context) { arrange(container) }
+    private func arrange(_ container: NSView) {
+        for v in player.views where v.superview !== container {
+            v.removeFromSuperview()
+            v.frame = container.bounds
+            v.autoresizingMask = [.width, .height]
+            container.addSubview(v)
+        }
+        // Front view to the top; the other stays behind, still decoding.
+        container.addSubview(player.views[front], positioned: .above, relativeTo: nil)
     }
 }
 #else
 struct VideoSurface: UIViewRepresentable {
-    let view: UIView
+    let player: Player
+    let front: Int
     func makeUIView(context: Context) -> UIView {
         let container = UIView()
         container.backgroundColor = .black
-        attach(to: container)
+        arrange(container)
         return container
     }
-    func updateUIView(_ uiView: UIView, context: Context) { attach(to: uiView) }
-    private func attach(to container: UIView) {
-        guard view.superview != container else { return }
-        view.removeFromSuperview()
-        view.frame = container.bounds
-        view.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-        container.addSubview(view)
+    func updateUIView(_ container: UIView, context: Context) { arrange(container) }
+    private func arrange(_ container: UIView) {
+        for v in player.views where v.superview !== container {
+            v.removeFromSuperview()
+            v.frame = container.bounds
+            v.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+            container.addSubview(v)
+        }
+        container.bringSubviewToFront(player.views[front])
     }
 }
 #endif

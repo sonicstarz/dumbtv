@@ -46,12 +46,18 @@ jobs:
         shell: pwsh
         run: |
           $p = "windows/payload"
-          New-Item -ItemType Directory -Force $p,"$p/node","$p/mpv" | Out-Null
-          Copy-Item -Recurse -Force src,public,package.json,package-lock.json,node_modules,media $p
+          New-Item -ItemType Directory -Force $p,"$p/node","$p/mpv","$p/media/ads","$p/media/bumpers" | Out-Null
+          Copy-Item -Recurse -Force src,public,package.json,package-lock.json,node_modules $p
           Copy-Item windows/dumbTV.cmd $p
           Copy-Item (Get-Command node).Source "$p/node/node.exe"
-          choco install mpv -y --no-progress
-          Copy-Item (Get-Command mpv).Source "$p/mpv/mpv.exe"
+          # mpv is optional (the browser TV works without it); bundle it best-effort.
+          try {
+            choco install mpv -y --no-progress | Out-Null
+            $mpv = Get-ChildItem C:\ProgramData\chocolatey -Recurse -Filter mpv.exe -ErrorAction SilentlyContinue |
+                   Where-Object { $_.Length -gt 1MB } | Select-Object -First 1
+            if ($mpv) { Copy-Item $mpv.FullName "$p/mpv/mpv.exe"; Write-Host "bundled mpv: $($mpv.FullName)" }
+            else { Write-Host "::warning::mpv.exe not found — Windows build ships without it (browser TV still works)" }
+          } catch { Write-Host "::warning::mpv install skipped: $_" }
       - name: Build installer (Inno Setup)
         shell: pwsh
         run: |

@@ -7,12 +7,17 @@ struct TVView: View {
     var configURL: String? = nil
 
     var body: some View {
-        ZStack {
-            Color.black.ignoresSafeArea()
-            if engine.guideOpen {
-                guideLayout
-            } else {
-                watchLayout
+        GeometryReader { geo in
+            // One UI scale for the whole screen so the text reads like a TV at
+            // any window size (the reference design is ~800pt tall).
+            let s = max(0.7, min(2.2, geo.size.height / 800))
+            ZStack {
+                Color.black.ignoresSafeArea()
+                if engine.guideOpen {
+                    guideLayout(s: s)
+                } else {
+                    watchLayout(s: s)
+                }
             }
         }
         .focusable()
@@ -64,7 +69,7 @@ struct TVView: View {
     }
 
     // Full-screen video with the channel banner and a GUIDE button.
-    private var watchLayout: some View {
+    private func watchLayout(s: CGFloat) -> some View {
         ZStack {
             VideoLayer(player: engine.player).ignoresSafeArea()
 
@@ -72,18 +77,18 @@ struct TVView: View {
             // channel-change flash (centre).
             if !engine.dialing.isEmpty {
                 Text(engine.dialing)
-                    .font(.system(size: 64, weight: .heavy, design: .monospaced))
+                    .font(.system(size: 64 * s, weight: .heavy, design: .monospaced))
                     .foregroundStyle(.white)
-                    .padding(.horizontal, 28).padding(.vertical, 14)
+                    .padding(.horizontal, 28 * s).padding(.vertical, 14 * s)
                     .background(.black.opacity(0.6)).clipShape(RoundedRectangle(cornerRadius: 12))
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
-                    .padding(40)
+                    .padding(40 * s)
             }
             if let f = engine.flash {
                 Text(f)
-                    .font(.system(size: 68, weight: .heavy, design: .monospaced))
+                    .font(.system(size: 68 * s, weight: .heavy, design: .monospaced))
                     .foregroundStyle(Palette.amber)
-                    .padding(30)
+                    .padding(30 * s)
                     .background(.black.opacity(0.55)).clipShape(RoundedRectangle(cornerRadius: 14))
             }
             VStack {
@@ -111,95 +116,109 @@ struct TVView: View {
                         .padding(.top, 10)
                 }
                 Spacer()
-                // The banner reveals on a channel/program change or a key press,
-                // then fades so the picture is unobstructed while you watch.
+            }
+            .padding(.horizontal, 24 * s)
+            .padding(.top, 12 * s)
+
+            // The banner reveals on a channel/program change or a key press, then
+            // fades so the picture is unobstructed. A wide lower-third band.
+            VStack {
+                Spacer()
                 if engine.bannerVisible {
                     if let airing = engine.now {
-                        BannerView(engine: engine, airing: airing).transition(.opacity)
+                        BannerView(engine: engine, airing: airing, s: s)
+                            .transition(.opacity)
                     } else if !engine.status.isEmpty {
                         Text(engine.status)
                             .font(.system(.headline, design: .monospaced))
                             .foregroundStyle(Palette.dim)
+                            .padding(.bottom, 40 * s)
                     }
                 }
             }
-            .padding(.horizontal, 24)
-            .padding(.top, 12)
-            .padding(.bottom, 44)
+            .padding(.horizontal, 28 * s)
+            .padding(.bottom, 36 * s)
             .animation(.easeInOut(duration: 0.3), value: engine.bannerVisible)
         }
     }
 
-    // Top: the live picture beside a NOW PLAYING panel. Bottom: the grid guide.
-    private var guideLayout: some View {
-        VStack(spacing: 12) {
-            HStack(spacing: 12) {
-                VideoLayer(player: engine.player)
-                    .aspectRatio(16.0 / 9.0, contentMode: .fit)
-                    .frame(maxWidth: 460)
-                    .clipShape(RoundedRectangle(cornerRadius: 8))
-                    .overlay(RoundedRectangle(cornerRadius: 8).stroke(Palette.amber, lineWidth: 3))
-                NowPlayingPanel(engine: engine)
-            }
-            .frame(height: 210)
-            .padding(.horizontal, 12)
-            .padding(.top, 12)
+    // Top: the live picture beside a NOW PLAYING panel, on black. Bottom: the
+    // blue grid guide, full-bleed to the edges — the reference layout.
+    private func guideLayout(s: CGFloat) -> some View {
+        GeometryReader { geo in
+            VStack(spacing: 14 * s) {
+                HStack(spacing: 16 * s) {
+                    VideoLayer(player: engine.player)
+                        .aspectRatio(16.0 / 9.0, contentMode: .fit)
+                        .border(Palette.amber, width: 3)
+                    NowPlayingPanel(engine: engine, s: s)
+                }
+                .frame(height: geo.size.height * 0.34)
+                .padding(.horizontal, 16 * s)
+                .padding(.top, 14 * s)
 
-            GuideView(engine: engine)
+                GuideView(engine: engine, s: s)
+            }
         }
-        .background(
-            LinearGradient(colors: [Palette.prevue1, Palette.prevue2],
-                           startPoint: .top, endPoint: .bottom)
-        )
     }
 }
 
+/// The channel banner — a wide lower-third band: big amber channel number and
+/// name, the programme title, and a right column of clock / air-time / NEXT.
 struct BannerView: View {
     @ObservedObject var engine: Engine
     let airing: Airing
+    var s: CGFloat = 1
 
     private var episodeTag: String {
-        guard let s = airing.program.seasonNo, let e = airing.program.episodeNo else { return "" }
-        return String(format: "S%02dE%02d  ", s, e)
+        guard let se = airing.program.seasonNo, let ep = airing.program.episodeNo else { return "" }
+        return String(format: "S%02dE%02d  ", se, ep)
     }
 
     var body: some View {
         HStack(spacing: 0) {
-            Rectangle().fill(Palette.amber).frame(width: 5)
-            VStack(alignment: .leading, spacing: 8) {
-                // Row 1: channel · clock
-                HStack(alignment: .firstTextBaseline, spacing: 12) {
-                    Text(String(format: "%02d", engine.channelNumber))
-                        .font(.system(size: 34, weight: .heavy)).foregroundStyle(Palette.amber)
-                    Text(engine.channelName.uppercased())
-                        .font(.system(.caption, design: .monospaced)).foregroundStyle(Palette.dim)
-                    Spacer()
-                    Text(hhmm(engine.wallClock))
-                        .font(.system(.caption, design: .monospaced)).foregroundStyle(Palette.dim)
-                }
-                // Row 2: title · time range
-                HStack(alignment: .firstTextBaseline) {
-                    Text(airing.program.title)
-                        .font(.system(size: 24, weight: .semibold)).foregroundStyle(.white).lineLimit(1)
-                    Spacer(minLength: 16)
-                    Text("\(hhmm(airing.program.startUtc)) – \(hhmm(airing.program.endUtc))")
-                        .font(.system(.subheadline, design: .monospaced)).foregroundStyle(Palette.amber)
-                        .fixedSize()
-                }
-                // Row 3: episode · NEXT
-                HStack(alignment: .firstTextBaseline) {
-                    if let sub = airing.program.subtitle {
-                        Text(episodeTag + sub).font(.subheadline).foregroundStyle(Palette.dim).lineLimit(1)
+            Rectangle().fill(Palette.amber).frame(width: 6 * s)
+            HStack(alignment: .center, spacing: 0) {
+                VStack(alignment: .leading, spacing: 10 * s) {
+                    HStack(alignment: .firstTextBaseline, spacing: 16 * s) {
+                        Text(String(format: "%02d", engine.channelNumber))
+                            .font(.system(size: 52 * s, weight: .heavy)).foregroundStyle(Palette.amber)
+                        Text(engine.channelName.uppercased())
+                            .font(.system(size: 22 * s, weight: .heavy)).foregroundStyle(.white)
+                            .shadow(color: .black.opacity(0.6), radius: 2, y: 1)
                     }
-                    Spacer(minLength: 16)
+                    Text(airing.program.title)
+                        .font(.system(size: 36 * s, weight: .bold)).foregroundStyle(.white)
+                        .lineLimit(1).minimumScaleFactor(0.6)
+                    if let sub = airing.program.subtitle {
+                        Text(episodeTag + sub)
+                            .font(.system(size: 20 * s)).foregroundStyle(Color(white: 0.88))
+                            .lineLimit(1)
+                    }
+                }
+                Spacer(minLength: 24 * s)
+                VStack(alignment: .trailing, spacing: 12 * s) {
+                    Text(hhmm(engine.wallClock))
+                        .font(.system(size: 28 * s, weight: .semibold)).foregroundStyle(.white)
+                    Text("\(hhmm(airing.program.startUtc)) – \(hhmm(airing.program.endUtc))")
+                        .font(.system(size: 20 * s, weight: .semibold)).foregroundStyle(Palette.amber)
                     if let n = engine.nextUp {
-                        Text("NEXT  \(n.title)").font(.subheadline).foregroundStyle(Palette.dim).lineLimit(1)
+                        HStack(spacing: 10 * s) {
+                            Text("NEXT").foregroundStyle(Color(white: 0.7))
+                            Text(n.title).foregroundStyle(.white)
+                        }
+                        .font(.system(size: 19 * s, weight: .semibold))
+                        .lineLimit(1)
                     }
                 }
             }
-            .padding(16)
+            .padding(.horizontal, 30 * s).padding(.vertical, 22 * s)
         }
-        .background(.black.opacity(0.72))
-        .clipShape(RoundedRectangle(cornerRadius: 4))
+        .frame(maxWidth: .infinity)
+        // Hug the content height — without this the amber bar (a greedy
+        // Rectangle) stretches the band to fill the whole screen.
+        .fixedSize(horizontal: false, vertical: true)
+        .background(.black.opacity(0.66))
+        .clipShape(RoundedRectangle(cornerRadius: 6 * s))
     }
 }

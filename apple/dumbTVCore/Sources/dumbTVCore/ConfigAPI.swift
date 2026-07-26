@@ -8,6 +8,7 @@ import Foundation
 public final class ConfigAPI {
     let store: Store
     let plex: PlexClient
+    let packProgress = PackProgressBox()   // Track I pack-install progress (thread-safe)
     public init(store: Store, plex: PlexClient = PlexClient()) {
         self.store = store
         self.plex = plex
@@ -108,6 +109,12 @@ public final class ConfigAPI {
         case ("DELETE", 2) where s[0] == "rules":    return deleteRule(s[1])
         case ("GET", 2) where s[0] == "config" && s[1] == "export": return exportConfig()
 
+        // --- content packs (Track I) ---
+        case ("GET", 1) where s[0] == "packs":                       return packsList()
+        case ("POST", 3) where s[0] == "packs" && s[2] == "install": return await packInstall(s[1])
+        case ("POST", 3) where s[0] == "packs" && s[2] == "channel": return packCreateChannel(s[1], req)
+        case ("DELETE", 2) where s[0] == "packs":                    return packDelete(s[1])
+
         case ("POST", 3) where s[0] == "channels" && s[2] == "sources":  return await addSources(s[1], req)
         case ("POST", 3) where s[0] == "channels" && s[2] == "refresh":  return await refreshChannel(s[1])
         case ("GET", 3) where s[0] == "channels" && s[2] == "excludes":  return getExcludes(s[1])
@@ -174,6 +181,15 @@ public final class ConfigAPI {
         }
     }
 
+    /// Proxy a Plex image (poster) for the web UI. Returns bytes + content type,
+    /// or nil. The server serves this at `/api/image?path=…` so the browser
+    /// never handles the Plex token.
+    public func fetchImage(path: String) async -> (Data, String)? {
+        await ensurePlexConfigured()
+        guard let data = (try? await plex.imageData(path: path)) ?? nil else { return nil }
+        return (data, "image/jpeg")
+    }
+
     private func nowMs() -> Int64 { Int64(Date().timeIntervalSince1970 * 1000) }
 
     static func orderingLabel(_ m: OrderingMode) -> String {
@@ -196,6 +212,9 @@ public final class ConfigAPI {
     // MARK: - status
 
     private func status() -> Response {
+        // D3: the web config UI was opened (it polls /api/status) — retire the
+        // on-TV setup card. Set once; the player watches this flag each tick.
+        if store.getSetting("setup_seen") == nil { store.setSetting("setup_seen", "1") }
         // The web UI reads `server` to advance past server-pick to library browse
         // (and to show the unlink button). Mirror the Node shape.
         var server: Any = NSNull()
@@ -247,7 +266,7 @@ public final class ConfigAPI {
             marathonSize: b.int("marathonSize") ?? 3,
             shuffleSeed: UInt32.random(in: 1...UInt32.max),
             darkStart: b.string("darkStart"), darkEnd: b.string("darkEnd"),
-            adsEnabled: b.bool("adsEnabled") ?? true,
+            adsEnabled: b.bool("adsEnabled") ?? false,   // ads OFF by default
             maxAdsPerBreak: b.int("maxAdsPerBreak") ?? 10,
             adTags: b.string("adTags") ?? "")
         let id = store.insertChannel(c)
@@ -761,7 +780,13 @@ public final class ConfigAPI {
         do {
             let items = try await plex.sectionItems(key: key, type: type)
             return .ok(["items": items.map { i -> [String: Any] in
-                ["ratingKey": i.ratingKey, "title": i.title, "type": i.type, "thumb": i.thumb ?? NSNull()]
+                var o: [String: Any] = ["ratingKey": i.ratingKey, "title": i.title,
+                                        "type": i.type, "thumb": i.thumb ?? NSNull()]
+                // A browser-loadable poster URL, proxied so no Plex token leaks.
+                if let t = i.thumb, let enc = t.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) {
+                    o["image"] = "/api/image?path=\(enc)"
+                }
+                return o
             }])
         } catch { return Response(502, ["error": "Couldn't reach your Plex server: \(error.localizedDescription)"]) }
     }

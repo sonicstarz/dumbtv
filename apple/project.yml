@@ -17,7 +17,7 @@ settings:
   base:
     SWIFT_VERSION: "5.0"
     MARKETING_VERSION: "1.1.0"
-    CURRENT_PROJECT_VERSION: "6"
+    CURRENT_PROJECT_VERSION: "9"
     GENERATE_INFOPLIST_FILE: YES
     INFOPLIST_FILE: Info-shared.plist          # base for ATS; Xcode merges generated keys on top
     # dumbTV reaches the user's Plex server and serves its own setup page on the
@@ -45,6 +45,29 @@ targetTemplates:
           cp "${SRCROOT}/../public/index.html" \
              "${SRCROOT}/../public/app.js" \
              "${SRCROOT}/../public/style.css" "$DEST/"
+      # Bundle preload content packs (Track I). A pack ships in the binary when
+      # its source dir has a PRELOAD marker AND has been built (dist/pack.json).
+      # Copied at build time so folder structure is preserved (no resource
+      # flattening → no pack.json collisions). Not built yet? Skip gracefully.
+      - name: Bundle content packs
+        basedOnDependencyAnalysis: false
+        script: |
+          DEST="${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/packs"
+          rm -rf "$DEST"; mkdir -p "$DEST"
+          # The download catalog (fallback for the pack picker when dumbtv.app is unreachable).
+          [ -f "${SRCROOT}/../packs/index.json" ] && cp "${SRCROOT}/../packs/index.json" "$DEST/"
+          for marker in "${SRCROOT}/../packs"/*/PRELOAD; do
+            [ -e "$marker" ] || continue
+            pid="$(basename "$(dirname "$marker")")"
+            src="${SRCROOT}/../packs/$pid/dist"
+            if [ -f "$src/pack.json" ]; then
+              mkdir -p "$DEST/$pid"
+              cp "$src"/*.mp4 "$src/pack.json" "$DEST/$pid/" 2>/dev/null || true
+              echo "note: bundled content pack '$pid'"
+            else
+              echo "warning: preload pack '$pid' not built (run: npm run build-pack build $pid) — skipping"
+            fi
+          done
 
 targets:
   dumbTV-iOS:

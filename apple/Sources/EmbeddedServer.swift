@@ -73,6 +73,12 @@ final class EmbeddedServer {
     }
 
     private func buildResponse(_ req: HTTPRequest) async -> (Int, String, Data, String?) {
+        // Poster proxy — returns raw image bytes (not JSON) so the browser can
+        // <img src> Plex artwork without ever seeing the token.
+        if req.path == "/api/image", let p = req.query["path"] {
+            if let (data, ct) = await api.fetchImage(path: p) { return (200, ct, data, nil) }
+            return (404, "text/plain", Data("no image".utf8), nil)
+        }
         if req.path.hasPrefix("/api/") {
             let jsonBody = req.body.flatMap { try? JSONSerialization.jsonObject(with: $0) as? [String: Any] }
             let apiReq = ConfigAPI.Request(method: req.method, path: req.path, query: req.query,

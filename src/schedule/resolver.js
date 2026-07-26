@@ -1,5 +1,6 @@
 import { db } from '../db.js';
 import { streamUrl } from '../media/backend.js';
+import { resolvePackPath } from '../packs/install.js';
 import { HOUR } from '../util/time.js';
 
 const qNow = db.prepare(`
@@ -64,6 +65,14 @@ function decorate(row, at) {
         out.source = `/api/local?p=${encodeURIComponent(p)}`;
         out.localPath = p;
         out.playable = true;
+      } else if (m.part_key.startsWith('pack:')) {
+        // A curated content pack (Track I) — resolves to a local file.
+        const abs = resolvePackPath(m.part_key);
+        if (abs) {
+          out.source = `/api/local?p=${encodeURIComponent(abs)}`;
+          out.localPath = abs;
+          out.playable = true;
+        }
       } else {
         try {
           out.source = streamUrl(m.part_key);
@@ -84,6 +93,14 @@ function decorate(row, at) {
         out.playable = true;
       } catch {
         out.source = null;
+      }
+    } else if (a && a.path && a.path.startsWith('pack:')) {
+      // A commercial from a content pack (Track I) — resolves to a local file.
+      const abs = resolvePackPath(a.path);
+      if (abs) {
+        out.source = `/api/local?p=${encodeURIComponent(abs)}`;
+        out.localPath = abs;
+        out.playable = true;
       }
     } else if (a) {
       out.source = `/api/local?p=${encodeURIComponent(a.path)}`;

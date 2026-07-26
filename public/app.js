@@ -53,6 +53,7 @@ $$('.navlink[data-view]').forEach((btn) =>
     $$('.view').forEach((v) => v.classList.remove('active'));
     $(`#view-${btn.dataset.view}`).classList.add('active');
     if (btn.dataset.view === 'guide') loadGuide();
+    if (btn.dataset.view === 'packs') loadPacks();
     if (btn.dataset.view === 'commercials') { loadAssets(); loadAdSections(); }
     if (btn.dataset.view === 'setup') loadSetup();
     if (btn.dataset.view === 'schedule') loadSchedule();
@@ -1090,8 +1091,8 @@ async function openPicker(channelId) {
         <select id="pSection" style="width:100%"><option>Loading…</option></select>
       </div>
       <div class="field" style="flex:1">
-        <label>FILTER</label>
-        <input id="pFilter" placeholder="Type to narrow it down" style="width:100%">
+        <label>SEARCH</label>
+        <input id="pFilter" placeholder="Search shows and movies" style="width:100%">
       </div>
     </div>
     <div class="picker-grid" id="pGrid"><div style="color:var(--dim);padding:20px">Loading…</div></div>
@@ -1315,6 +1316,69 @@ async function loadGuide() {
 }
 
 // ---------------------------------------------------------------- assets
+
+// ---------------------------------------------------------------- channel packs
+
+async function loadPacks() {
+  const host = $('#packList');
+  if (!host.children.length) host.innerHTML = '<p class="hint">Loading…</p>';
+  let data;
+  try { data = await api('/api/packs'); }
+  catch (e) { host.innerHTML = `<p class="hint">${escapeHtml(e.message)}</p>`; return; }
+  if (!data.packs.length) { host.innerHTML = '<p class="hint">No packs available.</p>'; return; }
+  host.innerHTML = data.packs.map(packCard).join('');
+  host.querySelectorAll('[data-pack-install]').forEach((b) => (b.onclick = () => packInstall(b.dataset.packInstall)));
+  host.querySelectorAll('[data-pack-channel]').forEach((b) => (b.onclick = () => packChannel(b.dataset.packChannel)));
+  host.querySelectorAll('[data-pack-remove]').forEach((b) => (b.onclick = () => packRemove(b.dataset.packRemove)));
+  // Keep the view live while a download runs.
+  clearTimeout(loadPacks._t);
+  if (data.packs.some((p) => p.progress && p.progress.state === 'downloading')) {
+    loadPacks._t = setTimeout(loadPacks, 1500);
+  }
+}
+
+function packCard(p) {
+  const size = p.downloadBytes ? `${Math.round(p.downloadBytes / 1e6)} MB` : '';
+  const runtime = p.runtimeMs ? `${Math.round(p.runtimeMs / 60000)} min` : '';
+  const meta = [`${p.itemCount} ${p.kind === 'ads' ? 'spots' : 'items'}`, runtime, size]
+    .filter(Boolean).join(' · ');
+  const prog = p.progress;
+  let actions;
+  if (prog && prog.state === 'downloading') {
+    actions = `<span class="pack-state">Downloading ${prog.done}/${prog.total}…</span>`;
+  } else if (prog && prog.state === 'error') {
+    actions = `<span class="pack-state bad">Failed</span> <button class="ghost" data-pack-install="${p.id}">Retry</button>`;
+  } else if (!p.installed) {
+    actions = `<button class="primary" data-pack-install="${p.id}">Install${size ? ` · ${size}` : ''}</button>`;
+  } else if (p.kind === 'ads') {
+    actions = `<span class="pack-state ok">Ad content added ✓</span> <button class="ghost" data-pack-remove="${p.id}">Remove</button>`;
+  } else if (p.hasChannel) {
+    actions = `<span class="pack-state ok">Channel added ✓</span> <button class="ghost" data-pack-remove="${p.id}">Remove</button>`;
+  } else {
+    actions = `<button class="primary" data-pack-channel="${p.id}">Create channel</button> <button class="ghost" data-pack-remove="${p.id}">Remove</button>`;
+  }
+  return `<div class="packcard">
+    <div>
+      <div class="packcard-name">${escapeHtml(p.name)}</div>
+      <div class="packcard-desc">${escapeHtml(p.description || '')}</div>
+      <div class="packcard-meta">${escapeHtml(meta)}</div>
+    </div>
+    <div class="packcard-actions">${actions}</div>
+  </div>`;
+}
+
+async function packInstall(id) {
+  try { await api(`/api/packs/${id}/install`, { method: 'POST' }); toast('Downloading pack…'); loadPacks(); }
+  catch (e) { toast(e.message, true); }
+}
+async function packChannel(id) {
+  try { await api(`/api/packs/${id}/channel`, { method: 'POST', body: {} }); toast('Channel created — it’s on the air'); loadPacks(); }
+  catch (e) { toast(e.message, true); }
+}
+async function packRemove(id) {
+  try { await api(`/api/packs/${id}`, { method: 'DELETE' }); toast('Pack removed'); loadPacks(); }
+  catch (e) { toast(e.message, true); }
+}
 
 async function loadAssets() {
   const data = await api('/api/assets');

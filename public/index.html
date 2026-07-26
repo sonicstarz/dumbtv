@@ -25,6 +25,7 @@
   <nav class="rail">
     <h2>OPERATE</h2>
     <button class="navlink active" data-view="channels">Channels <span class="badge" id="navChannels"></span></button>
+    <button class="navlink" data-view="packs">Channel Packs</button>
     <button class="navlink" data-view="guide">Guide</button>
     <button class="navlink" data-view="schedule">Schedule</button>
     <button class="navlink" data-view="calendar">Calendar</button>
@@ -59,6 +60,13 @@
       <button class="ghost" id="suggestChannel" data-native-hide title="Needs an LLM configured in Settings">✨ Suggest a channel</button>
       <button class="ghost" id="rebuildAll">Rebuild all schedules</button>
       <p class="hint">Rebuilding leaves whatever is currently airing alone and only changes what hasn't aired yet.</p>
+    </section>
+
+    <!-- ---------------- channel packs ---------------- -->
+    <section class="view" id="view-packs">
+      <h2 class="title">Channel Packs</h2>
+      <p class="hint">Curated public-domain channels — no Plex needed. Install one and it's on the air.</p>
+      <div id="packList" class="packlist"></div>
     </section>
 
     <!-- ---------------- guide ---------------- -->

@@ -430,6 +430,11 @@ public final class Store {
       kind TEXT NOT NULL, duration_ms INTEGER NOT NULL, tags TEXT NOT NULL DEFAULT '',
       rating_key TEXT, part_key TEXT, gain_db REAL);
 
+    CREATE TABLE IF NOT EXISTS packs (
+      id TEXT PRIMARY KEY, name TEXT NOT NULL, version INTEGER NOT NULL DEFAULT 1,
+      kind TEXT NOT NULL DEFAULT 'shows', origin TEXT NOT NULL DEFAULT 'downloaded',
+      root_path TEXT NOT NULL, installed_at INTEGER NOT NULL);
+
     CREATE TABLE IF NOT EXISTS programs (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       channel_id INTEGER NOT NULL REFERENCES channels(id) ON DELETE CASCADE,

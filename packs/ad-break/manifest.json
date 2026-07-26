@@ -1,0 +1,27 @@
+{
+  "id": "ad-break",
+  "name": "AD BREAK",
+  "version": 1,
+  "kind": "ads",
+  "description": "Period commercials & PSAs for the retro ad-pod system. NOTE: stub — expand with true 30–60s spots (this seed is longer sponsored ads).",
+  "encode": {
+    "height": 480,
+    "crf": 28,
+    "preset": "fast",
+    "abitrate": "96k"
+  },
+  "items": [
+    {
+      "id": "ford-wonderful-new-world-1960",
+      "title": "Wonderful New World of Fords (1960)",
+      "source": {
+        "iaIdentifier": "Wonderfu1960"
+      },
+      "license": {
+        "url": "http://creativecommons.org/licenses/publicdomain/",
+        "verified": "2026-07-26",
+        "note": "Prelinger-collection sponsored spot; IA item carries a public-domain license mark."
+      }
+    }
+  ]
+}

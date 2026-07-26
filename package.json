@@ -15,7 +15,9 @@
     "demo": "node scripts/demo.js",
     "demo-ads": "node scripts/make-demo-ads.js",
     "selftest": "node scripts/selftest.js",
-    "reset": "node scripts/reset.js"
+    "reset": "node scripts/reset.js",
+    "build-pack": "node scripts/build-pack.js",
+    "install-starter-packs": "node scripts/install-starter-packs.js"
   },
   "keywords": [
     "plex",

@@ -1,0 +1,408 @@
+{
+  "version": 1,
+  "packs": [
+    {
+      "id": "ad-break",
+      "name": "AD BREAK",
+      "kind": "ads",
+      "description": "Period commercials & PSAs for the retro ad-pod system. NOTE: stub — expand with true 30–60s spots (this seed is longer sponsored ads).",
+      "channel": null,
+      "itemCount": 1,
+      "runtimeMs": 181880,
+      "downloadBytes": 12983304,
+      "items": [
+        {
+          "id": "ford-wonderful-new-world-1960",
+          "title": "Wonderful New World of Fords (1960)",
+          "show": null,
+          "season": null,
+          "episode": null,
+          "aired": null,
+          "durationMs": 181880,
+          "file": "ford-wonderful-new-world-1960.mp4",
+          "url": "https://archive.org/download/Wonderfu1960/Wonderfu1960_512kb.mp4",
+          "bytes": 12983304,
+          "license": {
+            "url": "http://creativecommons.org/licenses/publicdomain/",
+            "verified": "2026-07-26",
+            "note": "Prelinger-collection sponsored spot; IA item carries a public-domain license mark."
+          }
+        }
+      ]
+    },
+    {
+      "id": "saturday-morning",
+      "name": "SATURDAY MORNING",
+      "kind": "shows",
+      "description": "Public-domain golden-age cartoons — Betty Boop and friends.",
+      "channel": {
+        "number": 7,
+        "name": "SATURDAY MORNING",
+        "ordering": "shuffle",
+        "seed": 17007
+      },
+      "itemCount": 3,
+      "runtimeMs": 1248390,
+      "downloadBytes": 91627937,
+      "items": [
+        {
+          "id": "bb-minnie-the-moocher",
+          "title": "Minnie the Moocher",
+          "show": "Betty Boop",
+          "season": 1,
+          "episode": 1,
+          "aired": "1932-03-11",
+          "durationMs": 466490,
+          "file": "bb-minnie-the-moocher.mp4",
+          "url": "https://archive.org/download/bb_minnie_the_moocher/bb_minnie_the_moocher_512kb.mp4",
+          "bytes": 34262668,
+          "license": {
+            "url": "https://archive.org/details/bb_minnie_the_moocher",
+            "verified": "2026-07-26",
+            "note": "Fleischer/Paramount Betty Boop short; copyright not renewed → US public domain. IA item carries a public-domain mark."
+          }
+        },
+        {
+          "id": "bb-old-man-of-the-mountain",
+          "title": "The Old Man of the Mountain",
+          "show": "Betty Boop",
+          "season": 1,
+          "episode": 2,
+          "aired": "1933-08-04",
+          "durationMs": 412600,
+          "file": "bb-old-man-of-the-mountain.mp4",
+          "url": "https://archive.org/download/bb_old_man_of_the_mountain/bb_old_man_of_the_mountain_512kb.mp4",
+          "bytes": 29991350,
+          "license": {
+            "url": "https://archive.org/details/bb_old_man_of_the_mountain",
+            "verified": "2026-07-26",
+            "note": "Fleischer/Paramount Betty Boop short; copyright not renewed → US public domain. IA item carries a public-domain mark."
+          }
+        },
+        {
+          "id": "bb-house-cleaning-blues",
+          "title": "House Cleaning Blues",
+          "show": "Betty Boop",
+          "season": 1,
+          "episode": 3,
+          "aired": "1937-05-14",
+          "durationMs": 369300,
+          "file": "bb-house-cleaning-blues.mp4",
+          "url": "https://archive.org/download/bb_house_cleaning_blues/bb_house_cleaning_blues_512kb.mp4",
+          "bytes": 27373919,
+          "license": {
+            "url": "https://archive.org/details/bb_house_cleaning_blues",
+            "verified": "2026-07-26",
+            "note": "Fleischer/Paramount Betty Boop short; copyright not renewed → US public domain. IA item carries a CC public-domain license."
+          }
+        }
+      ]
+    },
+    {
+      "id": "superman",
+      "name": "SUPERMAN",
+      "kind": "shows",
+      "description": "The 17 Fleischer/Famous Technicolor Superman shorts (1941–43).",
+      "channel": {
+        "number": 6,
+        "name": "SUPERMAN",
+        "ordering": "release_order",
+        "seed": 16006
+      },
+      "itemCount": 17,
+      "runtimeMs": 8792680,
+      "downloadBytes": 2648711375,
+      "items": [
+        {
+          "id": "the-mad-scientist",
+          "title": "The Mad Scientist",
+          "show": "Superman",
+          "season": 1,
+          "episode": 1,
+          "aired": "1941-09-26",
+          "durationMs": 628260,
+          "file": "the-mad-scientist.mp4",
+          "url": "https://archive.org/download/fleischer-superman/Max%20Fleischer's%20Superman%20(1941%3B%20HD).mp4",
+          "bytes": 208252732,
+          "license": {
+            "url": "https://en.wikipedia.org/wiki/Superman_(1940s_animated_film_series)#Copyright_status",
+            "verified": "2026-07-26",
+            "note": "National Comics failed to renew the shorts (late 1960s) → US public domain. Character/trademark is WB/DC — play the films, never use Superman for dumbTV marketing."
+          }
+        },
+        {
+          "id": "mechanical-monsters",
+          "title": "The Mechanical Monsters",
+          "show": "Superman",
+          "season": 1,
+          "episode": 2,
+          "aired": "1941-11-28",
+          "durationMs": 616000,
+          "file": "mechanical-monsters.mp4",
+          "url": "https://archive.org/download/fleischer-superman/Max%20Fleischer's%20Superman%EF%BC%9A%20The%20Mechanical%20Monsters%20(1941%3B%20HD).mp4",
+          "bytes": 207212345,
+          "license": {
+            "url": "https://en.wikipedia.org/wiki/Superman_(1940s_animated_film_series)#Copyright_status",
+            "verified": "2026-07-26",
+            "note": "National Comics failed to renew the shorts (late 1960s) → US public domain. Character/trademark is WB/DC — play the films, never use Superman for dumbTV marketing."
+          }
+        },
+        {
+          "id": "billion-dollar-limited",
+          "title": "Billion Dollar Limited",
+          "show": "Superman",
+          "season": 1,
+          "episode": 3,
+          "aired": "1942-01-09",
+          "durationMs": 516780,
+          "file": "billion-dollar-limited.mp4",
+          "url": "https://archive.org/download/fleischer-superman/Max%20Fleischer's%20Superman%EF%BC%9A%20Billion%20Dollar%20Limited%20(1942%3B%20HD).mp4",
+          "bytes": 145849894,
+          "license": {
+            "url": "https://en.wikipedia.org/wiki/Superman_(1940s_animated_film_series)#Copyright_status",
+            "verified": "2026-07-26",
+            "note": "National Comics failed to renew the shorts (late 1960s) → US public domain. Character/trademark is WB/DC — play the films, never use Superman for dumbTV marketing."
+          }
+        },
+        {
+          "id": "arctic-giant",
+          "title": "The Arctic Giant",
+          "show": "Superman",
+          "season": 1,
+          "episode": 4,
+          "aired": "1942-02-27",
+          "durationMs": 516480,
+          "file": "arctic-giant.mp4",
+          "url": "https://archive.org/download/fleischer-superman/Max%20Fleischer's%20Superman%EF%BC%9A%20The%20Arctic%20Giant%20(1942%3B%20HD).mp4",
+          "bytes": 198711706,
+          "license": {
+            "url": "https://en.wikipedia.org/wiki/Superman_(1940s_animated_film_series)#Copyright_status",
+            "verified": "2026-07-26",
+            "note": "National Comics failed to renew the shorts (late 1960s) → US public domain. Character/trademark is WB/DC — play the films, never use Superman for dumbTV marketing."
+          }
+        },
+        {
+          "id": "bulleteers",
+          "title": "The Bulleteers",
+          "show": "Superman",
+          "season": 1,
+          "episode": 5,
+          "aired": "1942-03-27",
+          "durationMs": 484830,
+          "file": "bulleteers.mp4",
+          "url": "https://archive.org/download/fleischer-superman/Max%20Fleischer's%20Superman%EF%BC%9A%20The%20Bulleteers%20(1942%3B%20HD).mp4",
+          "bytes": 156918961,
+          "license": {
+            "url": "https://en.wikipedia.org/wiki/Superman_(1940s_animated_film_series)#Copyright_status",
+            "verified": "2026-07-26",
+            "note": "National Comics failed to renew the shorts (late 1960s) → US public domain. Character/trademark is WB/DC — play the films, never use Superman for dumbTV marketing."
+          }
+        },
+        {
+          "id": "magnetic-telescope",
+          "title": "The Magnetic Telescope",
+          "show": "Superman",
+          "season": 1,
+          "episode": 6,
+          "aired": "1942-04-24",
+          "durationMs": 460520,
+          "file": "magnetic-telescope.mp4",
+          "url": "https://archive.org/download/fleischer-superman/Max%20Fleischer's%20Superman%EF%BC%9A%20The%20Magnetic%20Telescope%20(1942%3B%20HD).mp4",
+          "bytes": 137526868,
+          "license": {
+            "url": "https://en.wikipedia.org/wiki/Superman_(1940s_animated_film_series)#Copyright_status",
+            "verified": "2026-07-26",
+            "note": "National Comics failed to renew the shorts (late 1960s) → US public domain. Character/trademark is WB/DC — play the films, never use Superman for dumbTV marketing."
+          }
+        },
+        {
+          "id": "electric-earthquake",
+          "title": "Electric Earthquake",
+          "show": "Superman",
+          "season": 1,
+          "episode": 7,
+          "aired": "1942-05-15",
+          "durationMs": 524910,
+          "file": "electric-earthquake.mp4",
+          "url": "https://archive.org/download/fleischer-superman/Max%20Fleischer's%20Superman%EF%BC%9A%20The%20Electric%20Earthquake%20(1942%3B%20HD).mp4",
+          "bytes": 169142171,
+          "license": {
+            "url": "https://en.wikipedia.org/wiki/Superman_(1940s_animated_film_series)#Copyright_status",
+            "verified": "2026-07-26",
+            "note": "National Comics failed to renew the shorts (late 1960s) → US public domain. Character/trademark is WB/DC — play the films, never use Superman for dumbTV marketing."
+          }
+        },
+        {
+          "id": "volcano",
+          "title": "Volcano",
+          "show": "Superman",
+          "season": 1,
+          "episode": 8,
+          "aired": "1942-07-10",
+          "durationMs": 477400,
+          "file": "volcano.mp4",
+          "url": "https://archive.org/download/fleischer-superman/Max%20Fleischer's%20Superman%EF%BC%9A%20Volcano%20(1942%3B%20HD).mp4",
+          "bytes": 198368693,
+          "license": {
+            "url": "https://en.wikipedia.org/wiki/Superman_(1940s_animated_film_series)#Copyright_status",
+            "verified": "2026-07-26",
+            "note": "National Comics failed to renew the shorts (late 1960s) → US public domain. Character/trademark is WB/DC — play the films, never use Superman for dumbTV marketing."
+          }
+        },
+        {
+          "id": "terror-on-the-midway",
+          "title": "Terror on the Midway",
+          "show": "Superman",
+          "season": 1,
+          "episode": 9,
+          "aired": "1942-08-28",
+          "durationMs": 502430,
+          "file": "terror-on-the-midway.mp4",
+          "url": "https://archive.org/download/fleischer-superman/Max%20Fleischer's%20Superman%EF%BC%9A%20Terror%20on%20the%20Midway%20(1942%3B%20HD).mp4",
+          "bytes": 145888010,
+          "license": {
+            "url": "https://en.wikipedia.org/wiki/Superman_(1940s_animated_film_series)#Copyright_status",
+            "verified": "2026-07-26",
+            "note": "National Comics failed to renew the shorts (late 1960s) → US public domain. Character/trademark is WB/DC — play the films, never use Superman for dumbTV marketing."
+          }
+        },
+        {
+          "id": "japoteurs",
+          "title": "Japoteurs",
+          "show": "Superman",
+          "season": 1,
+          "episode": 10,
+          "aired": "1942-09-18",
+          "durationMs": 547160,
+          "file": "japoteurs.mp4",
+          "url": "https://archive.org/download/fleischer-superman/Max%20Fleischer's%20Superman%EF%BC%9A%20Japoteurs%20(1942%3B%20HD).mp4",
+          "bytes": 151872769,
+          "license": {
+            "url": "https://en.wikipedia.org/wiki/Superman_(1940s_animated_film_series)#Copyright_status",
+            "verified": "2026-07-26",
+            "note": "National Comics failed to renew the shorts (late 1960s) → US public domain. Character/trademark is WB/DC — play the films, never use Superman for dumbTV marketing."
+          }
+        },
+        {
+          "id": "showdown",
+          "title": "Showdown",
+          "show": "Superman",
+          "season": 1,
+          "episode": 11,
+          "aired": "1942-10-16",
+          "durationMs": 501550,
+          "file": "showdown.mp4",
+          "url": "https://archive.org/download/fleischer-superman/Max%20Fleischer's%20Superman%EF%BC%9A%20Showdown%20(1942%3B%20HD).mp4",
+          "bytes": 135890799,
+          "license": {
+            "url": "https://en.wikipedia.org/wiki/Superman_(1940s_animated_film_series)#Copyright_status",
+            "verified": "2026-07-26",
+            "note": "National Comics failed to renew the shorts (late 1960s) → US public domain. Character/trademark is WB/DC — play the films, never use Superman for dumbTV marketing."
+          }
+        },
+        {
+          "id": "eleventh-hour",
+          "title": "Eleventh Hour",
+          "show": "Superman",
+          "season": 1,
+          "episode": 12,
+          "aired": "1942-11-20",
+          "durationMs": 539730,
+          "file": "eleventh-hour.mp4",
+          "url": "https://archive.org/download/fleischer-superman/Max%20Fleischer's%20Superman%EF%BC%9A%20Eleventh%20Hour%20(1942%3B%20HD).mp4",
+          "bytes": 133294641,
+          "license": {
+            "url": "https://en.wikipedia.org/wiki/Superman_(1940s_animated_film_series)#Copyright_status",
+            "verified": "2026-07-26",
+            "note": "National Comics failed to renew the shorts (late 1960s) → US public domain. Character/trademark is WB/DC — play the films, never use Superman for dumbTV marketing."
+          }
+        },
+        {
+          "id": "destruction-inc",
+          "title": "Destruction, Inc.",
+          "show": "Superman",
+          "season": 1,
+          "episode": 13,
+          "aired": "1942-12-25",
+          "durationMs": 514110,
+          "file": "destruction-inc.mp4",
+          "url": "https://archive.org/download/fleischer-superman/Max%20Fleischer's%20Superman%EF%BC%9A%20Destruction%20Inc.%20(1943%3B%20HD).mp4",
+          "bytes": 126649641,
+          "license": {
+            "url": "https://en.wikipedia.org/wiki/Superman_(1940s_animated_film_series)#Copyright_status",
+            "verified": "2026-07-26",
+            "note": "National Comics failed to renew the shorts (late 1960s) → US public domain. Character/trademark is WB/DC — play the films, never use Superman for dumbTV marketing."
+          }
+        },
+        {
+          "id": "mummy-strikes",
+          "title": "The Mummy Strikes",
+          "show": "Superman",
+          "season": 1,
+          "episode": 14,
+          "aired": "1943-02-19",
+          "durationMs": 468230,
+          "file": "mummy-strikes.mp4",
+          "url": "https://archive.org/download/fleischer-superman/Max%20Fleischer's%20Superman%EF%BC%9A%20The%20Mummy%20Strikes%20(1943%3B%20HD).mp4",
+          "bytes": 120885805,
+          "license": {
+            "url": "https://en.wikipedia.org/wiki/Superman_(1940s_animated_film_series)#Copyright_status",
+            "verified": "2026-07-26",
+            "note": "National Comics failed to renew the shorts (late 1960s) → US public domain. Character/trademark is WB/DC — play the films, never use Superman for dumbTV marketing."
+          }
+        },
+        {
+          "id": "jungle-drums",
+          "title": "Jungle Drums",
+          "show": "Superman",
+          "season": 1,
+          "episode": 15,
+          "aired": "1943-03-26",
+          "durationMs": 540140,
+          "file": "jungle-drums.mp4",
+          "url": "https://archive.org/download/fleischer-superman/Max%20Fleischer's%20Superman%EF%BC%9A%20Jungle%20Drums%20(1943%3B%20HD).mp4",
+          "bytes": 141659505,
+          "license": {
+            "url": "https://en.wikipedia.org/wiki/Superman_(1940s_animated_film_series)#Copyright_status",
+            "verified": "2026-07-26",
+            "note": "National Comics failed to renew the shorts (late 1960s) → US public domain. Character/trademark is WB/DC — play the films, never use Superman for dumbTV marketing."
+          }
+        },
+        {
+          "id": "underground-world",
+          "title": "The Underground World",
+          "show": "Superman",
+          "season": 1,
+          "episode": 16,
+          "aired": "1943-06-18",
+          "durationMs": 493630,
+          "file": "underground-world.mp4",
+          "url": "https://archive.org/download/fleischer-superman/Max%20Fleischer's%20Superman%EF%BC%9A%20The%20Underground%20World%20(1943%3B%20HD).mp4",
+          "bytes": 125153342,
+          "license": {
+            "url": "https://en.wikipedia.org/wiki/Superman_(1940s_animated_film_series)#Copyright_status",
+            "verified": "2026-07-26",
+            "note": "National Comics failed to renew the shorts (late 1960s) → US public domain. Character/trademark is WB/DC — play the films, never use Superman for dumbTV marketing."
+          }
+        },
+        {
+          "id": "secret-agent",
+          "title": "Secret Agent",
+          "show": "Superman",
+          "season": 1,
+          "episode": 17,
+          "aired": "1943-07-30",
+          "durationMs": 460520,
+          "file": "secret-agent.mp4",
+          "url": "https://archive.org/download/fleischer-superman/Max%20Fleischer's%20Superman%EF%BC%9A%20Secret%20Agent%20(1943%3B%20HD).mp4",
+          "bytes": 145433493,
+          "license": {
+            "url": "https://en.wikipedia.org/wiki/Superman_(1940s_animated_film_series)#Copyright_status",
+            "verified": "2026-07-26",
+            "note": "National Comics failed to renew the shorts (late 1960s) → US public domain. Character/trademark is WB/DC — play the films, never use Superman for dumbTV marketing."
+          }
+        }
+      ]
+    }
+  ]
+}

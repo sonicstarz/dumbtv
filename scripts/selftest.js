@@ -506,8 +506,78 @@ check('hole: a schedule gap at now is backfilled, not skipped',
   (!onNowBefore || onNowBefore.kind === 'offair') && onNowAfter && onNowAfter.kind === 'episode',
   `(before: ${onNowBefore?.title || 'nothing'} → after: ${onNowAfter?.title || 'nothing'})`);
 
+// ---- content packs (Track I) ----------------------------------------------
+console.log('\nContent packs');
+const { installPack, createChannelFromPack, uninstallPack, resolvePackPath } =
+  await import('../src/packs/install.js');
+
+// A built pack is just a folder with a pack.json; scheduling needs only the
+// durations, so the test writes a manifest with no actual media files.
+const packDir = path.join(os.tmpdir(), `dumbtv-pack-${Date.now()}`);
+fs.mkdirSync(packDir, { recursive: true });
+const packManifest = {
+  id: 'testpack', name: 'TEST PACK', version: 1, kind: 'shows',
+  channel: { number: 90, name: 'TEST PACK', ordering: 'release_order', seed: 424242 },
+  items: [
+    { id: 'a', file: '01-a.mp4', title: 'Ep A', show: 'Testers', season: 1, episode: 1, aired: '1994-01-01', durationMs: 11 * MINUTE, bytes: 1, sha256: 'x' },
+    { id: 'b', file: '02-b.mp4', title: 'Ep B', show: 'Testers', season: 1, episode: 2, aired: '1994-01-02', durationMs: 9 * MINUTE, bytes: 1, sha256: 'x' },
+    { id: 'c', file: '03-c.mp4', title: 'Ep C', show: 'Testers', season: 1, episode: 3, aired: '1994-01-03', durationMs: 13 * MINUTE, bytes: 1, sha256: 'x' },
+  ],
+};
+fs.writeFileSync(path.join(packDir, 'pack.json'), JSON.stringify(packManifest));
+
+const installed = installPack(packDir, { origin: 'bundled' });
+check('pack: install registers all items as media', installed.items === 3);
+check('pack: media rows carry pack: part keys',
+  db.prepare("SELECT COUNT(*) n FROM media WHERE part_key LIKE 'pack:testpack/%'").get().n === 3);
+check('pack: resolvePackPath maps a key to a file under the pack root',
+  resolvePackPath('pack:testpack/01-a.mp4') === path.join(path.resolve(packDir), '01-a.mp4'));
+
+const { channelId: packCh } = createChannelFromPack('testpack');
+generateChannel(packCh, Date.now() + 6 * HOUR);
+const packRows = db.prepare('SELECT * FROM programs WHERE channel_id = ? ORDER BY start_utc').all(packCh);
+check('pack: channel schedules programs', packRows.length > 0);
+let packGap = false;
+for (let i = 1; i < packRows.length; i++) if (packRows[i].start_utc !== packRows[i - 1].end_utc) packGap = true;
+check('pack: schedule is gap-free', !packGap);
+const packOnNow = nowOn(packCh);
+check('pack: what airs now is playable + resolves to a local file',
+  packOnNow && packOnNow.playable && (packOnNow.localPath || '').endsWith('.mp4'),
+  `(${packOnNow?.title}, ${packOnNow?.source})`);
+
+// Reinstall is idempotent — a re-registered pack keeps the same rating_keys, so
+// regeneration stays stable on the same media. (The generator's shuffle/cycle
+// determinism itself is covered by the Plex-channel tests above; packs feed the
+// identical generate path.)
+installPack(packDir, { origin: 'bundled' });   // re-register: same rating_keys, no dupes
+check('pack: reinstall is idempotent (no duplicate media rows)',
+  db.prepare("SELECT COUNT(*) n FROM media WHERE parent_key = 'pack:testpack'").get().n === 3);
+
+// Uninstall = vanished content → media gone, aired schedule survives.
+const airedBefore = db.prepare('SELECT COUNT(*) n FROM programs WHERE channel_id = ? AND end_utc <= ?').get(packCh, Date.now()).n;
+uninstallPack('testpack');
+check('pack: uninstall removes the media rows',
+  db.prepare("SELECT COUNT(*) n FROM media WHERE parent_key = 'pack:testpack'").get().n === 0);
+check('pack: uninstall leaves already-aired programs in place (append-only)',
+  db.prepare('SELECT COUNT(*) n FROM programs WHERE channel_id = ? AND end_utc <= ?').get(packCh, Date.now()).n === airedBefore);
+fs.rmSync(packDir, { recursive: true, force: true });
+
+// ---- filename parsing (Track I, P5) ---------------------------------------
+console.log('\nFilename parsing');
+const { parseFilename } = await import('../src/media/filename.js');
+const vectors = JSON.parse(fs.readFileSync(path.join(import.meta.dirname, 'filename-vectors.json'), 'utf8'));
+for (const v of vectors) {
+  const r = parseFilename(v.file, v.folder);
+  const ok = r.kind === v.kind && r.title === v.title
+    && (v.showTitle === undefined || r.showTitle === v.showTitle)
+    && (v.seasonNo === undefined || r.seasonNo === v.seasonNo)
+    && (v.episodeNo === undefined || r.episodeNo === v.episodeNo)
+    && (v.year === undefined || r.year === v.year);
+  check(`parse: ${v.file}`, ok, JSON.stringify(r));
+}
+
 const counts = db.prepare('SELECT COUNT(*) n FROM programs').get().n;
-console.log(`\n${counts} programs across 4 channels / 2 days`);
+console.log(`\n${counts} programs across all channels`);
 console.log(`${pass} passed, ${fail} failed\n`);
 
 fs.rmSync(tmp, { force: true });

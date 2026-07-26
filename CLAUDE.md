@@ -161,3 +161,11 @@ FLIRC remote keymap, safe-area pass on real glass, prebuilt SD image.
 
 Later: printable weekly PDF guide from the same `programs` table, DVR playback,
 loudness normalisation on commercials, device sleep schedule.
+
+**Manual schedule editor** (proposed, not started) — a per-channel calendar
+view in the web UI to hand-place and move programs, instead of only deriving
+them from an ordering mode. This collides head-on with invariants #4/#5/#6
+(append-only, deterministic, natural-length blocks), so it needs a "pins"
+model rather than free row edits, plus throwaway HTML prototypes first. Full
+design + open questions: `docs/manual-schedule-editor.md`. **Do not build from
+it yet** — prototype and decide the model before touching `schedule/`.

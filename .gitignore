@@ -10,3 +10,6 @@ media/**
 # Windows packaging build output
 windows/payload/
 dist/
+
+# built pack media (regenerable via scripts/build-pack.js)
+packs/*/dist/

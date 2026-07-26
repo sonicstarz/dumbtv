@@ -11,6 +11,10 @@
 set -euo pipefail
 
 say() { printf '\n\033[1;33m== %s\033[0m\n' "$*"; }
+# --packs: after install, download the starter public-domain channel packs so
+# the Pi has real content on first boot without linking Plex (Track I).
+WANT_PACKS=0
+for a in "$@"; do [ "$a" = "--packs" ] && WANT_PACKS=1; done
 [ "$(id -u)" -eq 0 ] && SUDO="" || SUDO="sudo"
 USER_NAME="$(whoami)"
 APP_DIR="${DUMBTV_DIR:-$HOME/dumbtv}"
@@ -64,6 +68,12 @@ UNIT
 
 $SUDO systemctl daemon-reload
 $SUDO systemctl enable --now dumbtv
+
+if [ "$WANT_PACKS" = "1" ]; then
+  say "Starter content packs (public domain)"
+  ( cd "$APP_DIR" && node scripts/install-starter-packs.js ) || \
+    echo "  (pack install skipped/failed — you can run 'npm run install-starter-packs' later)"
+fi
 
 say "mDNS (dumbtv.local)"
 $SUDO systemctl enable --now avahi-daemon

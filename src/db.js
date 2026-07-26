@@ -72,6 +72,19 @@ CREATE TABLE IF NOT EXISTS assets (
   part_key    TEXT
 );
 
+-- Content packs (Track I) — curated public-domain bundles. Installing a pack
+-- registers its media rows (part_key = pack:<id>/<file>) and this row; playback
+-- resolves pack: keys to files under root_path. origin: bundled | downloaded.
+CREATE TABLE IF NOT EXISTS packs (
+  id           TEXT PRIMARY KEY,
+  name         TEXT NOT NULL,
+  version      INTEGER NOT NULL DEFAULT 1,
+  kind         TEXT NOT NULL DEFAULT 'shows',
+  origin       TEXT NOT NULL DEFAULT 'downloaded',
+  root_path    TEXT NOT NULL,
+  installed_at INTEGER NOT NULL
+);
+
 CREATE TABLE IF NOT EXISTS programs (
   id          INTEGER PRIMARY KEY AUTOINCREMENT,
   channel_id  INTEGER NOT NULL REFERENCES channels(id) ON DELETE CASCADE,

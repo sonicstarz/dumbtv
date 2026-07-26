@@ -206,6 +206,14 @@ public actor PlexClient {
         )
     }
 
+    /// Raw bytes for a Plex image path (e.g. a poster `thumb`) — the app proxies
+    /// these to the web UI so the browser never needs the Plex token.
+    public func imageData(path: String) async throws -> Data? {
+        guard let serverURI, let accessToken,
+              let url = URL(string: "\(serverURI)\(path)?X-Plex-Token=\(accessToken)") else { return nil }
+        return try await get(url)
+    }
+
     /// The poster path for any item (show or movie) — used as channel art.
     public func thumbPath(ratingKey: String) async throws -> String? {
         let mc = try await containerGet("/library/metadata/\(ratingKey)")

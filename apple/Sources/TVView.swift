@@ -30,12 +30,23 @@ struct TVView: View {
             let s = max(0.7, min(2.2, geo.size.height / 800))
             ZStack {
                 Color.black.ignoresSafeArea()
-                if engine.guideOpen {
+                if engine.onSetupChannel {
+                    setupChannelLayout(s: s)
+                } else if engine.guideOpen {
                     guideLayout(s: s)
                 } else {
                     watchLayout(s: s)
                 }
+                #if os(iOS)
+                // First-launch: explain the iOS "connect to devices on your
+                // network" prompt that's about to appear, and say to allow it.
+                if engine.showLanExplainer {
+                    LanExplainer(s: s) { engine.dismissLanExplainer() }
+                        .transition(.opacity)
+                }
+                #endif
             }
+            .animation(.easeInOut(duration: 0.25), value: engine.showLanExplainer)
         }
         // Focus + keyboard/remote input is macOS/tvOS only (iOS uses the swipe
         // gesture below). Keeping these off iOS lets the iOS deployment target
@@ -63,10 +74,15 @@ struct TVView: View {
         .onExitCommand { if engine.guideOpen { engine.guideOpen = false } }   // Esc / Menu closes the guide
         #endif
         #if os(tvOS)
-        // The root is now the only focusable view (the in-picture GUIDE control
-        // is plain text on tvOS), so it owns focus and the Siri remote's select
-        // lands here: open the guide while watching, tune while in it.
-        .onTapGesture { engine.guideOpen ? engine.guideSelect() : engine.toggleGuide() }
+        // Siri remote select: in the guide it tunes; while watching it brings up
+        // the channel info (like a tap on the other platforms), and pressing it
+        // again while the info is up opens the guide. Arrow up/down (and a swipe
+        // up/down) change channel, which also surfaces the info banner.
+        .onTapGesture {
+            if engine.guideOpen { engine.guideSelect() }
+            else if engine.bannerVisible { engine.toggleGuide() }
+            else { engine.showBanner() }
+        }
         #endif
         #if os(tvOS) || os(macOS)
         .onKeyPress { press in
@@ -80,7 +96,10 @@ struct TVView: View {
             if ch == "1" && engine.dialing.isEmpty { engine.toggleGuide(); return .handled }
             if press.key == .return { if engine.guideOpen { engine.guideSelect() }; return .handled }
             if press.key == .escape { if engine.guideOpen { engine.guideOpen = false }; return .handled }
-            if ch == " " { engine.blocked(); return .handled }                          // no pause
+            // Space bar = bring up channel info (banner + Guide/Mute/CC), the
+            // Mac equivalent of a tap. The banner is already revealed at the top
+            // of this handler; just swallow the key so it doesn't also ⊘.
+            if ch == " " { return .handled }
             if !engine.guideOpen, let c = ch.first, c.isNumber { engine.pressDigit(String(c)); return .handled }
             return .ignored
         }
@@ -88,27 +107,39 @@ struct TVView: View {
         #if os(tvOS)
         .onPlayPauseCommand { engine.blocked() }
         #endif
-        #if os(iOS)
-        // Touch: swipe up/down to change channel; a horizontal swipe would be a
-        // seek, so it no-ops with ⊘ (invariant #1). Disabled while the guide is
-        // open so a swipe there navigates the guide, not the channel underneath.
-        .gesture(
-            DragGesture(minimumDistance: 40).onEnded { v in
-                guard !engine.guideOpen else { return }
-                if abs(v.translation.height) > abs(v.translation.width) {
-                    v.translation.height < 0 ? engine.channelUp() : engine.channelDown()
-                } else {
-                    engine.blocked()
-                }
-            }
-        )
-        #endif
+        // iOS touch input lives on the transparent catcher inside watchLayout
+        // (above the video, below the controls) — a root-level gesture here was
+        // swallowed by VLCKit's video view, which is why tapping did nothing.
+        // The guide has its own row taps. macOS uses the space bar (below).
     }
 
     // Full-screen video with the channel banner and a GUIDE button.
     private func watchLayout(s: CGFloat) -> some View {
         ZStack {
+            // The video never takes touches — VLCKit's UIView would otherwise
+            // swallow every tap, which is exactly why "tap for channel info"
+            // did nothing. All touch input rides the transparent catcher below.
             VideoLayer(player: engine.player).ignoresSafeArea()
+                .allowsHitTesting(false)
+
+            #if os(iOS)
+            // Touch input on a dedicated transparent layer ABOVE the video but
+            // BELOW the banner/controls (so the control-row buttons still get
+            // their own taps). Double-tap = channel info; vertical swipe =
+            // channel change; a horizontal swipe would be a seek, so it no-ops
+            // with ⊘ (invariant #1).
+            Color.clear.contentShape(Rectangle()).ignoresSafeArea()
+                .onTapGesture(count: 2) { engine.showBanner() }
+                .gesture(
+                    DragGesture(minimumDistance: 40).onEnded { v in
+                        if abs(v.translation.height) > abs(v.translation.width) {
+                            v.translation.height < 0 ? engine.channelUp() : engine.channelDown()
+                        } else {
+                            engine.blocked()
+                        }
+                    }
+                )
+            #endif
 
             // Direct channel entry (top-right, like a real box), and the ⊘ /
             // channel-change flash (centre).
@@ -155,26 +186,12 @@ struct TVView: View {
                             .background(Palette.prevue1)
                     }
                     Spacer()
-                    #if !os(tvOS)
-                    // On tvOS the whole picture is the guide button (select);
-                    // a nested button here would fight the focus engine.
-                    Button { engine.guideOpen = true } label: {
-                        Text("GUIDE")
-                            .font(Palette.mono(12, .bold))
-                            .foregroundStyle(Palette.amber).tracking(2)
-                            .padding(.horizontal, 12).padding(.vertical, 8)
-                            .background(Palette.band)
-                    }
-                    #else
-                    Text("GUIDE ▸ press select")
-                        .font(Palette.mono(12, .bold))
-                        .foregroundStyle(Palette.amber).tracking(2)
-                        .padding(.horizontal, 12).padding(.vertical, 8)
-                        .background(Palette.band)
-                    #endif
+                    // No GUIDE button here any more — on phone/tablet/Mac a tap
+                    // reveals the control row (Guide/Mute/CC) over the banner; on
+                    // tvOS the whole picture is the guide button (press select).
                 }
-                if engine.demo, let url = configURL {
-                    HStack { SetupCard(url: url); Spacer() }
+                if engine.setupCardVisible, let url = configURL {
+                    HStack { SetupCard(url: url, showChannelHint: true); Spacer() }
                         .padding(.top, 10)
                 }
                 Spacer()
@@ -183,9 +200,11 @@ struct TVView: View {
                 if engine.showGuideHint {
                     HStack {
                         #if os(tvOS)
-                        Text("PRESS SELECT FOR THE GUIDE")
+                        Text("PRESS SELECT FOR INFO · AGAIN FOR GUIDE")
+                        #elseif os(macOS)
+                        Text("PRESS  G  FOR THE GUIDE · SPACE FOR INFO")
                         #else
-                        Text("PRESS  G  FOR THE GUIDE")
+                        Text("DOUBLE-TAP FOR INFO & THE GUIDE")
                         #endif
                         Spacer()
                     }
@@ -201,9 +220,20 @@ struct TVView: View {
             .animation(.easeInOut(duration: 0.4), value: engine.showGuideHint)
 
             // The banner reveals on a channel/program change or a key press, then
-            // fades so the picture is unobstructed. A wide lower-third band.
-            VStack {
+            // fades so the picture is unobstructed. A wide lower-third band. On
+            // phone/tablet/Mac a tap-revealed control row (Guide/Mute/CC) rides
+            // just above it — the only way in to the guide now that the button's gone.
+            VStack(spacing: 12 * s) {
                 Spacer()
+                #if !os(tvOS)
+                if engine.bannerVisible {
+                    HStack {
+                        Spacer()
+                        ControlBar(engine: engine, player: engine.player, s: s)
+                    }
+                    .transition(.opacity)
+                }
+                #endif
                 if engine.bannerVisible {
                     if let airing = engine.now {
                         BannerView(engine: engine, airing: airing, s: s)
@@ -219,6 +249,53 @@ struct TVView: View {
             .padding(.horizontal, 28 * s)
             .padding(.bottom, 36 * s)
             .animation(.easeInOut(duration: 0.3), value: engine.bannerVisible)
+        }
+    }
+
+    // Channel 00 — the setup screen. Always reachable (dial 0, or the top row of
+    // the guide) so the QR + setup URL can be brought back after Plex is linked
+    // and the demo card is gone. Works whether or not anything is configured.
+    private func setupChannelLayout(s: CGFloat) -> some View {
+        ZStack {
+            Color.black.ignoresSafeArea()
+
+            #if os(iOS)
+            // Touch: double-tap opens the guide (to pick a channel), a vertical
+            // swipe changes channel — the ways off the setup screen on a phone.
+            Color.clear.contentShape(Rectangle()).ignoresSafeArea()
+                .onTapGesture(count: 2) { engine.toggleGuide() }
+                .gesture(
+                    DragGesture(minimumDistance: 40).onEnded { v in
+                        if abs(v.translation.height) > abs(v.translation.width) {
+                            v.translation.height < 0 ? engine.channelUp() : engine.channelDown()
+                        }
+                    }
+                )
+            #endif
+
+            VStack(spacing: 22 * s) {
+                Text("00  SETUP")
+                    .font(Palette.display(40 * s)).foregroundStyle(Palette.amber).tracking(3)
+                if let url = configURL {
+                    SetupCard(url: url)
+                } else {
+                    Text("Open dumbTV's setup page from a browser on this network.")
+                        .font(Palette.mono(15 * s)).foregroundStyle(.white)
+                        .multilineTextAlignment(.center)
+                }
+                Group {
+                    #if os(iOS)
+                    Text("Double-tap for the guide · swipe to change channel")
+                    #elseif os(tvOS)
+                    Text("Press select for the guide · arrows change the channel")
+                    #else
+                    Text("Press G for the guide · ↑ ↓ change the channel")
+                    #endif
+                }
+                .font(Palette.mono(13 * s)).foregroundStyle(Palette.dim)
+                .multilineTextAlignment(.center)
+            }
+            .padding(30 * s)
         }
     }
 
@@ -302,3 +379,92 @@ struct BannerView: View {
         .background(Palette.band)
     }
 }
+
+#if os(iOS)
+/// A one-time card that pre-empts iOS's own "dumbTV would like to find and
+/// connect to devices on your local network" permission prompt: it tells the
+/// user that prompt is coming and that tapping Allow is what lets the TV reach
+/// Plex and serve its setup page. Denying the system prompt breaks setup, so
+/// this exists to make sure they say yes.
+struct LanExplainer: View {
+    var s: CGFloat = 1
+    let onDismiss: () -> Void
+
+    var body: some View {
+        ZStack {
+            Color.black.opacity(0.72).ignoresSafeArea()
+                .onTapGesture { onDismiss() }
+            VStack(spacing: 18 * s) {
+                Image(systemName: "wifi")
+                    .font(.system(size: 40 * s, weight: .bold))
+                    .foregroundStyle(Palette.amber)
+                Text("ALLOW LOCAL NETWORK")
+                    .font(Palette.display(24 * s)).foregroundStyle(.white)
+                    .multilineTextAlignment(.center)
+                Text("iOS is about to ask if dumbTV can find and connect to devices on your network. Tap **Allow**.")
+                    .font(Palette.mono(15 * s))
+                    .foregroundStyle(Palette.tape)
+                    .multilineTextAlignment(.center)
+                    .fixedSize(horizontal: false, vertical: true)
+                Text("That's how the TV reaches your Plex server and shows its setup page on your phone or laptop. Without it, setup can't connect.")
+                    .font(Palette.mono(13 * s))
+                    .foregroundStyle(Palette.dim)
+                    .multilineTextAlignment(.center)
+                    .fixedSize(horizontal: false, vertical: true)
+                Button(action: onDismiss) {
+                    Text("GOT IT")
+                        .font(Palette.mono(15 * s, .bold)).tracking(3)
+                        .foregroundStyle(.black)
+                        .padding(.horizontal, 34 * s).padding(.vertical, 12 * s)
+                        .background(Palette.amber)
+                        .clipShape(RoundedRectangle(cornerRadius: 4))
+                }
+                .buttonStyle(.plain)
+                .padding(.top, 4 * s)
+            }
+            .padding(30 * s)
+            .frame(maxWidth: 420 * s)
+            .background(Palette.band)
+            .overlay(RoundedRectangle(cornerRadius: 8).stroke(Palette.amber.opacity(0.4), lineWidth: 2))
+            .clipShape(RoundedRectangle(cornerRadius: 8))
+            .padding(28 * s)
+        }
+    }
+}
+#endif
+
+#if !os(tvOS)
+/// The tap-revealed control row on phone/tablet/Mac: Guide, Mute, and Captions.
+/// Replaces the old always-on GUIDE button — it rides above the channel banner
+/// and fades with it. Observes `Player` so Mute/CC reflect their live state.
+struct ControlBar: View {
+    @ObservedObject var engine: Engine
+    @ObservedObject var player: Player
+    var s: CGFloat = 1
+
+    var body: some View {
+        HStack(spacing: 10 * s) {
+            button("GUIDE", "tv.inset.filled", active: false) { engine.toggleGuide() }
+            button(player.muted ? "MUTED" : "MUTE",
+                   player.muted ? "speaker.slash.fill" : "speaker.wave.2.fill",
+                   active: player.muted) { engine.toggleMute() }
+            button("CC", "captions.bubble.fill", active: player.captionsOn) { engine.toggleCaptions() }
+        }
+    }
+
+    private func button(_ title: String, _ icon: String, active: Bool,
+                        _ action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            HStack(spacing: 7 * s) {
+                Image(systemName: icon).font(.system(size: 13 * s, weight: .bold))
+                Text(title).font(Palette.mono(12 * s, .bold)).tracking(2)
+            }
+            .foregroundStyle(active ? Color.black : Palette.amber)
+            .padding(.horizontal, 14 * s).padding(.vertical, 9 * s)
+            .background(active ? Palette.amber : Palette.band)
+            .clipShape(RoundedRectangle(cornerRadius: 4))
+        }
+        .buttonStyle(.plain)
+    }
+}
+#endif

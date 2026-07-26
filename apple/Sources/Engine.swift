@@ -60,7 +60,7 @@ final class Engine: ObservableObject {
     @Published var guideOpen = false {
         // Opening the guide snaps the highlight to the channel you're watching
         // and the time axis to now — so it always opens on "what's on."
-        didSet { if guideOpen && !oldValue { guideSelection = currentIndex; resetGuideWindow() } }
+        didSet { if guideOpen && !oldValue { guideSelection = onSetupChannel ? -1 : currentIndex; resetGuideWindow() } }
     }
     /// Which row the arrow keys/remote have highlighted in the guide.
     @Published var guideSelection = 0
@@ -82,12 +82,32 @@ final class Engine: ObservableObject {
     @Published var showGuideHint = false
     /// True while the TV is locked to kid-safe channels (set from the web UI).
     @Published var kidsMode = false
+    /// The setup "channel" (channel 00): a persistent way back to the QR code +
+    /// setup URL from the TV itself — reachable even after Plex is linked, when
+    /// the demo setup card is long gone. Reachable by dialing 0 or picking the
+    /// top row of the guide. True while the setup screen is showing.
+    @Published var onSetupChannel = false
+    /// iOS only: the first time the app touches the local network (embedded
+    /// server + Plex), iOS throws its own "find & connect to devices on your
+    /// network" prompt. This drives a one-time on-screen card that points the
+    /// user at that system prompt and says to tap Allow — otherwise the prompt
+    /// looks scary and unexplained, and denying it breaks setup entirely.
+    @Published var showLanExplainer = false
+    /// The on-TV setup card (QR + URL) shows until the web config UI is opened
+    /// once — even over preloaded channels (D3). The embedded server flips the
+    /// `setup_seen` flag on first browser hit; channel 0 remains the way back.
+    @Published var setupCardVisible = false
+    /// While tuning to a NEW channel from the guide, this is that channel's index:
+    /// the guide stays open (showing the press was acknowledged) until the new
+    /// channel's picture is actually up, then it dismisses. Nil the rest of the time.
+    @Published var guideTuning: Int?
 
     private var currentStart: Millis = -1
     private var tick: Timer?
     private var flashTask: Task<Void, Never>?
     private var dialTask: Task<Void, Never>?
     private var bannerTask: Task<Void, Never>?
+    private var guideTuneTask: Task<Void, Never>?
     private var reloadTask: Task<Void, Never>?
     private var serverURI = ""
     private var accessToken = ""
@@ -161,10 +181,16 @@ final class Engine: ObservableObject {
 
     private func nowMs() -> Millis { Millis(Date().timeIntervalSince1970 * 1000) }
     private func streamURL(_ partKey: String) -> URL? {
-        // Demo lineup plays a bundled test clip; everything else is a Plex part.
+        // Demo lineup plays a bundled test clip.
         if partKey.hasPrefix("demo:") {
             return Bundle.main.url(forResource: "demo-loop", withExtension: "mp4")
         }
+        // Content packs (Track I) resolve to a local file under the pack root.
+        if partKey.hasPrefix("pack:") {
+            guard let path = store?.resolvePackPath(partKey) else { return nil }
+            return URL(fileURLWithPath: path)
+        }
+        // Everything else is a Plex part.
         return URL(string: "\(serverURI)\(partKey)?X-Plex-Token=\(accessToken)")
     }
 
@@ -204,8 +230,56 @@ final class Engine: ObservableObject {
     func bootstrap(store: Store?) async {
         self.store = store          // kept even if empty — a later web-UI change upgrades us live
         showGuideHintOnce()
+        showLanExplainerOnce()
+        if let store {
+            setupCardVisible = store.getSetting("setup_seen") == nil   // D3: nudge until first web-UI open
+            seedPreloadPacks(store)                                    // register bundled packs; seed channels once
+        }
         if let store, loadFromStore(store) { return }
         await bootstrapFromEnvIfPresent()
+    }
+
+    /// Register the content packs bundled in the app (Track I). Bundled pack
+    /// paths live inside the app bundle, which moves on every install/update, so
+    /// this re-registers them each launch (installPack upserts root_path). The
+    /// preload channels are created ONCE (guarded by `preload_seeded`), then
+    /// they're real, editable Store channels like any other. This is what makes
+    /// a fresh install a working television with no Plex and no setup.
+    private func seedPreloadPacks(_ store: Store) {
+        guard let packsRoot = Bundle.main.resourceURL?.appendingPathComponent("packs"),
+              let dirs = try? FileManager.default.contentsOfDirectory(
+                at: packsRoot, includingPropertiesForKeys: [.isDirectoryKey]) else { return }
+        var showsPacks: [String] = []
+        for dir in dirs {
+            guard (try? dir.resourceValues(forKeys: [.isDirectoryKey]))?.isDirectory == true else { continue }
+            if let installed = try? store.installPack(fromDir: dir, origin: "bundled"),
+               installed.kind != "ads" {
+                showsPacks.append(installed.id)
+            }
+        }
+        guard store.getSetting("preload_seeded") == nil else { return }
+        for pid in showsPacks.sorted() { store.createChannelFromPack(pid, adsEnabled: true) }  // D2: ads ON
+        store.setSetting("preload_seeded", "1")
+        lastChangeCounter = store.sql.totalChanges()   // our own writes — no reload storm
+    }
+
+    /// iOS: surface the local-network explainer card on the very first launch,
+    /// once ever, so the system permission prompt that fires right after has
+    /// context. No-op on macOS/tvOS (no such prompt) and after it's been shown.
+    private func showLanExplainerOnce() {
+        #if os(iOS)
+        // Screenshot hook: keep captures clean of the first-run overlay.
+        if ProcessInfo.processInfo.environment["DUMBTV_SCREENSHOT"] == "1" { return }
+        guard let store, store.getSetting("lan_explainer_shown") == nil else { return }
+        showLanExplainer = true
+        #endif
+    }
+
+    /// Dismiss the local-network explainer and remember it, so it never returns.
+    func dismissLanExplainer() {
+        showLanExplainer = false
+        store?.setSetting("lan_explainer_shown", "1")
+        if let store { lastChangeCounter = store.sql.totalChanges() }   // our write — no reload
     }
 
     /// Surface "press G for the guide" for a few seconds, exactly once ever.
@@ -313,13 +387,34 @@ final class Engine: ObservableObject {
         }
         channels = built
         startTicking()
+        // Screenshot hook: open straight into the guide for a deterministic
+        // grid capture in demo mode. Dev-only, env-gated.
+        if ProcessInfo.processInfo.environment["DUMBTV_START_GUIDE"] == "1" { guideOpen = true }
+        if ProcessInfo.processInfo.environment["DUMBTV_START_SETUP"] == "1" { onSetupChannel = true }
     }
 
-    func tune(to index: Int) {
+    /// Tune to the setup "channel" (00): stop playback and show the QR + setup
+    /// URL, available whether or not Plex is configured. Dial 0, or pick the top
+    /// row of the guide. This is the always-there way back to setup.
+    func tuneToSetup() {
+        onSetupChannel = true
+        guideTuning = nil
+        guideTuneTask?.cancel()
+        guideOpen = false
+        currentStart = -1
+        now = nil
+        status = ""
+        player.stop()
+        showFlash("CH 00")
+        showBanner()
+    }
+
+    func tune(to index: Int, closeGuide: Bool = true) {
         guard channels.indices.contains(index) else { return }
+        onSetupChannel = false     // leaving the setup channel for a real one
         currentIndex = index
         currentStart = -1
-        guideOpen = false
+        if closeGuide { guideOpen = false }
         // Record what the TV is on so the web UI can highlight it (status.player).
         // Advance our own change-counter watermark so this write doesn't trigger
         // a pointless lineup reload.
@@ -350,12 +445,55 @@ final class Engine: ObservableObject {
     }
     func guideMove(_ delta: Int) {
         guard !channels.isEmpty else { return }
-        guideSelection = min(max(guideSelection + delta, 0), channels.count - 1)
+        // -1 is the SETUP row (channel 00), always sitting above channel index 0.
+        guideSelection = min(max(guideSelection + delta, -1), channels.count - 1)
     }
     func guideSelect() {
+        // The SETUP row (channel 00) — go to the setup screen, close the guide.
+        if guideSelection == -1 {
+            guideTuning = nil
+            guideTuneTask?.cancel()
+            tuneToSetup()
+            return
+        }
         guard channels.indices.contains(guideSelection) else { return }
-        tune(to: guideSelection)   // tune() also closes the guide
+        // Selecting the channel you're already watching is just "get me out of
+        // here" — dismiss the guide, no retune, no reload, no playback restart.
+        if guideSelection == currentIndex {
+            guideTuning = nil
+            guideTuneTask?.cancel()
+            guideOpen = false
+            return
+        }
+        // A different channel: acknowledge the press (highlight stays, a spinner-
+        // free "tuning" state) but DON'T leave the guide until the new channel's
+        // picture is actually up — so you never drop onto black or colour bars.
+        let target = guideSelection
+        guideTuning = target
+        tune(to: target, closeGuide: false)
+        guideTuneTask?.cancel()
+        guideTuneTask = Task { @MainActor [weak self] in
+            // Poll the player: leave the guide once the new stream has a frame
+            // (videoActive, swap done) or resolves to a standby card (off-air).
+            // A generous deadline is the backstop so the guide can't wedge open.
+            let deadline = Date().addingTimeInterval(16)
+            while let self, self.guideTuning == target {
+                let ready = !self.player.switching &&
+                    (self.player.videoActive || !self.status.isEmpty)
+                if ready || Date() >= deadline {
+                    self.guideTuning = nil
+                    self.guideOpen = false
+                    break
+                }
+                try? await Task.sleep(nanoseconds: 100_000_000)
+            }
+        }
     }
+
+    /// Player controls surfaced on the tap-to-reveal control row (iOS/iPad/Mac).
+    /// Both keep the banner up so the row doesn't vanish while you're using it.
+    func toggleMute()     { player.toggleMute();     showBanner() }
+    func toggleCaptions() { player.toggleCaptions(); showBanner() }
 
     /// Snap the time axis to the current half-hour so the guide opens on "now."
     func resetGuideWindow() {
@@ -407,6 +545,7 @@ final class Engine: ObservableObject {
     private func commitDial() {
         defer { dialing = "" }
         guard let n = Int(dialing) else { return }
+        if n == 0 { tuneToSetup(); return }   // channel 00 is always the setup screen
         if let idx = channels.firstIndex(where: { $0.spec.number == n }) {
             tune(to: idx)
             showFlash("CH \(String(format: "%02d", n))")
@@ -429,6 +568,9 @@ final class Engine: ObservableObject {
     func showBanner() {
         bannerVisible = true
         bannerTask?.cancel()
+        // Screenshot hook: keep the banner up so captures are deterministic
+        // (the sim can't be tapped from the CLI). Dev-only, env-gated.
+        if ProcessInfo.processInfo.environment["DUMBTV_SCREENSHOT"] == "1" { return }
         bannerTask = Task { @MainActor [weak self] in
             try? await Task.sleep(nanoseconds: 4_500_000_000)
             self?.bannerVisible = false
@@ -454,6 +596,9 @@ final class Engine: ObservableObject {
                 lastChangeCounter = counter
                 scheduleReload()
             }
+            // D3: the setup card retires the moment the web UI is first opened.
+            let showCard = store.getSetting("setup_seen") == nil
+            if setupCardVisible != showCard { setupCardVisible = showCard }
         }
         // Slide the loaded window forward and extend the DB roughly hourly, so a
         // long-running TV never reaches the edge of what was generated at boot.
@@ -462,6 +607,10 @@ final class Engine: ObservableObject {
             Scheduler.topUp(store: store, now: nowMs())
             scheduleReload()
         }
+
+        // On the setup channel there's nothing to play — the setup screen owns
+        // the display until you dial/pick a real channel.
+        if onSetupChannel { return }
 
         guard channels.indices.contains(currentIndex) else { return }
         let ch = channels[currentIndex]

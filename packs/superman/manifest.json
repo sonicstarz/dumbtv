@@ -1,0 +1,310 @@
+{
+  "id": "superman",
+  "name": "SUPERMAN",
+  "version": 1,
+  "kind": "shows",
+  "description": "The 17 Fleischer/Famous Technicolor Superman shorts (1941–43).",
+  "channel": {
+    "number": 6,
+    "name": "SUPERMAN",
+    "ordering": "release_order",
+    "seed": 16006
+  },
+  "encode": {
+    "height": 480,
+    "crf": 23,
+    "preset": "medium",
+    "abitrate": "128k"
+  },
+  "items": [
+    {
+      "id": "the-mad-scientist",
+      "title": "The Mad Scientist",
+      "show": "Superman",
+      "season": 1,
+      "episode": 1,
+      "aired": "1941-09-26",
+      "source": {
+        "iaIdentifier": "fleischer-superman",
+        "iaFile": "Max Fleischer's Superman (1941; HD).mp4"
+      },
+      "license": {
+        "url": "https://en.wikipedia.org/wiki/Superman_(1940s_animated_film_series)#Copyright_status",
+        "verified": "2026-07-26",
+        "note": "National Comics failed to renew the shorts (late 1960s) → US public domain. Character/trademark is WB/DC — play the films, never use Superman for dumbTV marketing."
+      }
+    },
+    {
+      "id": "mechanical-monsters",
+      "title": "The Mechanical Monsters",
+      "show": "Superman",
+      "season": 1,
+      "episode": 2,
+      "aired": "1941-11-28",
+      "source": {
+        "iaIdentifier": "fleischer-superman",
+        "iaFile": "Max Fleischer's Superman： The Mechanical Monsters (1941; HD).mp4"
+      },
+      "license": {
+        "url": "https://en.wikipedia.org/wiki/Superman_(1940s_animated_film_series)#Copyright_status",
+        "verified": "2026-07-26",
+        "note": "National Comics failed to renew the shorts (late 1960s) → US public domain. Character/trademark is WB/DC — play the films, never use Superman for dumbTV marketing."
+      }
+    },
+    {
+      "id": "billion-dollar-limited",
+      "title": "Billion Dollar Limited",
+      "show": "Superman",
+      "season": 1,
+      "episode": 3,
+      "aired": "1942-01-09",
+      "source": {
+        "iaIdentifier": "fleischer-superman",
+        "iaFile": "Max Fleischer's Superman： Billion Dollar Limited (1942; HD).mp4"
+      },
+      "license": {
+        "url": "https://en.wikipedia.org/wiki/Superman_(1940s_animated_film_series)#Copyright_status",
+        "verified": "2026-07-26",
+        "note": "National Comics failed to renew the shorts (late 1960s) → US public domain. Character/trademark is WB/DC — play the films, never use Superman for dumbTV marketing."
+      }
+    },
+    {
+      "id": "arctic-giant",
+      "title": "The Arctic Giant",
+      "show": "Superman",
+      "season": 1,
+      "episode": 4,
+      "aired": "1942-02-27",
+      "source": {
+        "iaIdentifier": "fleischer-superman",
+        "iaFile": "Max Fleischer's Superman： The Arctic Giant (1942; HD).mp4"
+      },
+      "license": {
+        "url": "https://en.wikipedia.org/wiki/Superman_(1940s_animated_film_series)#Copyright_status",
+        "verified": "2026-07-26",
+        "note": "National Comics failed to renew the shorts (late 1960s) → US public domain. Character/trademark is WB/DC — play the films, never use Superman for dumbTV marketing."
+      }
+    },
+    {
+      "id": "bulleteers",
+      "title": "The Bulleteers",
+      "show": "Superman",
+      "season": 1,
+      "episode": 5,
+      "aired": "1942-03-27",
+      "source": {
+        "iaIdentifier": "fleischer-superman",
+        "iaFile": "Max Fleischer's Superman： The Bulleteers (1942; HD).mp4"
+      },
+      "license": {
+        "url": "https://en.wikipedia.org/wiki/Superman_(1940s_animated_film_series)#Copyright_status",
+        "verified": "2026-07-26",
+        "note": "National Comics failed to renew the shorts (late 1960s) → US public domain. Character/trademark is WB/DC — play the films, never use Superman for dumbTV marketing."
+      }
+    },
+    {
+      "id": "magnetic-telescope",
+      "title": "The Magnetic Telescope",
+      "show": "Superman",
+      "season": 1,
+      "episode": 6,
+      "aired": "1942-04-24",
+      "source": {
+        "iaIdentifier": "fleischer-superman",
+        "iaFile": "Max Fleischer's Superman： The Magnetic Telescope (1942; HD).mp4"
+      },
+      "license": {
+        "url": "https://en.wikipedia.org/wiki/Superman_(1940s_animated_film_series)#Copyright_status",
+        "verified": "2026-07-26",
+        "note": "National Comics failed to renew the shorts (late 1960s) → US public domain. Character/trademark is WB/DC — play the films, never use Superman for dumbTV marketing."
+      }
+    },
+    {
+      "id": "electric-earthquake",
+      "title": "Electric Earthquake",
+      "show": "Superman",
+      "season": 1,
+      "episode": 7,
+      "aired": "1942-05-15",
+      "source": {
+        "iaIdentifier": "fleischer-superman",
+        "iaFile": "Max Fleischer's Superman： The Electric Earthquake (1942; HD).mp4"
+      },
+      "license": {
+        "url": "https://en.wikipedia.org/wiki/Superman_(1940s_animated_film_series)#Copyright_status",
+        "verified": "2026-07-26",
+        "note": "National Comics failed to renew the shorts (late 1960s) → US public domain. Character/trademark is WB/DC — play the films, never use Superman for dumbTV marketing."
+      }
+    },
+    {
+      "id": "volcano",
+      "title": "Volcano",
+      "show": "Superman",
+      "season": 1,
+      "episode": 8,
+      "aired": "1942-07-10",
+      "source": {
+        "iaIdentifier": "fleischer-superman",
+        "iaFile": "Max Fleischer's Superman： Volcano (1942; HD).mp4"
+      },
+      "license": {
+        "url": "https://en.wikipedia.org/wiki/Superman_(1940s_animated_film_series)#Copyright_status",
+        "verified": "2026-07-26",
+        "note": "National Comics failed to renew the shorts (late 1960s) → US public domain. Character/trademark is WB/DC — play the films, never use Superman for dumbTV marketing."
+      }
+    },
+    {
+      "id": "terror-on-the-midway",
+      "title": "Terror on the Midway",
+      "show": "Superman",
+      "season": 1,
+      "episode": 9,
+      "aired": "1942-08-28",
+      "source": {
+        "iaIdentifier": "fleischer-superman",
+        "iaFile": "Max Fleischer's Superman： Terror on the Midway (1942; HD).mp4"
+      },
+      "license": {
+        "url": "https://en.wikipedia.org/wiki/Superman_(1940s_animated_film_series)#Copyright_status",
+        "verified": "2026-07-26",
+        "note": "National Comics failed to renew the shorts (late 1960s) → US public domain. Character/trademark is WB/DC — play the films, never use Superman for dumbTV marketing."
+      }
+    },
+    {
+      "id": "japoteurs",
+      "title": "Japoteurs",
+      "show": "Superman",
+      "season": 1,
+      "episode": 10,
+      "aired": "1942-09-18",
+      "source": {
+        "iaIdentifier": "fleischer-superman",
+        "iaFile": "Max Fleischer's Superman： Japoteurs (1942; HD).mp4"
+      },
+      "license": {
+        "url": "https://en.wikipedia.org/wiki/Superman_(1940s_animated_film_series)#Copyright_status",
+        "verified": "2026-07-26",
+        "note": "National Comics failed to renew the shorts (late 1960s) → US public domain. Character/trademark is WB/DC — play the films, never use Superman for dumbTV marketing."
+      }
+    },
+    {
+      "id": "showdown",
+      "title": "Showdown",
+      "show": "Superman",
+      "season": 1,
+      "episode": 11,
+      "aired": "1942-10-16",
+      "source": {
+        "iaIdentifier": "fleischer-superman",
+        "iaFile": "Max Fleischer's Superman： Showdown (1942; HD).mp4"
+      },
+      "license": {
+        "url": "https://en.wikipedia.org/wiki/Superman_(1940s_animated_film_series)#Copyright_status",
+        "verified": "2026-07-26",
+        "note": "National Comics failed to renew the shorts (late 1960s) → US public domain. Character/trademark is WB/DC — play the films, never use Superman for dumbTV marketing."
+      }
+    },
+    {
+      "id": "eleventh-hour",
+      "title": "Eleventh Hour",
+      "show": "Superman",
+      "season": 1,
+      "episode": 12,
+      "aired": "1942-11-20",
+      "source": {
+        "iaIdentifier": "fleischer-superman",
+        "iaFile": "Max Fleischer's Superman： Eleventh Hour (1942; HD).mp4"
+      },
+      "license": {
+        "url": "https://en.wikipedia.org/wiki/Superman_(1940s_animated_film_series)#Copyright_status",
+        "verified": "2026-07-26",
+        "note": "National Comics failed to renew the shorts (late 1960s) → US public domain. Character/trademark is WB/DC — play the films, never use Superman for dumbTV marketing."
+      }
+    },
+    {
+      "id": "destruction-inc",
+      "title": "Destruction, Inc.",
+      "show": "Superman",
+      "season": 1,
+      "episode": 13,
+      "aired": "1942-12-25",
+      "source": {
+        "iaIdentifier": "fleischer-superman",
+        "iaFile": "Max Fleischer's Superman： Destruction Inc. (1943; HD).mp4"
+      },
+      "license": {
+        "url": "https://en.wikipedia.org/wiki/Superman_(1940s_animated_film_series)#Copyright_status",
+        "verified": "2026-07-26",
+        "note": "National Comics failed to renew the shorts (late 1960s) → US public domain. Character/trademark is WB/DC — play the films, never use Superman for dumbTV marketing."
+      }
+    },
+    {
+      "id": "mummy-strikes",
+      "title": "The Mummy Strikes",
+      "show": "Superman",
+      "season": 1,
+      "episode": 14,
+      "aired": "1943-02-19",
+      "source": {
+        "iaIdentifier": "fleischer-superman",
+        "iaFile": "Max Fleischer's Superman： The Mummy Strikes (1943; HD).mp4"
+      },
+      "license": {
+        "url": "https://en.wikipedia.org/wiki/Superman_(1940s_animated_film_series)#Copyright_status",
+        "verified": "2026-07-26",
+        "note": "National Comics failed to renew the shorts (late 1960s) → US public domain. Character/trademark is WB/DC — play the films, never use Superman for dumbTV marketing."
+      }
+    },
+    {
+      "id": "jungle-drums",
+      "title": "Jungle Drums",
+      "show": "Superman",
+      "season": 1,
+      "episode": 15,
+      "aired": "1943-03-26",
+      "source": {
+        "iaIdentifier": "fleischer-superman",
+        "iaFile": "Max Fleischer's Superman： Jungle Drums (1943; HD).mp4"
+      },
+      "license": {
+        "url": "https://en.wikipedia.org/wiki/Superman_(1940s_animated_film_series)#Copyright_status",
+        "verified": "2026-07-26",
+        "note": "National Comics failed to renew the shorts (late 1960s) → US public domain. Character/trademark is WB/DC — play the films, never use Superman for dumbTV marketing."
+      }
+    },
+    {
+      "id": "underground-world",
+      "title": "The Underground World",
+      "show": "Superman",
+      "season": 1,
+      "episode": 16,
+      "aired": "1943-06-18",
+      "source": {
+        "iaIdentifier": "fleischer-superman",
+        "iaFile": "Max Fleischer's Superman： The Underground World (1943; HD).mp4"
+      },
+      "license": {
+        "url": "https://en.wikipedia.org/wiki/Superman_(1940s_animated_film_series)#Copyright_status",
+        "verified": "2026-07-26",
+        "note": "National Comics failed to renew the shorts (late 1960s) → US public domain. Character/trademark is WB/DC — play the films, never use Superman for dumbTV marketing."
+      }
+    },
+    {
+      "id": "secret-agent",
+      "title": "Secret Agent",
+      "show": "Superman",
+      "season": 1,
+      "episode": 17,
+      "aired": "1943-07-30",
+      "source": {
+        "iaIdentifier": "fleischer-superman",
+        "iaFile": "Max Fleischer's Superman： Secret Agent (1943; HD).mp4"
+      },
+      "license": {
+        "url": "https://en.wikipedia.org/wiki/Superman_(1940s_animated_film_series)#Copyright_status",
+        "verified": "2026-07-26",
+        "note": "National Comics failed to renew the shorts (late 1960s) → US public domain. Character/trademark is WB/DC — play the films, never use Superman for dumbTV marketing."
+      }
+    }
+  ]
+}

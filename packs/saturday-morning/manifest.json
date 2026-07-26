@@ -1,0 +1,69 @@
+{
+  "id": "saturday-morning",
+  "name": "SATURDAY MORNING",
+  "version": 1,
+  "kind": "shows",
+  "description": "Public-domain golden-age cartoons — Betty Boop and friends.",
+  "channel": {
+    "number": 7,
+    "name": "SATURDAY MORNING",
+    "ordering": "shuffle",
+    "seed": 17007
+  },
+  "encode": {
+    "height": 480,
+    "crf": 28,
+    "preset": "fast",
+    "abitrate": "96k"
+  },
+  "items": [
+    {
+      "id": "bb-minnie-the-moocher",
+      "title": "Minnie the Moocher",
+      "show": "Betty Boop",
+      "season": 1,
+      "episode": 1,
+      "aired": "1932-03-11",
+      "source": {
+        "iaIdentifier": "bb_minnie_the_moocher"
+      },
+      "license": {
+        "url": "https://archive.org/details/bb_minnie_the_moocher",
+        "verified": "2026-07-26",
+        "note": "Fleischer/Paramount Betty Boop short; copyright not renewed → US public domain. IA item carries a public-domain mark."
+      }
+    },
+    {
+      "id": "bb-old-man-of-the-mountain",
+      "title": "The Old Man of the Mountain",
+      "show": "Betty Boop",
+      "season": 1,
+      "episode": 2,
+      "aired": "1933-08-04",
+      "source": {
+        "iaIdentifier": "bb_old_man_of_the_mountain"
+      },
+      "license": {
+        "url": "https://archive.org/details/bb_old_man_of_the_mountain",
+        "verified": "2026-07-26",
+        "note": "Fleischer/Paramount Betty Boop short; copyright not renewed → US public domain. IA item carries a public-domain mark."
+      }
+    },
+    {
+      "id": "bb-house-cleaning-blues",
+      "title": "House Cleaning Blues",
+      "show": "Betty Boop",
+      "season": 1,
+      "episode": 3,
+      "aired": "1937-05-14",
+      "source": {
+        "iaIdentifier": "bb_house_cleaning_blues"
+      },
+      "license": {
+        "url": "https://archive.org/details/bb_house_cleaning_blues",
+        "verified": "2026-07-26",
+        "note": "Fleischer/Paramount Betty Boop short; copyright not renewed → US public domain. IA item carries a CC public-domain license."
+      }
+    }
+  ]
+}

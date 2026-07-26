@@ -29,6 +29,11 @@ final class Player: ObservableObject {
     /// True once the on-screen player has a frame up — colour bars cover the
     /// cold-start/buffering gap so raw black never shows (invariant #7).
     @Published var videoActive = false
+    /// True while a channel change is buffering behind the frozen frame — the
+    /// guide waits on this so it doesn't dismiss before the new channel is up.
+    @Published var switching = false
+    @Published var muted = false
+    @Published var captionsOn = false
 
     private var pendingSwap = false
     private var pendingSince: Date?
@@ -100,8 +105,31 @@ final class Player: ObservableObject {
                 front = back
                 pendingSwap = false
                 pendingSince = nil
+                applyAudioSubtitle(vlcs[front])   // carry mute/captions to the new stream
             }
         }
+        switching = pendingSwap
+    }
+
+    private func applyAudioSubtitle(_ p: VLCMediaPlayer) {
+        p.audio?.isMuted = muted
+        if captionsOn {
+            let idxs = (p.videoSubTitlesIndexes as? [NSNumber])?.map { $0.intValue } ?? []
+            if let first = idxs.first(where: { $0 >= 0 }) { p.currentVideoSubTitleIndex = Int32(first) }
+        } else {
+            p.currentVideoSubTitleIndex = -1
+        }
+    }
+
+    func toggleMute() {
+        muted.toggle()
+        vlcs.forEach { $0.audio?.isMuted = muted }
+    }
+
+    /// Best-effort captions: enable the first subtitle track if the file has one.
+    func toggleCaptions() {
+        captionsOn.toggle()
+        vlcs.forEach { applyAudioSubtitle($0) }
     }
 
     /// Tune: open the URL and seek `startSeconds` in (join-in-progress).
@@ -119,7 +147,8 @@ final class Player: ObservableObject {
             vlcs[back].media = media
             vlcs[back].play()
             pendingSwap = true
-            pendingSince = Date()
+            switching = true       // set now, not on the next tick — the guide-tune
+            pendingSince = Date()  // waiter polls faster than the 0.25s poll fires
         } else {
             // Nothing on screen yet (cold start / bars) — tune directly.
             pendingSwap = false
@@ -128,6 +157,7 @@ final class Player: ObservableObject {
             vlcs[front].stop()
             vlcs[front].media = media
             vlcs[front].play()
+            applyAudioSubtitle(vlcs[front])
         }
     }
 

@@ -75,6 +75,34 @@ private struct GuideGrid: View {
         gutter + CGFloat(i) / CGFloat(cols) * lane
     }
 
+    /// The channel-00 SETUP row that sits above the real channels in the grid.
+    private func setupRow(lane: CGFloat) -> some View {
+        let selected = engine.guideSelection == -1
+        return HStack(spacing: 0) {
+            ZStack {
+                VStack(spacing: 3 * s) {
+                    Text("00").font(Palette.display(22 * s)).foregroundStyle(Palette.amber)
+                    Text("SETUP").font(Palette.mono(8 * s)).foregroundStyle(Palette.ice)
+                }
+                if engine.onSetupChannel {
+                    Image(systemName: "play.fill")
+                        .font(.system(size: 13 * s)).foregroundStyle(Palette.amber)
+                        .frame(maxWidth: .infinity, alignment: .leading).padding(.leading, 4 * s)
+                }
+            }
+            .frame(width: gutter)
+            ZStack(alignment: .leading) {
+                Text("SET UP dumbTV — scan the QR code or open the config page")
+                    .font(Palette.mono(13 * s)).foregroundStyle(Palette.peri)
+                    .padding(.leading, 12 * s).lineLimit(1)
+            }
+            .frame(width: lane, alignment: .leading)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(selected ? Palette.amber.opacity(0.22)
+                    : engine.onSetupChannel ? Palette.amber.opacity(0.10) : Color.clear)
+    }
+
     var body: some View {
         GeometryReader { geo in
             let lane = max(1, geo.size.width - gutter)
@@ -101,16 +129,30 @@ private struct GuideGrid: View {
                 ScrollViewReader { proxy in
                     ScrollView(.vertical, showsIndicators: false) {
                         VStack(spacing: 0) {
+                            // SETUP row (channel 00) — always first, so the QR +
+                            // setup URL stay reachable from the guide even after
+                            // Plex is linked and the demo setup card is gone.
+                            setupRow(lane: lane)
+                                .frame(height: rowH)
+                                .id(-1)
+                                .contentShape(Rectangle())
+                                .onTapGesture { engine.guideSelection = -1; engine.guideSelect() }
+                                .accessibilityElement(children: .ignore)
+                                .accessibilityLabel("Channel 0, Setup. Shows the QR code and setup address. Select to open.")
                             ForEach(engine.guideProgramRows()) { row in
                                 let airing = row.programs.first { now >= $0.startUtc && now < $0.endUtc }
                                 GuideGridRow(row: row, gutter: gutter, lane: lane, windowStart: windowStart,
                                              now: now, s: s,
                                              isSelected: row.id == engine.guideSelection,
-                                             isCurrent: row.id == engine.currentIndex)
+                                             isCurrent: row.id == engine.currentIndex,
+                                             isTuning: row.id == engine.guideTuning)
                                     .frame(height: rowH)
                                     .id(row.id)
                                     .contentShape(Rectangle())
-                                    .onTapGesture { engine.tune(to: row.id) }
+                                    // Route taps through guideSelect: tapping the
+                                    // channel you're on just closes the guide; a new
+                                    // one holds the guide open until its picture is up.
+                                    .onTapGesture { engine.guideSelection = row.id; engine.guideSelect() }
                                     .accessibilityElement(children: .ignore)
                                     .accessibilityLabel("Channel \(row.number), \(row.name). "
                                         + "Now: \(airing?.title ?? "nothing scheduled"). Select to watch.")
@@ -155,6 +197,9 @@ private struct GuideGridRow: View {
     let s: CGFloat
     let isSelected: Bool
     let isCurrent: Bool
+    /// This channel was just picked and its stream is buffering — the guide is
+    /// deliberately staying open until the picture lands, so acknowledge the press.
+    var isTuning: Bool = false
 
     private func clampX(_ t: Millis) -> CGFloat {
         let raw = CGFloat(Double(t - windowStart) / Double(guideSpanMs)) * lane
@@ -190,7 +235,17 @@ private struct GuideGridRow: View {
                             .multilineTextAlignment(.center).lineLimit(2)
                     }
                 }
-                if isCurrent {
+                if isTuning {
+                    // Buffering the newly-picked channel: a clear "got it, tuning"
+                    // so the press never feels ignored while the guide holds open.
+                    Text("TUNING")
+                        .font(Palette.mono(9 * s, .bold)).tracking(2)
+                        .foregroundStyle(.black)
+                        .padding(.horizontal, 5 * s).padding(.vertical, 2 * s)
+                        .background(Palette.amber)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomLeading)
+                        .padding(.leading, 3 * s).padding(.bottom, 3 * s)
+                } else if isCurrent {
                     Image(systemName: "play.fill")
                         .font(.system(size: 13 * s)).foregroundStyle(Palette.amber)
                         .frame(maxWidth: .infinity, alignment: .leading)

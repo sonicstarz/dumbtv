@@ -40,6 +40,8 @@ import {
 } from '../jellyfin/auth.js';
 import { completeJSON, llmConfigured, llmConfig } from '../llm/client.js';
 import { generateChannel, regenerateChannel, ensureSchedule, previewChannel } from '../schedule/generator.js';
+import { packsOverview, startInstall, createChannelFromPack, uninstallPack } from '../packs/install.js';
+import { scanLocalFolder, previewLocalFolder, createChannelFromLocalFolder } from '../media/localscan.js';
 import {
   isConfigured, setPin, verifyPin, clearPin, tokenValid, cookieToken, sessionCookieHeader,
 } from '../auth.js';
@@ -358,6 +360,51 @@ export default async function api(fastify) {
   fastify.delete('/api/channels/:id', async (req) => {
     db.prepare('DELETE FROM channels WHERE id = ?').run(req.params.id);
     return { ok: true };
+  });
+
+  // ── content packs (Track I) ────────────────────────────────────────────────
+  // Curated public-domain channel packs. GET lists the catalog merged with
+  // what's installed; install downloads from the Internet Archive; channel
+  // spins one up in a tap; DELETE removes it (aired programs survive).
+  fastify.get('/api/packs', async () => ({ packs: packsOverview() }));
+
+  fastify.post('/api/packs/:id/install', async (req, reply) => {
+    try { return { ok: true, progress: startInstall(req.params.id) }; }
+    catch (e) { return reply.code(404).send({ error: e.message }); }
+  });
+
+  fastify.post('/api/packs/:id/channel', async (req, reply) => {
+    try {
+      const { channelId } = createChannelFromPack(req.params.id, req.body || {});
+      const res = ensureSchedule();
+      return { ok: true, channelId, results: res };
+    } catch (e) { return reply.code(400).send({ error: e.message }); }
+  });
+
+  fastify.delete('/api/packs/:id', async (req) => {
+    uninstallPack(req.params.id);
+    return { ok: true };
+  });
+
+  // ── local folders (Track I) — "bring your own files", no Plex ──────────────
+  // Node/Pi/Mac-dev only: the config UI runs on another device and can't pick a
+  // folder on the TV. (Apple registers folders via a native grant; see docs.)
+  fastify.get('/api/local-folders/preview', async (req, reply) => {
+    if (!req.query.path) return reply.code(400).send({ error: 'path required' });
+    try { return await previewLocalFolder(req.query.path); }
+    catch (e) { return reply.code(400).send({ error: e.message }); }
+  });
+
+  fastify.post('/api/local-folders', async (req, reply) => {
+    if (!req.body?.path) return reply.code(400).send({ error: 'path required' });
+    try { return { ok: true, ...(await scanLocalFolder(req.body.path)) }; }
+    catch (e) { return reply.code(400).send({ error: e.message }); }
+  });
+
+  fastify.post('/api/local-folders/channel', async (req, reply) => {
+    if (!req.body?.folderId) return reply.code(400).send({ error: 'folderId required' });
+    const { channelId } = createChannelFromLocalFolder(req.body.folderId, req.body.name, req.body);
+    return { ok: true, channelId, results: ensureSchedule() };
   });
 
   fastify.post('/api/channels/:id/sources', async (req, reply) => {
@@ -726,9 +773,18 @@ export default async function api(fastify) {
     const p = req.query.p;
     if (!p) return reply.code(400).send({ error: 'Missing path' });
 
+    // Authorize: a hand-dropped local file, OR a file inside a registered
+    // content pack's root (Track I). path.resolve collapses any ".." so a
+    // request can't escape a pack root — same "DB-known locations only" rule.
+    const resolved = path.resolve(p);
+    const underPackRoot = db
+      .prepare('SELECT root_path FROM packs')
+      .all()
+      .some((r) => resolved.startsWith(path.resolve(r.root_path) + path.sep));
     const known =
       db.prepare('SELECT 1 FROM assets WHERE path = ?').get(p) ||
-      db.prepare('SELECT 1 FROM media WHERE part_key = ?').get(`local:${p}`);
+      db.prepare('SELECT 1 FROM media WHERE part_key = ?').get(`local:${p}`) ||
+      underPackRoot;
     if (!known) return reply.code(403).send({ error: 'That file is not part of the library' });
 
     let stat;

@@ -148,6 +148,15 @@
         </div>
       </div>
 
+      <!-- The local-network explainer used to be an overlay on the TV itself.
+           It belongs here, where the person doing the setup is actually looking
+           (F6). Hidden unless the TV is an iPhone/iPad, which is the only place
+           the prompt exists. -->
+      <div class="card" id="lanCard" style="display:none">
+        <h3>Allow local network access on the TV</h3>
+        <p class="sub">iOS asks whether dumbTV can find and connect to devices on your network the first time it launches. <strong>Tap Allow.</strong> That's how the TV reaches this server and serves you this page — if it was declined, turn it back on in <strong>iOS Settings &rarr; dumbTV &rarr; Local Network</strong>.</p>
+      </div>
+
       <div id="plexPanel">
       <div class="card" id="linkCard">
         <h3>Link your account</h3>

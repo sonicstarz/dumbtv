@@ -28,16 +28,38 @@ Open the app. Because dumbTV is a television, it opens straight into the picture
 
 ---
 
-## Step 2 — First launch: the SET UP card
+## Step 2 — First launch: the welcome card
 
-The first time you open dumbTV with nothing configured, it shows a **SET UP card** on screen:
+The first time you open dumbTV, it pages you through a short **welcome card**. It
+is worth reading, because it sets the one expectation that matters: **channels are
+already playing behind it.** dumbTV comes with real public-domain content built
+in, so it is a working television before you connect anything.
+
+The last page carries the setup details:
 
 - a **QR code**, and
 - a **web address** like `http://192.168.1.118:8080`.
 
-That address is dumbTV's built-in setup page. **All configuration happens there**, from your phone or laptop — there's nothing to type on the TV itself.
+That address is dumbTV's built-in setup page. **All configuration happens there**,
+from your phone or laptop — there's nothing to type on the TV itself.
 
-> **On iPhone/iPad, tap "Allow" if iOS asks** to let dumbTV find and connect to devices on your network. That permission is how dumbTV reaches your Plex server and serves this setup page. If you tap Don't Allow, setup can't connect.
+Press **DONE** on the last page and the card is gone for good. If you need the
+address again later, **tune to channel 0** at any time.
+
+### iPhone / iPad: allow local network access
+
+One page of the welcome card is a heads-up about this, because it matters:
+
+> **iOS will ask whether dumbTV can find and connect to devices on your network.
+> Tap "Allow".**
+
+That permission is the whole game on iOS. It's how dumbTV reaches your Plex or
+Jellyfin server, and how it serves this setup page to your phone or laptop. If you
+tap **Don't Allow**, setup cannot connect and the app will look broken. If you
+already declined it, you can turn it back on in
+**iOS Settings → dumbTV → Local Network**.
+
+There is no equivalent prompt on Apple TV, Mac, Raspberry Pi, or Windows.
 
 ---
 

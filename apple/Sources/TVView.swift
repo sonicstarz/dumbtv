@@ -43,6 +43,15 @@ struct TVView: View {
 
     /// The guide's thumbnail rect, published by the slot placeholder.
     @State private var guideSlot: CGRect = .zero
+    /// Which first-run page is showing. Lives here, not in the popup, so the
+    /// remote and keyboard handlers below can page through it — on tvOS a SELECT
+    /// press lands on the root view, never on the popup's button.
+    ///
+    /// Seeded from `DUMBTV_FIRSTRUN_PAGE` so a specific page can be captured in
+    /// the simulator, which can't be tapped from the command line. Dev-only, same
+    /// pattern as DUMBTV_START_GUIDE / DUMBTV_START_SETUP.
+    @State private var firstRunPage =
+        Int(ProcessInfo.processInfo.environment["DUMBTV_FIRSTRUN_PAGE"] ?? "") ?? 0
 
     var body: some View {
         ZStack {
@@ -83,16 +92,14 @@ struct TVView: View {
                     } else {
                         watchLayout(s: s)
                     }
-                    #if os(iOS)
-                    // First-launch: explain the iOS "connect to devices on your
-                    // network" prompt that's about to appear, and say to allow it.
-                    if engine.showLanExplainer {
-                        LanExplainer(s: s) { engine.dismissLanExplainer() }
-                            .transition(.opacity)
+                    // F6: ONE first-run click-through, over the top of everything.
+                    // It replaces the three overlays a first launch used to stack
+                    // (LAN explainer + setup card + guide coach mark).
+                    if engine.showFirstRun {
+                        firstRun(s: s).transition(.opacity)
                     }
-                    #endif
                 }
-                .animation(.easeInOut(duration: 0.25), value: engine.showLanExplainer)
+                .animation(.easeInOut(duration: 0.25), value: engine.showFirstRun)
             }
         }
         .coordinateSpace(name: tvSpace)
@@ -105,6 +112,9 @@ struct TVView: View {
         #if os(tvOS) || os(macOS)
         .focusable()
         .onMoveCommand { direction in
+            // The first-run card owns the screen until it's paged through — don't
+            // surf channels or scroll a guide the user can't see.
+            if engine.showFirstRun { return }
             if engine.guideOpen {
                 switch direction {
                 case .up:    engine.guideMove(-1)
@@ -130,11 +140,20 @@ struct TVView: View {
         //   SELECT  = open the guide directly; in the guide, tune the highlighted row
         //   back/menu = dismiss the guide (onExitCommand above)
         .onTapGesture {
+            // SELECT pages the first-run card before it does anything else.
+            if firstRunAdvance() { return }
             if engine.guideOpen { engine.guideSelect() } else { engine.toggleGuide() }
         }
         #endif
         #if os(tvOS) || os(macOS)
         .onKeyPress { press in
+            // Return/space/enter pages the first-run card; everything else is
+            // swallowed so no key leaks through to the TV behind it.
+            if engine.showFirstRun {
+                let ch = press.characters
+                if press.key == .return || ch == " " { _ = firstRunAdvance() }
+                return .handled
+            }
             engine.showBanner()
             let ch = press.characters
             // Guide: G always (web muscle-memory), and 1 when you're not part-way
@@ -167,6 +186,25 @@ struct TVView: View {
         // (above the video, below the controls) — a root-level gesture here was
         // swallowed by VLCKit's video view, which is why tapping did nothing.
         // The guide has its own row taps. macOS uses the space bar (below).
+    }
+
+    private func firstRun(s: CGFloat) -> some View {
+        FirstRunPopup(configURL: configURL, s: s, page: $firstRunPage) {
+            engine.finishFirstRun()
+        }
+    }
+
+    /// Page the first-run card forward from the remote/keyboard, finishing on the
+    /// last page. Returns true if it consumed the press, so the caller knows not
+    /// to also change channel or open the guide behind the card.
+    private func firstRunAdvance() -> Bool {
+        guard engine.showFirstRun else { return false }
+        if firstRunPage >= FirstRunPopup.pageCount - 1 {
+            engine.finishFirstRun()
+        } else {
+            withAnimation(.easeInOut(duration: 0.2)) { firstRunPage += 1 }
+        }
+        return true
     }
 
     /// Where the picture goes. Guide open → the guide's thumbnail slot; otherwise
@@ -254,7 +292,11 @@ struct TVView: View {
                     // reveals the control row (Guide/Mute/CC) over the banner; on
                     // tvOS the whole picture is the guide button (press select).
                 }
-                if engine.setupCardVisible, !engine.setupCardDismissed, let url = configURL {
+                // Not while the first-run card is up — it already carries the QR
+                // on its last page, and two setup prompts at once was the mess
+                // F6 set out to remove.
+                if engine.setupCardVisible, !engine.setupCardDismissed,
+                   !engine.showFirstRun, let url = configURL {
                     HStack {
                         SetupCard(url: url, showChannelHint: true,
                                   onDismiss: { engine.setupCardDismissed = true })
@@ -496,58 +538,6 @@ struct BannerView: View {
     }
 }
 
-#if os(iOS)
-/// A one-time card that pre-empts iOS's own "dumbTV would like to find and
-/// connect to devices on your local network" permission prompt: it tells the
-/// user that prompt is coming and that tapping Allow is what lets the TV reach
-/// Plex and serve its setup page. Denying the system prompt breaks setup, so
-/// this exists to make sure they say yes.
-struct LanExplainer: View {
-    var s: CGFloat = 1
-    let onDismiss: () -> Void
-
-    var body: some View {
-        ZStack {
-            Color.black.opacity(0.72).ignoresSafeArea()
-                .onTapGesture { onDismiss() }
-            VStack(spacing: 18 * s) {
-                Image(systemName: "wifi")
-                    .font(.system(size: 40 * s, weight: .bold))
-                    .foregroundStyle(Palette.amber)
-                Text("ALLOW LOCAL NETWORK")
-                    .font(Palette.display(24 * s)).foregroundStyle(.white)
-                    .multilineTextAlignment(.center)
-                Text("iOS is about to ask if dumbTV can find and connect to devices on your network. Tap **Allow**.")
-                    .font(Palette.mono(15 * s))
-                    .foregroundStyle(Palette.tape)
-                    .multilineTextAlignment(.center)
-                    .fixedSize(horizontal: false, vertical: true)
-                Text("That's how the TV reaches your Plex server and shows its setup page on your phone or laptop. Without it, setup can't connect.")
-                    .font(Palette.mono(13 * s))
-                    .foregroundStyle(Palette.dim)
-                    .multilineTextAlignment(.center)
-                    .fixedSize(horizontal: false, vertical: true)
-                Button(action: onDismiss) {
-                    Text("GOT IT")
-                        .font(Palette.mono(15 * s, .bold)).tracking(3)
-                        .foregroundStyle(.black)
-                        .padding(.horizontal, 34 * s).padding(.vertical, 12 * s)
-                        .background(Palette.amber)
-                        .clipShape(RoundedRectangle(cornerRadius: 4))
-                }
-                .buttonStyle(.plain)
-                .padding(.top, 4 * s)
-            }
-            .padding(30 * s)
-            .frame(maxWidth: 420 * s)
-            .background(Palette.band)
-            .overlay(RoundedRectangle(cornerRadius: 8).stroke(Palette.amber.opacity(0.4), lineWidth: 2))
-            .clipShape(RoundedRectangle(cornerRadius: 8))
-            .padding(28 * s)
-        }
-    }
-}
-#endif
 
 #if !os(tvOS)
 /// The tap-revealed control row on phone/tablet/Mac: Guide, Mute, and Captions.

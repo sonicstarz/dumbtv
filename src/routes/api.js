@@ -137,6 +137,10 @@ export default async function api(fastify) {
       server,
       reachable,
       counts,
+      // What kind of device the TV is. The web UI shows platform-specific advice
+      // off this (e.g. the iOS local-network permission). Self-hosted installs
+      // are "node" — Pi, Windows, or a dev Mac; no such prompt anywhere.
+      platform: 'node',
       player: engine.snapshot(),
       orderingModes: ORDERING_MODES,
     };

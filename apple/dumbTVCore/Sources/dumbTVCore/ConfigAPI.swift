@@ -23,6 +23,19 @@ public final class ConfigAPI {
     var backend: String { store.mediaBackend }
     var usingJellyfin: Bool { backend == "jellyfin" }
 
+    /// What kind of device the TV is, reported to the web UI in /api/status.
+    static var platform: String {
+        #if os(tvOS)
+        return "tvos"
+        #elseif os(macOS)
+        return "macos"
+        #elseif os(iOS)
+        return "ios"
+        #else
+        return "unknown"
+        #endif
+    }
+
     public struct Request {
         public let method: String                 // GET / POST / PATCH / DELETE
         public let path: String                   // "/api/channels/3"
@@ -284,6 +297,10 @@ public final class ConfigAPI {
         return .ok([
             "backend": backend,
             "native": true,          // this is a native app; the TV is the app window, not /tv
+            // Which device the TV itself is. The web UI uses this to show advice
+            // that only applies to one platform — e.g. the iOS local-network
+            // permission (F6), which has no equivalent anywhere else.
+            "platform": Self.platform,
             "player": player,
             "linked": linked,
             "kidsMode": kidsModeOn,

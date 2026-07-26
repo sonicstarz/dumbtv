@@ -87,12 +87,11 @@ final class Engine: ObservableObject {
     /// the demo setup card is long gone. Reachable by dialing 0 or picking the
     /// top row of the guide. True while the setup screen is showing.
     @Published var onSetupChannel = false
-    /// iOS only: the first time the app touches the local network (embedded
-    /// server + Plex), iOS throws its own "find & connect to devices on your
-    /// network" prompt. This drives a one-time on-screen card that points the
-    /// user at that system prompt and says to tap Allow — otherwise the prompt
-    /// looks scary and unexplained, and denying it breaks setup entirely.
-    @Published var showLanExplainer = false
+    /// The first-run click-through (F6). One paged card, shown once ever, that
+    /// replaces the three overlays a first launch used to stack: the iOS
+    /// local-network explainer, the setup card, and the 12-second guide coach
+    /// mark. Paging to the end persists `first_run_done`.
+    @Published var showFirstRun = false
     /// The on-TV setup card (QR + URL) shows until the web config UI is opened
     /// once — even over preloaded channels (D3). The embedded server flips the
     /// `setup_seen` flag on first browser hit; channel 0 remains the way back.
@@ -262,8 +261,8 @@ final class Engine: ObservableObject {
     func bootstrap(store: Store?) async {
         self.store = store          // kept even if empty — a later web-UI change upgrades us live
         bootStage = store == nil ? "no store (DB failed to open)" : "store open"
-        showGuideHintOnce()
-        showLanExplainerOnce()
+        showFirstRunOnce()
+        showGuideHintOnce()     // no-op while the popup is doing the teaching
         if let store {
             setupCardVisible = store.getSetting("setup_seen") == nil   // D3: nudge until first web-UI open
             bootStage = "seeding preload packs"
@@ -310,28 +309,36 @@ final class Engine: ObservableObject {
         lastChangeCounter = store.sql.totalChanges()   // our own writes — no reload storm
     }
 
-    /// iOS: surface the local-network explainer card on the very first launch,
-    /// once ever, so the system permission prompt that fires right after has
-    /// context. No-op on macOS/tvOS (no such prompt) and after it's been shown.
-    private func showLanExplainerOnce() {
-        #if os(iOS)
+    /// Show the first-run click-through, once ever. On every platform now — the
+    /// iOS local-network page is one page inside it, not its own overlay.
+    private func showFirstRunOnce() {
         // Screenshot hook: keep captures clean of the first-run overlay.
         if ProcessInfo.processInfo.environment["DUMBTV_SCREENSHOT"] == "1" { return }
-        guard let store, store.getSetting("lan_explainer_shown") == nil else { return }
-        showLanExplainer = true
-        #endif
+        guard let store, store.getSetting("first_run_done") == nil else { return }
+        showFirstRun = true
     }
 
-    /// Dismiss the local-network explainer and remember it, so it never returns.
-    func dismissLanExplainer() {
-        showLanExplainer = false
-        store?.setSetting("lan_explainer_shown", "1")
-        if let store { lastChangeCounter = store.sql.totalChanges() }   // our write — no reload
+    /// The user paged to the end. Remember it so it never returns, and retire the
+    /// guide coach mark with it — the popup already taught the controls, and
+    /// stacking a second hint on top was the thing that made first launch busy.
+    /// `first_run_done` supersedes `lan_explainer_shown`; set both so a downgrade
+    /// doesn't replay the old card.
+    func finishFirstRun() {
+        showFirstRun = false
+        showGuideHint = false
+        guard let store else { return }
+        store.setSetting("first_run_done", "1")
+        store.setSetting("lan_explainer_shown", "1")
+        store.setSetting("guide_hint_shown", "1")
+        lastChangeCounter = store.sql.totalChanges()   // our writes — no reload storm
     }
 
-    /// Surface "press G for the guide" for a few seconds, exactly once ever.
+    /// Surface "press G for the guide" for a few seconds, exactly once ever —
+    /// but only for someone who ISN'T about to be shown the first-run popup,
+    /// which teaches the same thing properly.
     private func showGuideHintOnce() {
-        guard let store, store.getSetting("guide_hint_shown") == nil else { return }
+        guard let store, store.getSetting("guide_hint_shown") == nil,
+              store.getSetting("first_run_done") != nil else { return }
         store.setSetting("guide_hint_shown", "1")
         lastChangeCounter = store.sql.totalChanges()   // our own write — no reload
         showGuideHint = true

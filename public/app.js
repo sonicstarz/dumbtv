@@ -1592,6 +1592,11 @@ async function loadSetup() {
   applyBackendPanel(s.backend || 'plex');
   loadJellyfin();
 
+  // The iOS local-network permission is the one bit of platform-specific setup
+  // advice that matters, and it belongs here rather than as an overlay on the TV
+  // (F6). Only iPhone/iPad has the prompt.
+  $('#lanCard').style.display = s.platform === 'ios' ? '' : 'none';
+
   // (Build 12 disabled this toggle on the native app as honest signposting —
   // Jellyfin only worked on Node. Build 13's J1 closed that gap: the embedded
   // Swift server implements the same endpoints, so the switch is live again on

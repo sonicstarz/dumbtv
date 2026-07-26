@@ -13,11 +13,24 @@ public final class Store {
         // Migrations for columns added after the schema shipped (ALTER fails
         // harmlessly when the column already exists).
         sql.exec("ALTER TABLE channel_sources ADD COLUMN thumb TEXT;")
+        restoreDurableSettings()
     }
 
     private func nowMs() -> Millis { Millis(Date().timeIntervalSince1970 * 1000) }
 
     // MARK: - settings (key → string; JSON-encode richer values at the call site)
+
+    /// Settings that must survive a tvOS Caches purge (which wipes the DB). They
+    /// are mirrored to UserDefaults so relinking Plex / re-running first-run
+    /// isn't forced after an eviction. The channels themselves are lost on a
+    /// purge, but preload re-seeds and the Plex link is preserved.
+    private static let durableKeys: Set<String> = [
+        "plex_server_uri", "plex_access_token", "plex_server_name", "plex_token",
+        "setup_seen", "preload_seeded", "media_backend",
+        "jellyfin_url", "jellyfin_user", "jellyfin_token",
+    ]
+    private let durableMirror = UserDefaults.standard
+    private func mirrorKey(_ k: String) -> String { "dumbtv.durable.\(k)" }
 
     public func setSetting(_ key: String, _ value: String?) {
         if let value {
@@ -26,6 +39,22 @@ public final class Store {
                 [.text(key), .text(value)])
         } else {
             _ = try? sql.run("DELETE FROM settings WHERE key=?", [.text(key)])
+        }
+        if Self.durableKeys.contains(key) {
+            if let value { durableMirror.set(value, forKey: mirrorKey(key)) }
+            else { durableMirror.removeObject(forKey: mirrorKey(key)) }
+        }
+    }
+
+    /// On a fresh DB (e.g. after a Caches purge), pull durable settings back
+    /// from UserDefaults so the user isn't forced to re-link Plex.
+    private func restoreDurableSettings() {
+        for key in Self.durableKeys where getSetting(key) == nil {
+            if let v = durableMirror.string(forKey: mirrorKey(key)) {
+                _ = try? sql.run(
+                    "INSERT INTO settings(key,value) VALUES(?,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value",
+                    [.text(key), .text(v)])
+            }
         }
     }
     public func getSetting(_ key: String) -> String? {
@@ -73,6 +102,18 @@ public final class Store {
     public func nextChannelNumber() -> Int {
         let m = (try? sql.query("SELECT MAX(number) n FROM channels"))?.first?.int("n") ?? 1
         return Int(m) + 1
+    }
+
+    /// A channel number guaranteed not to collide (channels.number is UNIQUE):
+    /// the preferred one if free, else the next above the current max. Before
+    /// this, a taken number made insertChannel return 0 (a phantom success) and
+    /// a pack hint of 7 collided with the preload channel (N2/N3).
+    public func freeChannelNumber(preferred: Int? = nil) -> Int {
+        if let p = preferred,
+           ((try? sql.query("SELECT 1 FROM channels WHERE number=?", [.int(Int64(p))])) ?? []).isEmpty {
+            return p
+        }
+        return nextChannelNumber()
     }
 
     // MARK: - channel sources

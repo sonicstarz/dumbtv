@@ -743,15 +743,13 @@ async function openEpisodeFilter(channelId, source) {
 }
 
 $('#addChannel').addEventListener('click', async () => {
-  const n = state.channels.length;
-  await api('/api/channels', {
-    method: 'POST',
-    body: { name: `Channel ${n + 2}`, number: n + 2 },
-  });
+  // N2: don't guess a number (they collide with preload channels) — let the
+  // backend assign a free one, and open THAT channel by its returned id (not
+  // positional-last, which opened the wrong channel).
+  const { id } = await api('/api/channels', { method: 'POST', body: { name: 'New Channel' } });
   await loadChannels();
   loadStatus();
-  const created = state.channels[state.channels.length - 1];
-  openSettings(created.id);
+  if (id) openSettings(id);
 });
 
 // ---- AI: suggest a channel ----
@@ -1340,8 +1338,13 @@ async function loadPacks() {
 function packCard(p) {
   const size = p.downloadBytes ? `${Math.round(p.downloadBytes / 1e6)} MB` : '';
   const runtime = p.runtimeMs ? `${Math.round(p.runtimeMs / 60000)} min` : '';
-  const meta = [`${p.itemCount} ${p.kind === 'ads' ? 'spots' : 'items'}`, runtime, size]
-    .filter(Boolean).join(' · ');
+  // A bundled preload may ship a subset (e.g. 1 Superman episode of 17).
+  const partial = p.installed && p.kind !== 'ads'
+    && p.installedItemCount != null && p.installedItemCount < p.itemCount;
+  const meta = [
+    partial ? `${p.installedItemCount} of ${p.itemCount} items` : `${p.itemCount} ${p.kind === 'ads' ? 'spots' : 'items'}`,
+    runtime, size,
+  ].filter(Boolean).join(' · ');
   const prog = p.progress;
   let actions;
   if (prog && prog.state === 'downloading') {
@@ -1352,10 +1355,16 @@ function packCard(p) {
     actions = `<button class="primary" data-pack-install="${p.id}">Install${size ? ` · ${size}` : ''}</button>`;
   } else if (p.kind === 'ads') {
     actions = `<span class="pack-state ok">Ad content added ✓</span> <button class="ghost" data-pack-remove="${p.id}">Remove</button>`;
-  } else if (p.hasChannel) {
-    actions = `<span class="pack-state ok">Channel added ✓</span> <button class="ghost" data-pack-remove="${p.id}">Remove</button>`;
   } else {
-    actions = `<button class="primary" data-pack-channel="${p.id}">Create channel</button> <button class="ghost" data-pack-remove="${p.id}">Remove</button>`;
+    // Installed shows pack: create-channel (or ✓), an optional "download the
+    // rest" when partial (C-1), and remove.
+    const parts = [];
+    parts.push(p.hasChannel
+      ? `<span class="pack-state ok">Channel added ✓</span>`
+      : `<button class="primary" data-pack-channel="${p.id}">Create channel</button>`);
+    if (partial) parts.push(`<button class="ghost" data-pack-install="${p.id}">Download all ${p.itemCount}${size ? ` · ${size}` : ''}</button>`);
+    parts.push(`<button class="ghost" data-pack-remove="${p.id}">Remove</button>`);
+    actions = parts.join(' ');
   }
   return `<div class="packcard">
     <div>

@@ -36,13 +36,9 @@ final class PackProgressBox: @unchecked Sendable {
 }
 
 extension ConfigAPI {
-    // Where downloaded packs live (beside the DB, in Application Support).
-    static func downloadedPacksDir() -> URL {
-        let base = (try? FileManager.default.url(for: .applicationSupportDirectory, in: .userDomainMask,
-                                                 appropriateFor: nil, create: true))
-            ?? URL(fileURLWithPath: NSTemporaryDirectory())
-        return base.appendingPathComponent("dumbTV/packs", isDirectory: true)
-    }
+    // Where downloaded packs live — the same writable root as the DB (Caches on
+    // tvOS; Application Support elsewhere). See AppPaths for why.
+    static func downloadedPacksDir() -> URL { AppPaths.packsDir() }
 
     func loadCatalog() -> PackCatalog {
         // Prefer a downloaded catalog override, else the bundled fallback.
@@ -72,12 +68,23 @@ extension ConfigAPI {
                 "id": id, "name": name, "kind": kind, "description": desc,
                 "itemCount": itemCount, "runtimeMs": runtimeMs, "downloadBytes": downloadBytes,
                 "installed": installed[id] != nil || prog?.state == "installed",
+                "installedItemCount": installedItemCount(id, kind: kind),
                 "hasChannel": packChannels.contains(packRatingKey(id)),
                 "origin": installed[id]?.origin ?? NSNull(),
             ]
             o["progress"] = prog.map { ["state": $0.state, "done": $0.done, "total": $0.total,
                                         "error": $0.error.map { $0 as Any } ?? NSNull()] } ?? NSNull()
             return o
+        }
+
+        // How many items are actually on disk — a bundled preload may ship a
+        // subset (1 Superman episode of 17), so the picker can offer the rest (C-1).
+        func installedItemCount(_ id: String, kind: String) -> Int {
+            if kind == "ads" {
+                return Int((((try? store.sql.query("SELECT COUNT(*) n FROM assets WHERE path LIKE ?",
+                    [.text("\(packPartKey(id, ""))%")])) ?? []).first?.int("n")) ?? 0)
+            }
+            return store.media(forSource: packRatingKey(id)).count
         }
 
         var out: [[String: Any]] = []

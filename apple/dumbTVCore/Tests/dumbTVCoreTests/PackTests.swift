@@ -70,6 +70,29 @@ final class PackTests: XCTestCase {
         try? FileManager.default.removeItem(at: dir)
     }
 
+    func testPartialToFullUpgrade() throws {
+        let store = try Store(path: NSTemporaryDirectory() + "up-\(UUID().uuidString).db")
+        // Bundled partial: 1 episode (like Superman's one-ep preload).
+        let partial = PackManifest(
+            id: "up", name: "UP", version: 1, kind: "shows",
+            channel: .init(number: 30, name: "UP", ordering: "release_order", seed: 1),
+            items: [.init(id: "e1", file: "e1.mp4", title: "E1", show: "S", season: 1, episode: 1,
+                          aired: nil, durationMs: 600000)])
+        store.installPack(partial, rootPath: "/tmp/up-bundle", origin: "bundled")
+        XCTAssertEqual(store.media(forSource: packRatingKey("up")).count, 1)
+        let ch = try XCTUnwrap(store.createChannelFromPack("up"))
+
+        // Download the full pack (same id, e1 shared) — re-registers, repoints root.
+        let full = PackManifest(
+            id: "up", name: "UP", version: 1, kind: "shows", channel: partial.channel,
+            items: (1...3).map { .init(id: "e\($0)", file: "e\($0).mp4", title: "E\($0)", show: "S",
+                                       season: 1, episode: $0, aired: nil, durationMs: 600000) })
+        store.installPack(full, rootPath: "/tmp/up-download", origin: "downloaded")
+        XCTAssertEqual(store.media(forSource: packRatingKey("up")).count, 3, "grows to 3, no dupes")
+        XCTAssertEqual(store.resolvePackPath("pack:up/e1.mp4"), "/tmp/up-download/e1.mp4", "root repointed")
+        XCTAssertEqual(store.library(forChannel: ch).mediaByKey.count, 3, "channel now sees all 3")
+    }
+
     func testAdsPackRegistersAsAssets() throws {
         let store = try makeStore()
         let m = PackManifest(
@@ -81,5 +104,14 @@ final class PackTests: XCTestCase {
         // An ads pack has no schedulable media, and can't become a channel.
         XCTAssertTrue(store.media(forSource: packRatingKey("ads1")).isEmpty)
         XCTAssertNil(store.createChannelFromPack("ads1"))
+
+        // A1: the ad asset MUST carry a partKey that resolves to a local file —
+        // it was nil, so the Engine's ad branch played dead air for every break.
+        let expectedKey = packPartKey("ads1", "01-spot.mp4")
+        let partKey = ((try? store.sql.query("SELECT part_key FROM assets WHERE path=?", [.text(expectedKey)])) ?? [])
+            .first?.text("part_key")
+        XCTAssertEqual(partKey, expectedKey, "ad asset must have a pack: partKey")
+        XCTAssertEqual(store.resolvePackPath(partKey ?? ""), "/tmp/ads1/01-spot.mp4",
+                       "ad partKey must resolve to the pack file")
     }
 }

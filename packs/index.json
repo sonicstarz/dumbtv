@@ -31,6 +31,142 @@
       ]
     },
     {
+      "id": "early-disney",
+      "name": "EARLY DISNEY",
+      "kind": "shows",
+      "description": "The public-domain birth of Mickey Mouse — 1928–29 shorts.",
+      "channel": {
+        "number": 9,
+        "name": "EARLY DISNEY",
+        "ordering": "release_order",
+        "seed": 19009
+      },
+      "itemCount": 3,
+      "runtimeMs": 1133570,
+      "downloadBytes": 77356881,
+      "items": [
+        {
+          "id": "plane-crazy",
+          "title": "Plane Crazy",
+          "show": "Early Disney",
+          "season": 1,
+          "episode": 1,
+          "aired": "1928-05-15",
+          "durationMs": 359960,
+          "file": "plane-crazy.mp4",
+          "url": "https://archive.org/download/plane-crazy-1928/getvid%20(1).mp4",
+          "bytes": 25235355,
+          "license": {
+            "url": "https://creativecommons.org/publicdomain/mark/1.0/",
+            "verified": "2026-07-26",
+            "note": "1928 work → US public domain Jan 2024. IA item PD-marked. TRADEMARK CAUTION: the films are PD; Mickey Mouse remains a Disney trademark — never use Disney characters in dumbTV marketing."
+          }
+        },
+        {
+          "id": "steamboat-willie",
+          "title": "Steamboat Willie",
+          "show": "Early Disney",
+          "season": 1,
+          "episode": 2,
+          "aired": "1928-11-18",
+          "durationMs": 442410,
+          "file": "steamboat-willie.mp4",
+          "url": "https://archive.org/download/SteamboatWillie/Steamboat%20Willie.mp4",
+          "bytes": 33335230,
+          "license": {
+            "url": "https://creativecommons.org/publicdomain/mark/1.0/",
+            "verified": "2026-07-26",
+            "note": "1928 work → US PD Jan 2024. IA item PD-marked. Same trademark caution as Plane Crazy."
+          }
+        },
+        {
+          "id": "the-skeleton-dance",
+          "title": "The Skeleton Dance",
+          "show": "Early Disney",
+          "season": 1,
+          "episode": 3,
+          "aired": "1929-08-22",
+          "durationMs": 331200,
+          "file": "the-skeleton-dance.mp4",
+          "url": "https://archive.org/download/the-skeleton-dance-first-silly-symphony/The%20Skeleton%20Dance%20_The%20First%20Disney%20Silly%20Symphony.ia.mp4",
+          "bytes": 18786296,
+          "license": {
+            "url": "https://creativecommons.org/publicdomain/mark/1.0/",
+            "verified": "2026-07-26",
+            "note": "1929 Silly Symphony → US PD Jan 2025. IA item PD-marked."
+          }
+        }
+      ]
+    },
+    {
+      "id": "popeye-color",
+      "name": "POPEYE IN COLOR",
+      "kind": "shows",
+      "description": "The three Technicolor Popeye two-reelers (1936–39) — the only Popeye films in the public domain.",
+      "channel": {
+        "number": 8,
+        "name": "POPEYE",
+        "ordering": "release_order",
+        "seed": 18008
+      },
+      "itemCount": 3,
+      "runtimeMs": 3306820,
+      "downloadBytes": 2940156592,
+      "items": [
+        {
+          "id": "sindbad-the-sailor",
+          "title": "Popeye the Sailor Meets Sindbad the Sailor",
+          "show": "Popeye in Color",
+          "season": 1,
+          "episode": 1,
+          "aired": "1936-11-27",
+          "durationMs": 966390,
+          "file": "sindbad-the-sailor.mp4",
+          "url": "https://archive.org/download/PopeyeTheSailorMeetsSindbadTheSailor/Popeye_meetsSinbadtheSailor_512kb.mp4",
+          "bytes": 70368877,
+          "license": {
+            "url": "https://creativecommons.org/publicdomain/mark/1.0/",
+            "verified": "2026-07-26",
+            "note": "1936 Technicolor two-reeler; copyright not renewed → US public domain. IA item carries a PD mark. Regular B&W Popeye shorts are NOT PD — only these three color specials."
+          }
+        },
+        {
+          "id": "ali-babas-forty-thieves",
+          "title": "Popeye the Sailor Meets Ali Baba's Forty Thieves",
+          "show": "Popeye in Color",
+          "season": 1,
+          "episode": 2,
+          "aired": "1937-11-26",
+          "durationMs": 1063050,
+          "file": "ali-babas-forty-thieves.mp4",
+          "url": "https://archive.org/download/1761_20230717/1761.ia.mp4",
+          "bytes": 1250073820,
+          "license": {
+            "url": "https://creativecommons.org/publicdomain/mark/1.0/",
+            "verified": "2026-07-26",
+            "note": "1937 Technicolor two-reeler; not renewed → US PD. IA item PD-marked. NOTE: source is a 1.25 GB HD scan — fine for the build pipeline (re-encodes to 480p), too heavy for direct-download; prefer built-pack delivery."
+          }
+        },
+        {
+          "id": "aladdin-wonderful-lamp",
+          "title": "Aladdin and His Wonderful Lamp",
+          "show": "Popeye in Color",
+          "season": 1,
+          "episode": 3,
+          "aired": "1939-04-07",
+          "durationMs": 1277380,
+          "file": "aladdin-wonderful-lamp.mp4",
+          "url": "https://archive.org/download/popeye-meets-aladdin/Aladdin%20and%20his%20Wonderful%20.ia.mp4",
+          "bytes": 1619713895,
+          "license": {
+            "url": "http://creativecommons.org/publicdomain/mark/1.0/",
+            "verified": "2026-07-26",
+            "note": "1939 Technicolor two-reeler; not renewed → US PD. IA item PD-marked. Source is HD (~1.6 GB) — built-pack delivery preferred."
+          }
+        }
+      ]
+    },
+    {
       "id": "saturday-morning",
       "name": "SATURDAY MORNING",
       "kind": "shows",

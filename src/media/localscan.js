@@ -110,11 +110,13 @@ export async function previewLocalFolder(dir) {
 export function createChannelFromLocalFolder(folderId, name, opts = {}) {
   const maxNo = db.prepare('SELECT MAX(number) m FROM channels').get().m || 1;
   const seed = parseInt(fnv(folderId), 16) & 0x7fffffff; // deterministic per folder
+  let number = opts.number ?? maxNo + 1;                  // N3: next-free if taken
+  if (db.prepare('SELECT 1 FROM channels WHERE number=?').get(number)) number = maxNo + 1;
   const info = db.prepare(`
     INSERT INTO channels (number, name, slot_minutes, ordering_mode, marathon_size, shuffle_seed,
                           dark_start, dark_end, ads_enabled, max_ads_per_break, ad_tags, enabled, created_at)
     VALUES (?,?,30,?,3,?,NULL,NULL,?,10,'',1,?)`
-  ).run(opts.number ?? maxNo + 1, name || 'Local', opts.ordering || 'sequential', seed,
+  ).run(number, name || 'Local', opts.ordering || 'sequential', seed,
         opts.adsEnabled === true ? 1 : 0, Date.now()); // user channels: ads OFF by default (D2)
   db.prepare('INSERT OR IGNORE INTO channel_sources (channel_id, rating_key, source_type, title) VALUES (?,?,?,?)')
     .run(info.lastInsertRowid, folderId, 'local', name || 'Local');

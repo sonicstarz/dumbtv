@@ -259,7 +259,7 @@ public final class ConfigAPI {
         let b = req.body ?? [:]
         let c = ChannelConfig(
             id: 0,
-            number: b.int("number") ?? store.nextChannelNumber(),
+            number: store.freeChannelNumber(preferred: b.int("number")),   // N2: never collide
             name: b.string("name") ?? "New Channel",
             slotMinutes: b.int("slotMinutes") ?? 30,
             orderingMode: OrderingMode(rawValue: b.string("orderingMode") ?? "") ?? .sequential,
@@ -270,7 +270,8 @@ public final class ConfigAPI {
             maxAdsPerBreak: b.int("maxAdsPerBreak") ?? 10,
             adTags: b.string("adTags") ?? "")
         let id = store.insertChannel(c)
-        return .ok(["id": id])
+        guard id > 0 else { return .bad("couldn't create channel") }   // N2: id 0 = failure, not success
+        return .ok(["id": id, "number": c.number])
     }
 
     private func patchChannel(_ idStr: String, _ req: Request) -> Response {

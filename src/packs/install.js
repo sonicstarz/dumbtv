@@ -105,6 +105,11 @@ export const installPack = db.transaction((distDir, { origin = 'downloaded' } = 
         kind: 'ad', durationMs: it.durationMs, tags: `pack,${pack.id}`,
       });
     }
+    // Reconcile: drop this pack's assets no longer in the manifest.
+    const keep = new Set(pack.items.map((it) => packPartKey(pack.id, it.file)));
+    for (const row of db.prepare('SELECT path FROM assets WHERE path LIKE ?').all(`${packPartKey(pack.id, '')}%`)) {
+      if (!keep.has(row.path)) db.prepare('DELETE FROM assets WHERE path=?').run(row.path);
+    }
   } else {
     for (const it of pack.items) {
       const kind = it.season != null && it.episode != null ? 'episode' : 'movie';
@@ -117,6 +122,12 @@ export const installPack = db.transaction((distDir, { origin = 'downloaded' } = 
         partKey: packPartKey(pack.id, it.file), updatedAt: now,
       });
     }
+    // Reconcile: drop pack media no longer in the manifest so a partial→full
+    // upgrade has an exact count and no stale rows linger.
+    const keep = new Set(pack.items.map((it) => `${packRatingKey(pack.id)}:${it.id}`));
+    for (const row of db.prepare('SELECT rating_key FROM media WHERE parent_key=?').all(packRatingKey(pack.id))) {
+      if (!keep.has(row.rating_key)) db.prepare('DELETE FROM media WHERE rating_key=?').run(row.rating_key);
+    }
   }
   return { id: pack.id, name: pack.name, kind: pack.kind ?? 'shows', items: pack.items.length };
 });
@@ -127,14 +138,18 @@ export const createChannelFromPack = db.transaction((packId, overrides = {}) => 
   if (!pack) throw new Error(`pack not installed: ${packId}`);
   if (pack.kind === 'ads') throw new Error(`pack ${packId} is ads — no channel`);
   const ch = { number: null, name: pack.name, ordering: 'sequential', seed: null, ...channelHints(pack.root_path), ...overrides };
+  // N3: the manifest number is a HINT — fall back to next-free when it's taken
+  // (a hint of 7 collided with the preload channel and 500'd the INSERT).
   const maxNo = db.prepare('SELECT MAX(number) m FROM channels').get().m || 1;
+  let number = ch.number ?? maxNo + 1;
+  if (db.prepare('SELECT 1 FROM channels WHERE number=?').get(number)) number = maxNo + 1;
   const info = db.prepare(
     `INSERT INTO channels
        (number, name, slot_minutes, ordering_mode, marathon_size, shuffle_seed,
         dark_start, dark_end, ads_enabled, max_ads_per_break, ad_tags, enabled, created_at)
      VALUES (?,?,30,?,3,?,NULL,NULL,?,10,'',1,?)`
   ).run(
-    ch.number ?? maxNo + 1, ch.name, ch.ordering,
+    number, ch.name, ch.ordering,
     ch.seed ?? Math.floor(Math.random() * 2 ** 31),
     overrides.adsEnabled === false ? 0 : 1, // preload channels: ads ON (D2)
     Date.now(),
@@ -186,10 +201,17 @@ export function packsOverview() {
     db.prepare("SELECT rating_key FROM channel_sources WHERE source_type='pack'").all().map((r) => r.rating_key));
   return loadCatalog().packs.map((p) => {
     const prog = installProgress.get(p.id);
+    // How many items are actually installed on disk — a bundled preload may ship
+    // a SUBSET (e.g. 1 Superman episode of 17), so the picker can offer "download
+    // the rest" (C-1).
+    const installedItemCount = p.kind === 'ads'
+      ? db.prepare('SELECT COUNT(*) n FROM assets WHERE path LIKE ?').get(`${packPartKey(p.id, '')}%`).n
+      : db.prepare('SELECT COUNT(*) n FROM media WHERE parent_key=?').get(packRatingKey(p.id)).n;
     return {
       id: p.id, name: p.name, kind: p.kind, description: p.description,
       itemCount: p.itemCount, runtimeMs: p.runtimeMs, downloadBytes: p.downloadBytes,
       installed: installed.has(p.id) || prog?.state === 'installed',
+      installedItemCount,
       origin: installed.get(p.id)?.origin ?? null,
       hasChannel: packChannels.has(packRatingKey(p.id)),
       progress: prog ? { state: prog.state, done: prog.done, total: prog.total, error: prog.error } : null,

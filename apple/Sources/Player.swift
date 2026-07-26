@@ -111,25 +111,34 @@ final class Player: ObservableObject {
         switching = pendingSwap
     }
 
+    /// Apply mute + captions to a player OFF the main thread. VLCKit's audio /
+    /// subtitle setters can stall while a stream is buffering — doing them on the
+    /// main actor starved SwiftUI's gesture recognizers ("double-tap stopped
+    /// working, came back later") and thrashed the banner animation (B1).
     private func applyAudioSubtitle(_ p: VLCMediaPlayer) {
-        p.audio?.isMuted = muted
-        if captionsOn {
-            let idxs = (p.videoSubTitlesIndexes as? [NSNumber])?.map { $0.intValue } ?? []
-            if let first = idxs.first(where: { $0 >= 0 }) { p.currentVideoSubTitleIndex = Int32(first) }
-        } else {
-            p.currentVideoSubTitleIndex = -1
+        let m = muted, cc = captionsOn
+        DispatchQueue.global(qos: .userInitiated).async {
+            p.audio?.isMuted = m
+            if cc {
+                let idxs = (p.videoSubTitlesIndexes as? [NSNumber])?.map { $0.intValue } ?? []
+                p.currentVideoSubTitleIndex = Int32(idxs.first(where: { $0 >= 0 }) ?? -1)
+            } else {
+                p.currentVideoSubTitleIndex = -1
+            }
         }
     }
 
+    // Front player only — the back player is silent/hidden mid-swap, so touching
+    // it is wasted work (and doubled the stall).
     func toggleMute() {
         muted.toggle()
-        vlcs.forEach { $0.audio?.isMuted = muted }
+        applyAudioSubtitle(vlcs[front])
     }
 
     /// Best-effort captions: enable the first subtitle track if the file has one.
     func toggleCaptions() {
         captionsOn.toggle()
-        vlcs.forEach { applyAudioSubtitle($0) }
+        applyAudioSubtitle(vlcs[front])
     }
 
     /// Tune: open the URL and seek `startSeconds` in (join-in-progress).
@@ -162,6 +171,15 @@ final class Player: ObservableObject {
     }
 
     func stop() { vlcs.forEach { $0.stop() }; pendingSwap = false }
+
+    /// Re-bind each player to its drawable view. A layout swap (watch ⇄ guide)
+    /// re-parents the persistent video views into a new container; on a
+    /// same-channel guide dismiss there's no retune to force the output to
+    /// re-attach, so the picture goes black while audio keeps playing (B2).
+    /// Re-asserting `drawable` after the swap forces VLCKit to re-attach.
+    func reattachDrawables() {
+        for (i, p) in vlcs.enumerated() { p.drawable = views[i] }
+    }
 }
 
 /// Both players' persistent views live in ONE container; the visible one is

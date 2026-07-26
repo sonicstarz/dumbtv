@@ -88,8 +88,20 @@ extension Store {
 
         if kind == "ads" {
             for it in m.items {
+                // partKey MUST be set — the Engine's ad branch resolves ads via
+                // asset.partKey (Engine.streamURL maps pack: → a local file). It
+                // was nil, so every preloaded ad break played as dead air/bars.
                 _ = upsertAsset(path: packPartKey(m.id, it.file), title: it.title ?? it.id,
-                                kind: "ad", durationMs: it.durationMs, tags: "pack,\(m.id)")
+                                kind: "ad", durationMs: it.durationMs, tags: "pack,\(m.id)",
+                                partKey: packPartKey(m.id, it.file))
+            }
+            // Reconcile: drop this pack's assets no longer in the manifest.
+            let keep = Set(m.items.map { packPartKey(m.id, $0.file) })
+            for row in ((try? sql.query("SELECT path FROM assets WHERE path LIKE ?",
+                                        [.text("\(packPartKey(m.id, ""))%")])) ?? []) {
+                if let path = row.text("path"), !keep.contains(path) {
+                    _ = try? sql.run("DELETE FROM assets WHERE path=?", [.text(path)])
+                }
             }
         } else {
             let media = m.items.map { it in
@@ -100,6 +112,13 @@ extension Store {
                       partKey: packPartKey(m.id, it.file))
             }
             upsertMedia(media)
+            // Reconcile: drop pack media no longer in the manifest, so a
+            // partial→full upgrade (or a re-curated pack) has an EXACT item
+            // count and no stale rows linger (matches the vanished-file rule).
+            let keep = Set(media.map { $0.ratingKey })
+            for existing in self.media(forSource: packRatingKey(m.id)) where !keep.contains(existing.ratingKey) {
+                _ = try? sql.run("DELETE FROM media WHERE rating_key=?", [.text(existing.ratingKey)])
+            }
         }
         return InstalledPack(id: m.id, name: m.name, kind: kind, origin: origin, rootPath: rootPath)
     }
@@ -110,7 +129,7 @@ extension Store {
         guard let row = ((try? sql.query("SELECT * FROM packs WHERE id=?", [.text(packId)])) ?? []).first,
               (row.text("kind") ?? "shows") != "ads" else { return nil }
         let ch = channelHints(rootPath: row.text("root_path") ?? "")
-        let number = Int64(ch?.number ?? nextChannelNumber())
+        let number = Int64(freeChannelNumber(preferred: ch?.number))   // N3: hint is a preference, not a demand
         let name = ch?.name ?? (row.text("name") ?? packId)
         let ordering = ch?.ordering ?? "sequential"
         let seed = Int64(ch?.seed ?? stableSeed(packId))

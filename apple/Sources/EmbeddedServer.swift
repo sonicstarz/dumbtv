@@ -12,6 +12,9 @@ final class EmbeddedServer {
     private var listener: NWListener?
     private let queue = DispatchQueue(label: "dumbtv.httpd", attributes: .concurrent)
     let port: UInt16
+    /// Reports NWListener lifecycle ("listening"/"failed: …") for on-screen
+    /// diagnostics — surfaces a bind failure that print() alone would hide on a TV.
+    var onStateChange: ((String) -> Void)?
 
     init(store: Store, port: UInt16 = 8080) {
         self.api = ConfigAPI(store: store)
@@ -23,6 +26,15 @@ final class EmbeddedServer {
             let params = NWParameters.tcp
             params.allowLocalEndpointReuse = true
             listener = try NWListener(using: params, on: NWEndpoint.Port(rawValue: port)!)
+            listener?.stateUpdateHandler = { [weak self] state in
+                switch state {
+                case .ready:            self?.onStateChange?("listening on \(self?.port ?? 0)")
+                case .failed(let e):    self?.onStateChange?("failed: \(e)")
+                case .waiting(let e):   self?.onStateChange?("waiting: \(e)")
+                case .cancelled:        self?.onStateChange?("cancelled")
+                default: break
+                }
+            }
             listener?.newConnectionHandler = { [weak self] conn in
                 conn.start(queue: self?.queue ?? .global())
                 self?.receive(conn, buffer: Data())
@@ -30,6 +42,7 @@ final class EmbeddedServer {
             listener?.start(queue: queue)
             print("dumbTV config server on http://localhost:\(port)")
         } catch {
+            onStateChange?("start threw: \(error)")
             print("dumbTV config server failed to start on \(port): \(error)")
         }
     }

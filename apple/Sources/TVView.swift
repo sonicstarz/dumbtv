@@ -22,6 +22,8 @@ struct TVView: View {
     @ObservedObject var engine: Engine
     /// Where to configure this device (shown as a QR + URL until it's set up).
     var configURL: String? = nil
+    /// App/server self-report, shown on channel 00 when the server is down.
+    @ObservedObject var diag: SystemDiagnostics
 
     var body: some View {
         GeometryReader { geo in
@@ -30,10 +32,14 @@ struct TVView: View {
             let s = max(0.7, min(2.2, geo.size.height / 800))
             ZStack {
                 Color.black.ignoresSafeArea()
-                if engine.onSetupChannel {
-                    setupChannelLayout(s: s)
-                } else if engine.guideOpen {
+                // A2: the guide renders ABOVE the setup channel. Opening the
+                // guide from channel 00 used to flip guideOpen but keep drawing
+                // the setup screen (the guide opened invisibly), which is why
+                // "double-tap/select for the guide" appeared to do nothing.
+                if engine.guideOpen {
                     guideLayout(s: s)
+                } else if engine.onSetupChannel {
+                    setupChannelLayout(s: s)
                 } else {
                     watchLayout(s: s)
                 }
@@ -74,14 +80,12 @@ struct TVView: View {
         .onExitCommand { if engine.guideOpen { engine.guideOpen = false } }   // Esc / Menu closes the guide
         #endif
         #if os(tvOS)
-        // Siri remote select: in the guide it tunes; while watching it brings up
-        // the channel info (like a tap on the other platforms), and pressing it
-        // again while the info is up opens the guide. Arrow up/down (and a swipe
-        // up/down) change channel, which also surfaces the info banner.
+        // B3 — the owner's remote spec (simpler than the old two-step):
+        //   up/down = change channel (onMoveCommand; the banner auto-appears on tune)
+        //   SELECT  = open the guide directly; in the guide, tune the highlighted row
+        //   back/menu = dismiss the guide (onExitCommand above)
         .onTapGesture {
-            if engine.guideOpen { engine.guideSelect() }
-            else if engine.bannerVisible { engine.toggleGuide() }
-            else { engine.showBanner() }
+            if engine.guideOpen { engine.guideSelect() } else { engine.toggleGuide() }
         }
         #endif
         #if os(tvOS) || os(macOS)
@@ -111,6 +115,17 @@ struct TVView: View {
         // (above the video, below the controls) — a root-level gesture here was
         // swallowed by VLCKit's video view, which is why tapping did nothing.
         // The guide has its own row taps. macOS uses the space bar (below).
+        //
+        // B2: a layout swap re-parents the persistent video views; re-attach the
+        // drawables just after so a same-channel guide dismiss doesn't go black.
+        .onChange(of: engine.guideOpen) { _ in reattachVideoSoon() }
+        .onChange(of: engine.onSetupChannel) { _ in reattachVideoSoon() }
+    }
+
+    private func reattachVideoSoon() {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.12) {
+            engine.player.reattachDrawables()
+        }
     }
 
     // Full-screen video with the channel banner and a GUIDE button.
@@ -200,7 +215,7 @@ struct TVView: View {
                 if engine.showGuideHint {
                     HStack {
                         #if os(tvOS)
-                        Text("PRESS SELECT FOR INFO · AGAIN FOR GUIDE")
+                        Text("PRESS SELECT FOR THE GUIDE")
                         #elseif os(macOS)
                         Text("PRESS  G  FOR THE GUIDE · SPACE FOR INFO")
                         #else
@@ -276,12 +291,13 @@ struct TVView: View {
             VStack(spacing: 22 * s) {
                 Text("00  SETUP")
                     .font(Palette.display(40 * s)).foregroundStyle(Palette.amber).tracking(3)
-                if let url = configURL {
+                // Server healthy → the scannable QR + URL. Server down → an
+                // on-screen diagnostics block instead of a useless sentence, so a
+                // single TestFlight photo says exactly what failed (build 11).
+                if let url = configURL, diag.storeOpened {
                     SetupCard(url: url)
                 } else {
-                    Text("Open dumbTV's setup page from a browser on this network.")
-                        .font(Palette.mono(15 * s)).foregroundStyle(.white)
-                        .multilineTextAlignment(.center)
+                    diagnosticsBlock(s: s)
                 }
                 Group {
                     #if os(iOS)
@@ -297,6 +313,42 @@ struct TVView: View {
             }
             .padding(30 * s)
         }
+    }
+
+    // On-screen evidence when the config server isn't reachable — replaces the
+    // old unhelpful fallback sentence. Distinguishes the tvOS failure modes:
+    // store-write failure vs bind failure vs a boot hang (N6).
+    private func diagnosticsBlock(s: CGFloat) -> some View {
+        func row(_ k: String, _ v: String, bad: Bool = false) -> some View {
+            HStack(alignment: .top, spacing: 10 * s) {
+                Text(k).foregroundStyle(Palette.dim).frame(width: 92 * s, alignment: .leading)
+                Text(v).foregroundStyle(bad ? Palette.tally : .white)
+                    .lineLimit(2).minimumScaleFactor(0.6)
+            }
+        }
+        return VStack(alignment: .leading, spacing: 7 * s) {
+            Text("SETUP SERVER UNAVAILABLE")
+                .font(Palette.mono(14 * s, .bold)).foregroundStyle(Palette.tally).tracking(2)
+            row("platform", diag.platform)
+            if diag.storeOpened {
+                row("store", "open")
+            } else {
+                row("store", "FAILED — \(diag.storeError ?? "unknown")", bad: true)
+            }
+            row("db path", diag.storePath)
+            row("server", diag.serverState + (diag.serverPort > 0 ? " :\(diag.serverPort)" : ""),
+                bad: !diag.serverState.hasPrefix("listening"))
+            row("config url", diag.configURL ?? "—", bad: diag.configURL == nil)
+            row("lan ip", diag.lanIP)
+            row("boot", engine.bootStage)
+            row("channels", "\(engine.channels.count)  ·  playing: \(engine.now?.program.title ?? "—")")
+            row("player", engine.player.state)
+        }
+        .font(Palette.mono(13 * s))
+        .padding(18 * s)
+        .background(Color.black.opacity(0.6))
+        .overlay(RoundedRectangle(cornerRadius: 6).stroke(Palette.tally.opacity(0.5), lineWidth: 2))
+        .frame(maxWidth: 640 * s)
     }
 
     // Top: the live picture beside a NOW PLAYING panel, on black. Bottom: the

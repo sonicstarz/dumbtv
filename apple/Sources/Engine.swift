@@ -97,6 +97,9 @@ final class Engine: ObservableObject {
     /// once — even over preloaded channels (D3). The embedded server flips the
     /// `setup_seen` flag on first browser hit; channel 0 remains the way back.
     @Published var setupCardVisible = false
+    /// The last-reached boot phase — shown on the channel-00 diagnostics screen
+    /// so a hang on real tvOS is localizable (build 11, N6).
+    @Published var bootStage = "starting"
     /// While tuning to a NEW channel from the guide, this is that channel's index:
     /// the guide stays open (showing the press was acknowledged) until the new
     /// channel's picture is actually up, then it dismisses. Nil the rest of the time.
@@ -229,14 +232,23 @@ final class Engine: ObservableObject {
     /// source of truth on a self-contained device.
     func bootstrap(store: Store?) async {
         self.store = store          // kept even if empty — a later web-UI change upgrades us live
+        bootStage = store == nil ? "no store (DB failed to open)" : "store open"
         showGuideHintOnce()
         showLanExplainerOnce()
         if let store {
             setupCardVisible = store.getSetting("setup_seen") == nil   // D3: nudge until first web-UI open
+            bootStage = "seeding preload packs"
             seedPreloadPacks(store)                                    // register bundled packs; seed channels once
+            bootStage = "loading channels from store"
         }
-        if let store, loadFromStore(store) { return }
+        if let store, loadFromStore(store) {
+            bootStage = "on air — \(channels.count) channel(s)"
+            if ProcessInfo.processInfo.environment["DUMBTV_START_GUIDE"] == "1" { guideOpen = true }
+            return
+        }
+        bootStage = "no configured channels — falling back"
         await bootstrapFromEnvIfPresent()
+        bootStage = demo ? "demo lineup (\(channels.count))" : "env/plex (\(channels.count))"
     }
 
     /// Register the content packs bundled in the app (Track I). Bundled pack
@@ -492,8 +504,14 @@ final class Engine: ObservableObject {
 
     /// Player controls surfaced on the tap-to-reveal control row (iOS/iPad/Mac).
     /// Both keep the banner up so the row doesn't vanish while you're using it.
-    func toggleMute()     { player.toggleMute();     showBanner() }
-    func toggleCaptions() { player.toggleCaptions(); showBanner() }
+    /// Debounced (B1) so a rapid double-tap can't thrash the banner/animation.
+    private var lastAVToggle = Date.distantPast
+    private func avDebounced() -> Bool {
+        guard Date().timeIntervalSince(lastAVToggle) > 0.2 else { return false }
+        lastAVToggle = Date(); return true
+    }
+    func toggleMute()     { guard avDebounced() else { return }; player.toggleMute();     showBanner() }
+    func toggleCaptions() { guard avDebounced() else { return }; player.toggleCaptions(); showBanner() }
 
     /// Snap the time axis to the current half-hour so the guide opens on "now."
     func resetGuideWindow() {

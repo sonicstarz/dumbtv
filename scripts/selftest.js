@@ -576,6 +576,19 @@ for (const v of vectors) {
   check(`parse: ${v.file}`, ok, JSON.stringify(r));
 }
 
+// ---- channel-number collisions (N2/N3) ------------------------------------
+console.log('\nChannel number collisions');
+const { createChannelFromLocalFolder } = await import('../src/media/localscan.js');
+const takenNum = db.prepare('SELECT number FROM channels ORDER BY number LIMIT 1').get().number;
+let collisionThrew = false;
+let newNum = null;
+try {
+  const r = createChannelFromLocalFolder('folder:collisiontest', 'Collide', { number: takenNum });
+  newNum = db.prepare('SELECT number FROM channels WHERE id=?').get(r.channelId).number;
+} catch { collisionThrew = true; }
+check('collision: a taken number falls back to next-free, no throw',
+  !collisionThrew && newNum != null && newNum !== takenNum, `(asked ${takenNum} → got ${newNum})`);
+
 const counts = db.prepare('SELECT COUNT(*) n FROM programs').get().n;
 console.log(`\n${counts} programs across all channels`);
 console.log(`${pass} passed, ${fail} failed\n`);

@@ -296,7 +296,11 @@ export default async function api(fastify) {
 
   fastify.post('/api/channels', async (req) => {
     const b = req.body || {};
+    // N2: never collide on the UNIQUE number — use the requested one only if
+    // free, else the next above the max (a plain INSERT used to 500 on a clash).
     const maxNo = db.prepare('SELECT MAX(number) m FROM channels').get().m || 1;
+    const taken = b.number != null && db.prepare('SELECT 1 FROM channels WHERE number=?').get(b.number);
+    const number = b.number != null && !taken ? b.number : maxNo + 1;
     const info = db
       .prepare(
         `INSERT INTO channels
@@ -306,7 +310,7 @@ export default async function api(fastify) {
          VALUES (?,?,?,?,?,?,?,?,?,?,?,1,?)`
       )
       .run(
-        b.number ?? maxNo + 1,
+        number,
         b.name || 'New Channel',
         b.slotMinutes ?? 30,
         b.orderingMode || 'sequential',
@@ -314,12 +318,12 @@ export default async function api(fastify) {
         Math.floor(Math.random() * 2 ** 31),
         b.darkStart || null,
         b.darkEnd || null,
-        b.adsEnabled === false ? 0 : 1,
+        b.adsEnabled === true ? 1 : 0,   // ads OFF by default (matches Swift + D2)
         b.maxAdsPerBreak ?? 10,
         b.adTags || '',
         Date.now()
       );
-    return { id: info.lastInsertRowid };
+    return { id: info.lastInsertRowid, number };
   });
 
   fastify.patch('/api/channels/:id', async (req) => {

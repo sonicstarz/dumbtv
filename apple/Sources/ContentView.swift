@@ -9,13 +9,14 @@ struct ContentView: View {
     @ObservedObject var engine: Engine
     let store: Store?
     var configURL: String? = nil
+    @ObservedObject var diag: SystemDiagnostics
 
     var body: some View {
-        TVView(engine: engine, configURL: configURL)
+        TVView(engine: engine, configURL: configURL, diag: diag)
             .task { await engine.bootstrap(store: store) }
     }
 }
 
 #Preview {
-    ContentView(engine: Engine(), store: nil, configURL: "http://10.0.1.21:8080")
+    ContentView(engine: Engine(), store: nil, configURL: "http://10.0.1.21:8080", diag: SystemDiagnostics())
 }

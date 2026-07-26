@@ -22,24 +22,40 @@ struct dumbTVApp: App {
     private let store: Store?
     private let server: EmbeddedServer?
     private let configURL: String?
+    /// Self-reported init/server state, surfaced on channel 00 when the server
+    /// isn't reachable (build 11 tvOS-failure evidence).
+    private let diag = SystemDiagnostics()
 
     init() {
-        let s = Self.openStore()
-        store = s
-        if let s {
+        // App.init runs on the main thread; populate diag synchronously so a
+        // failure or hang leaves a trail on the channel-00 diagnostics screen.
+        let dbPath = AppPaths.databasePath()
+        diag.storePath = dbPath
+        do {
+            let s = try Store(path: dbPath)
+            store = s
+            diag.storeOpened = true
             let srv = EmbeddedServer(store: s)
+            let d = diag
+            srv.onStateChange = { state in d.setServerState(state) }
             srv.start()
             server = srv
-            configURL = NetworkInfo.configURL(port: srv.port)
-        } else {
+            let url = NetworkInfo.configURL(port: srv.port)
+            configURL = url
+            diag.serverPort = srv.port
+            diag.configURL = url
+        } catch {
+            print("dumbTV backend init failed: \(error)")
+            store = nil
             server = nil
             configURL = nil
+            diag.storeError = "\(error)"
         }
     }
 
     var body: some Scene {
         WindowGroup {
-            ContentView(engine: engine, store: store, configURL: configURL)
+            ContentView(engine: engine, store: store, configURL: configURL, diag: diag)
                 #if os(macOS)
                 .frame(minWidth: 640, minHeight: 360)
                 .background(Color.black)
@@ -60,21 +76,5 @@ struct dumbTVApp: App {
             }
         }
         #endif
-    }
-
-    /// Open (creating if needed) the persistent DB in Application Support.
-    /// Failure is non-fatal — the TV still plays the built-in demo.
-    private static func openStore() -> Store? {
-        do {
-            let fm = FileManager.default
-            let base = try fm.url(for: .applicationSupportDirectory, in: .userDomainMask,
-                                  appropriateFor: nil, create: true)
-            let dir = base.appendingPathComponent("dumbTV", isDirectory: true)
-            try fm.createDirectory(at: dir, withIntermediateDirectories: true)
-            return try Store(path: dir.appendingPathComponent("dumbtv.db").path)
-        } catch {
-            print("dumbTV backend init failed: \(error)")
-            return nil
-        }
     }
 }

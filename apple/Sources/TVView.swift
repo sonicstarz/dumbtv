@@ -18,6 +18,22 @@ struct DialCountdown: View {
     }
 }
 
+/// Where the guide wants the picture: the thumbnail slot's rect, measured in
+/// the root coordinate space. The single video surface animates its frame into
+/// this rect instead of being re-mounted inside the guide's layout (F3).
+private struct VideoSlotKey: PreferenceKey {
+    static var defaultValue: CGRect { .zero }
+    static func reduce(value: inout CGRect, nextValue: () -> CGRect) {
+        let next = nextValue()
+        if next != .zero { value = next }
+    }
+}
+
+/// The name of the root coordinate space. The video surface positions itself in
+/// it, and the guide's slot placeholder reports its frame in it — so the two
+/// agree without either one having to know the other's layout.
+private let tvSpace = "dumbtv.root"
+
 struct TVView: View {
     @ObservedObject var engine: Engine
     /// Where to configure this device (shown as a QR + URL until it's set up).
@@ -25,35 +41,64 @@ struct TVView: View {
     /// App/server self-report, shown on channel 00 when the server is down.
     @ObservedObject var diag: SystemDiagnostics
 
+    /// The guide's thumbnail rect, published by the slot placeholder.
+    @State private var guideSlot: CGRect = .zero
+
     var body: some View {
-        GeometryReader { geo in
-            // One UI scale for the whole screen so the text reads like a TV at
-            // any window size (the reference design is ~800pt tall).
-            let s = max(0.7, min(2.2, geo.size.height / 800))
-            ZStack {
-                Color.black.ignoresSafeArea()
-                // A2: the guide renders ABOVE the setup channel. Opening the
-                // guide from channel 00 used to flip guideOpen but keep drawing
-                // the setup screen (the guide opened invisibly), which is why
-                // "double-tap/select for the guide" appeared to do nothing.
-                if engine.guideOpen {
-                    guideLayout(s: s)
-                } else if engine.onSetupChannel {
-                    setupChannelLayout(s: s)
-                } else {
-                    watchLayout(s: s)
-                }
-                #if os(iOS)
-                // First-launch: explain the iOS "connect to devices on your
-                // network" prompt that's about to appear, and say to allow it.
-                if engine.showLanExplainer {
-                    LanExplainer(s: s) { engine.dismissLanExplainer() }
-                        .transition(.opacity)
-                }
-                #endif
+        ZStack {
+            Color.black.ignoresSafeArea()
+
+            // F3 — THE video surface. Mounted once here, for the life of the
+            // view, and never re-parented. Watch mode and guide mode differ only
+            // in the FRAME it animates to. The old design instantiated a
+            // VideoLayer inside each layout, so toggling the guide tore one
+            // representable down and built the other; VLCKit's video output does
+            // not survive that re-parent (audio kept playing, picture went
+            // black). No layout event detaches these views any more, so
+            // reattachDrawables() is gone with it.
+            GeometryReader { full in
+                let r = videoRect(full)
+                VideoLayer(player: engine.player)
+                    .frame(width: r.width, height: r.height)
+                    .position(x: r.midX, y: r.midY)
+                    .opacity(engine.onSetupChannel ? 0 : 1)
+                    .allowsHitTesting(false)
+                    .animation(.easeInOut(duration: 0.25), value: engine.guideOpen)
+                    .animation(.easeInOut(duration: 0.25), value: guideSlot)
             }
-            .animation(.easeInOut(duration: 0.25), value: engine.showLanExplainer)
+
+            GeometryReader { geo in
+                // One UI scale for the whole screen so the text reads like a TV at
+                // any window size (the reference design is ~800pt tall).
+                let s = max(0.7, min(2.2, geo.size.height / 800))
+                ZStack {
+                    // A2: the guide renders ABOVE the setup channel. Opening the
+                    // guide from channel 00 used to flip guideOpen but keep drawing
+                    // the setup screen (the guide opened invisibly), which is why
+                    // "double-tap/select for the guide" appeared to do nothing.
+                    if engine.guideOpen {
+                        guideLayout(s: s)
+                    } else if engine.onSetupChannel {
+                        setupChannelLayout(s: s)
+                    } else {
+                        watchLayout(s: s)
+                    }
+                    #if os(iOS)
+                    // First-launch: explain the iOS "connect to devices on your
+                    // network" prompt that's about to appear, and say to allow it.
+                    if engine.showLanExplainer {
+                        LanExplainer(s: s) { engine.dismissLanExplainer() }
+                            .transition(.opacity)
+                    }
+                    #endif
+                }
+                .animation(.easeInOut(duration: 0.25), value: engine.showLanExplainer)
+            }
         }
+        .coordinateSpace(name: tvSpace)
+        // Keep the last measured slot when the guide closes and the placeholder
+        // goes away — otherwise the next open would start from a zero rect.
+        .onPreferenceChange(VideoSlotKey.self) { if $0 != .zero { guideSlot = $0 } }
         // Focus + keyboard/remote input is macOS/tvOS only (iOS uses the swipe
         // gesture below). Keeping these off iOS lets the iOS deployment target
         // drop below 17 — .focusable()/.onKeyPress are iOS 17+.
@@ -98,7 +143,14 @@ struct TVView: View {
             // reachable in the guide with the arrows.
             if ch == "g" || ch == "G" { engine.toggleGuide(); return .handled }
             if ch == "1" && engine.dialing.isEmpty { engine.toggleGuide(); return .handled }
-            if press.key == .return { if engine.guideOpen { engine.guideSelect() }; return .handled }
+            // F2: symmetric with the tap gesture. This used to swallow the press
+            // and do nothing outside the guide — and because the key handler ate
+            // it, the .onTapGesture fallback never ran either, so a single centre
+            // click could never OPEN the guide (selecting inside it worked).
+            if press.key == .return {
+                engine.guideOpen ? engine.guideSelect() : engine.toggleGuide()
+                return .handled
+            }
             if press.key == .escape { if engine.guideOpen { engine.guideOpen = false }; return .handled }
             // Space bar = bring up channel info (banner + Guide/Mute/CC), the
             // Mac equivalent of a tap. The banner is already revealed at the top
@@ -115,28 +167,25 @@ struct TVView: View {
         // (above the video, below the controls) — a root-level gesture here was
         // swallowed by VLCKit's video view, which is why tapping did nothing.
         // The guide has its own row taps. macOS uses the space bar (below).
-        //
-        // B2: a layout swap re-parents the persistent video views; re-attach the
-        // drawables just after so a same-channel guide dismiss doesn't go black.
-        .onChange(of: engine.guideOpen) { _ in reattachVideoSoon() }
-        .onChange(of: engine.onSetupChannel) { _ in reattachVideoSoon() }
     }
 
-    private func reattachVideoSoon() {
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.12) {
-            engine.player.reattachDrawables()
-        }
+    /// Where the picture goes. Guide open → the guide's thumbnail slot; otherwise
+    /// the whole screen, outset by the safe-area insets so the video is
+    /// full-bleed under the notch. One rect, one surface — no re-parenting (F3).
+    private func videoRect(_ geo: GeometryProxy) -> CGRect {
+        if engine.guideOpen, guideSlot != .zero { return guideSlot }
+        let i = geo.safeAreaInsets
+        return CGRect(x: -i.leading, y: -i.top,
+                      width: geo.size.width + i.leading + i.trailing,
+                      height: geo.size.height + i.top + i.bottom)
     }
 
     // Full-screen video with the channel banner and a GUIDE button.
     private func watchLayout(s: CGFloat) -> some View {
         ZStack {
-            // The video never takes touches — VLCKit's UIView would otherwise
-            // swallow every tap, which is exactly why "tap for channel info"
-            // did nothing. All touch input rides the transparent catcher below.
-            VideoLayer(player: engine.player).ignoresSafeArea()
-                .allowsHitTesting(false)
-
+            // No VideoLayer here any more — the picture is mounted once at the
+            // root (F3) and fills the screen whenever the guide is closed. This
+            // layout is pure chrome, drawn over it.
             #if os(iOS)
             // Touch input on a dedicated transparent layer ABOVE the video but
             // BELOW the banner/controls (so the control-row buttons still get
@@ -361,8 +410,19 @@ struct TVView: View {
         GeometryReader { geo in
             VStack(spacing: 14 * s) {
                 HStack(spacing: 16 * s) {
-                    VideoLayer(player: engine.player)
+                    // The slot, not the picture: this reports its rect and the
+                    // root video surface animates into it. Keeping the video
+                    // itself out of this layout is the whole F3 fix — the guide
+                    // used to build a second VideoLayer here, and the re-parent
+                    // that caused is what blacked out the screen.
+                    Color.clear
                         .aspectRatio(16.0 / 9.0, contentMode: .fit)
+                        .overlay(
+                            GeometryReader { g in
+                                Color.clear.preference(key: VideoSlotKey.self,
+                                                       value: g.frame(in: .named(tvSpace)))
+                            }
+                        )
                         .border(Palette.amber, width: 3)
                     NowPlayingPanel(engine: engine, s: s)
                 }

@@ -172,21 +172,23 @@ final class Player: ObservableObject {
 
     func stop() { vlcs.forEach { $0.stop() }; pendingSwap = false }
 
-    /// Re-bind each player to its drawable view. A layout swap (watch ⇄ guide)
-    /// re-parents the persistent video views into a new container; on a
-    /// same-channel guide dismiss there's no retune to force the output to
-    /// re-attach, so the picture goes black while audio keeps playing (B2).
-    /// Re-asserting `drawable` after the swap forces VLCKit to re-attach.
-    func reattachDrawables() {
-        for (i, p) in vlcs.enumerated() { p.drawable = views[i] }
-    }
+    // There is deliberately no reattachDrawables() here. Build 12 re-asserted
+    // `drawable` 0.12s after a layout swap to revive a video output that the
+    // watch ⇄ guide re-parent had killed; it was treating the symptom, and it
+    // raced SwiftUI's actual re-parent. Build 13 removed the re-parent instead
+    // (F3): one VideoSurface is mounted at TVView's root for the app's life and
+    // only its frame changes, so the output is never torn down.
 }
 
 /// Both players' persistent views live in ONE container; the visible one is
 /// chosen by z-order (front on top, fully covering the other). Both keep
 /// decoding, so the freeze-and-swap is a clean cut. Passing `front` in makes
-/// SwiftUI re-run the representable's update on every swap — that re-parent is
-/// exactly what the guide toggle did, which is why the guide "fixed" the black.
+/// SwiftUI re-run the representable's update on every swap.
+///
+/// Mount this ONCE (TVView's root ZStack). Instantiating it in two different
+/// layouts gives it two SwiftUI identities, and switching between them destroys
+/// one surface and re-parents the player views into the other — which VLCKit's
+/// video output does not survive.
 struct VideoLayer: View {
     @ObservedObject var player: Player
     var body: some View {
@@ -234,8 +236,9 @@ struct ColorBars: View {
 }
 
 /// Hosts BOTH persistent video views in a single container and orders them so
-/// the `front` player's view is on top. The drawable objects never change, so
-/// the video output survives every re-parent (watch ↔ guide) and every swap.
+/// the `front` player's view is on top. The drawable objects never change and —
+/// since build 13 — neither does the container: the re-parent loop below runs
+/// once, on the first arrange, and is a no-op forever after.
 /// `front` is a stored input: when it changes, SwiftUI re-runs update and the
 /// new front view comes to the top — a hard cut, no black, no opacity games.
 #if os(macOS)

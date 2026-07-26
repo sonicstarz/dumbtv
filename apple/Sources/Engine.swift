@@ -115,6 +115,8 @@ final class Engine: ObservableObject {
     private var bannerTask: Task<Void, Never>?
     private var guideTuneTask: Task<Void, Never>?
     private var reloadTask: Task<Void, Never>?
+    /// F5: the one-shot 60s timer that retires the on-TV setup card per launch.
+    private var setupCardTask: Task<Void, Never>?
     private var serverURI = ""
     private var accessToken = ""
     /// The shared Store, kept so config changes made in the web UI can rebuild
@@ -148,13 +150,25 @@ final class Engine: ObservableObject {
         }
     }
 
+    /// Run `body` after `seconds`, unless the returned task is cancelled first.
+    ///
+    /// F1 — the bug this exists to kill: `Task.sleep` throws `CancellationError`
+    /// *immediately* on a cancelled task, and `try?` swallows it, so the
+    /// "do it later" body ran the instant something cancelled the task. Every
+    /// delayed effect in this class was self-destructing: cancelling the old
+    /// banner timer is what hid the banner, cancelling the old dial timer is
+    /// what committed the dial early. Use this helper instead of hand-rolling
+    /// the pattern — the guard is the whole point.
+    /// (Lives in dumbTVCore as `Delayed.onMain` so `swift test` can hold the
+    /// bug down — see DelayedTests.)
+    private func after(_ seconds: Double,
+                       _ body: @MainActor @escaping () -> Void) -> Task<Void, Never> {
+        Delayed.onMain(seconds, body)
+    }
+
     private func scheduleReload() {
         reloadTask?.cancel()
-        reloadTask = Task { @MainActor [weak self] in
-            try? await Task.sleep(nanoseconds: 800_000_000)
-            guard !Task.isCancelled else { return }
-            self?.reloadFromStore()
-        }
+        reloadTask = after(0.8) { [weak self] in self?.reloadFromStore() }
     }
 
     /// Rebuild the lineup from the Store after a web-UI change, keeping the
@@ -303,10 +317,7 @@ final class Engine: ObservableObject {
         store.setSetting("guide_hint_shown", "1")
         lastChangeCounter = store.sql.totalChanges()   // our own write — no reload
         showGuideHint = true
-        Task { @MainActor [weak self] in
-            try? await Task.sleep(nanoseconds: 12_000_000_000)
-            self?.showGuideHint = false
-        }
+        _ = after(12) { [weak self] in self?.showGuideHint = false }
     }
 
     /// Build runtimes from the persisted, append-only schedule. Programs come
@@ -498,9 +509,15 @@ final class Engine: ObservableObject {
                 if ready || Date() >= deadline {
                     self.guideTuning = nil
                     self.guideOpen = false
+                    // F4: the banner rides the handoff, so the channel you just
+                    // picked names itself as the guide gets out of the way.
+                    self.showBanner()
                     break
                 }
                 try? await Task.sleep(nanoseconds: 100_000_000)
+                // Without this a cancelled task spins: a cancelled sleep returns
+                // instantly, so the poll loop would burn the CPU (F1's cousin).
+                if Task.isCancelled { return }
             }
         }
     }
@@ -554,13 +571,12 @@ final class Engine: ObservableObject {
     func blocked() { showFlash("⊘") }
 
     /// Direct channel entry: accumulate digits, commit after a short window.
+    /// Each new digit restarts the window (F1: it used to COMMIT it, so "1","0","2"
+    /// tuned the moment you pressed 0 and three-digit channels were unreachable).
     func pressDigit(_ d: String) {
         dialing = String((dialing + d).suffix(3))
         dialTask?.cancel()
-        dialTask = Task { @MainActor [weak self] in
-            try? await Task.sleep(nanoseconds: 1_500_000_000)
-            self?.commitDial()
-        }
+        dialTask = after(1.5) { [weak self] in self?.commitDial() }
     }
 
     private func commitDial() {
@@ -578,13 +594,12 @@ final class Engine: ObservableObject {
     private func showFlash(_ s: String) {
         flash = s
         flashTask?.cancel()
-        flashTask = Task { @MainActor [weak self] in
-            try? await Task.sleep(nanoseconds: 1_100_000_000)
-            if self?.flash == s { self?.flash = nil }
-        }
+        // The cancelled predecessor no longer fires, so flashing the SAME glyph
+        // twice (⊘ then ⊘) doesn't clear the second one instantly (F1 symptom D).
+        flashTask = after(1.1) { [weak self] in if self?.flash == s { self?.flash = nil } }
     }
 
-    /// Reveal the channel banner, then fade it out after a few seconds. Called on
+    /// Reveal the channel banner, then fade it out after five seconds. Called on
     /// channel/program changes and on any remote interaction.
     func showBanner() {
         bannerVisible = true
@@ -592,11 +607,13 @@ final class Engine: ObservableObject {
         // Screenshot hook: keep the banner up so captures are deterministic
         // (the sim can't be tapped from the CLI). Dev-only, env-gated.
         if ProcessInfo.processInfo.environment["DUMBTV_SCREENSHOT"] == "1" { return }
-        bannerTask = Task { @MainActor [weak self] in
-            try? await Task.sleep(nanoseconds: 4_500_000_000)
-            self?.bannerVisible = false
-        }
+        bannerTask = after(bannerSeconds) { [weak self] in self?.bannerVisible = false }
     }
+
+    /// How long the banner stays up. Back-to-back showBanner() calls (tune() runs
+    /// one, sync() runs another) used to kill it outright; now the second call
+    /// simply restarts this window.
+    let bannerSeconds: Double = 5.0
 
     private func startTicking() {
         status = ""
@@ -620,6 +637,13 @@ final class Engine: ObservableObject {
             // D3: the setup card retires the moment the web UI is first opened.
             let showCard = store.getSetting("setup_seen") == nil
             if setupCardVisible != showCard { setupCardVisible = showCard }
+            // F5: and it gets out of the way on its own after a minute of being
+            // looked at, so the TV isn't permanently wearing a QR code. Per
+            // launch only — this does NOT set setup_seen, and channel 0 (or the
+            // next launch) brings it straight back.
+            if setupCardVisible, !setupCardDismissed, !onSetupChannel, setupCardTask == nil {
+                setupCardTask = after(60) { [weak self] in self?.setupCardDismissed = true }
+            }
         }
         // Slide the loaded window forward and extend the DB roughly hourly, so a
         // long-running TV never reaches the edge of what was generated at boot.

@@ -1,0 +1,398 @@
+{
+  "id": "bosko-and-friends",
+  "name": "BOSKO & FRIENDS",
+  "version": 1,
+  "kind": "shows",
+  "description": "Where Looney Tunes began: the 1929–1931 Bosko shorts and the first Merrie Melodies, public domain by age.",
+  "audience": "all",
+  "contentNote": "Bosko (1929) is a minstrel-derived caricature — the very first Looney Tune, presented here as animation history. Pre-Code humor throughout. The one Censored Eleven title from this era is excluded.",
+  "channel": {
+    "number": 11,
+    "name": "BOSKO & FRIENDS",
+    "ordering": "sequential",
+    "seed": 19290501
+  },
+  "encode": {
+    "height": 480,
+    "crf": 28,
+    "preset": "fast",
+    "abitrate": "96k"
+  },
+  "rightsNote": "AGE basis: US publications this old are public domain deterministically — the only risk is a wrong release date. CAVEAT ON THE 1931 TITLES: they clear by AGE on 2027-01-01; until then their PD status rests on documented non-renewal (NR). Original B&W prints only — the 1970s redrawn/colorized versions in the same IA item were renewed in 1994 and are separately copyrighted; the file selection explicitly excludes anything marked Redrawn or Colorized.",
+  "items": [
+    {
+      "id": "bosko-the-talk-ink-kid",
+      "title": "Bosko, the Talk Ink Kid",
+      "show": "Bosko",
+      "season": 1,
+      "episode": 1,
+      "aired": "1929-01-01",
+      "source": {
+        "iaIdentifier": "ltmm-publicdomain",
+        "iaFile": "Bosko, the Talk Ink Kid (1929).ia.mp4"
+      },
+      "license": {
+        "url": "https://archive.org/details/ltmm-publicdomain",
+        "verified": "2026-07-26",
+        "note": "Published 1929. US public domain by AGE — published more than 95 years ago (1929 + 95 ≤ 2026), the deterministic basis: no renewal question, no reissue trap. Original black-and-white version only; the 1970s 'redrawn and colorized' versions in the same IA item carry their own 1990s-renewed copyright and are deliberately NOT used. IA item carries a public-domain mark."
+      }
+    },
+    {
+      "id": "sinkin-in-the-bathtub",
+      "title": "Sinkin' in the Bathtub",
+      "show": "Bosko",
+      "season": 1,
+      "episode": 2,
+      "aired": "1930-01-01",
+      "source": {
+        "iaIdentifier": "ltmm-publicdomain",
+        "iaFile": "Sinkin' in the Bathtub (1930).ia.mp4"
+      },
+      "license": {
+        "url": "https://archive.org/details/ltmm-publicdomain",
+        "verified": "2026-07-26",
+        "note": "Published 1930. US public domain by AGE — published more than 95 years ago (1930 + 95 ≤ 2026), the deterministic basis: no renewal question, no reissue trap. Original black-and-white version only; the 1970s 'redrawn and colorized' versions in the same IA item carry their own 1990s-renewed copyright and are deliberately NOT used. IA item carries a public-domain mark."
+      }
+    },
+    {
+      "id": "congo-jazz",
+      "title": "Congo Jazz",
+      "show": "Bosko",
+      "season": 1,
+      "episode": 3,
+      "aired": "1930-01-01",
+      "source": {
+        "iaIdentifier": "ltmm-publicdomain",
+        "iaFile": "Congo Jazz (1930).ia.mp4"
+      },
+      "license": {
+        "url": "https://archive.org/details/ltmm-publicdomain",
+        "verified": "2026-07-26",
+        "note": "Published 1930. US public domain by AGE — published more than 95 years ago (1930 + 95 ≤ 2026), the deterministic basis: no renewal question, no reissue trap. Original black-and-white version only; the 1970s 'redrawn and colorized' versions in the same IA item carry their own 1990s-renewed copyright and are deliberately NOT used. IA item carries a public-domain mark."
+      }
+    },
+    {
+      "id": "hold-anything",
+      "title": "Hold Anything",
+      "show": "Bosko",
+      "season": 1,
+      "episode": 4,
+      "aired": "1930-01-01",
+      "source": {
+        "iaIdentifier": "ltmm-publicdomain",
+        "iaFile": "Hold Anything (1930).ia.mp4"
+      },
+      "license": {
+        "url": "https://archive.org/details/ltmm-publicdomain",
+        "verified": "2026-07-26",
+        "note": "Published 1930. US public domain by AGE — published more than 95 years ago (1930 + 95 ≤ 2026), the deterministic basis: no renewal question, no reissue trap. Original black-and-white version only; the 1970s 'redrawn and colorized' versions in the same IA item carry their own 1990s-renewed copyright and are deliberately NOT used. IA item carries a public-domain mark."
+      }
+    },
+    {
+      "id": "the-booze-hangs-high",
+      "title": "The Booze Hangs High",
+      "show": "Bosko",
+      "season": 1,
+      "episode": 5,
+      "aired": "1930-01-01",
+      "source": {
+        "iaIdentifier": "ltmm-publicdomain",
+        "iaFile": "The Booze Hangs High (1930).ia.mp4"
+      },
+      "license": {
+        "url": "https://archive.org/details/ltmm-publicdomain",
+        "verified": "2026-07-26",
+        "note": "Published 1930. US public domain by AGE — published more than 95 years ago (1930 + 95 ≤ 2026), the deterministic basis: no renewal question, no reissue trap. Original black-and-white version only; the 1970s 'redrawn and colorized' versions in the same IA item carry their own 1990s-renewed copyright and are deliberately NOT used. IA item carries a public-domain mark."
+      }
+    },
+    {
+      "id": "box-car-blues",
+      "title": "Box Car Blues",
+      "show": "Bosko",
+      "season": 1,
+      "episode": 6,
+      "aired": "1930-01-01",
+      "source": {
+        "iaIdentifier": "ltmm-publicdomain",
+        "iaFile": "Box Car Blues (1930).ia.mp4"
+      },
+      "license": {
+        "url": "https://archive.org/details/ltmm-publicdomain",
+        "verified": "2026-07-26",
+        "note": "Published 1930. US public domain by AGE — published more than 95 years ago (1930 + 95 ≤ 2026), the deterministic basis: no renewal question, no reissue trap. Original black-and-white version only; the 1970s 'redrawn and colorized' versions in the same IA item carry their own 1990s-renewed copyright and are deliberately NOT used. IA item carries a public-domain mark."
+      }
+    },
+    {
+      "id": "big-man-from-the-north",
+      "title": "Big Man from the North",
+      "show": "Bosko",
+      "season": 1,
+      "episode": 7,
+      "aired": "1931-01-01",
+      "source": {
+        "iaIdentifier": "ltmm-publicdomain",
+        "iaFile": "Big Man from the North (1931).ia.mp4"
+      },
+      "license": {
+        "url": "https://archive.org/details/ltmm-publicdomain",
+        "verified": "2026-07-26",
+        "note": "Published 1931. US public domain by AGE as of January 1, 2027 per the 95-year rule — VERIFY before ship if shipping in 2026: 1931 publications clear on 2027-01-01. Most of this block is ALSO documented non-renewed (NR). Original B&W only; redrawn/colorized versions excluded."
+      }
+    },
+    {
+      "id": "aint-nature-grand",
+      "title": "Ain't Nature Grand",
+      "show": "Bosko",
+      "season": 1,
+      "episode": 8,
+      "aired": "1931-01-01",
+      "source": {
+        "iaIdentifier": "ltmm-publicdomain",
+        "iaFile": "Ain't Nature Grand (1931).ia.mp4"
+      },
+      "license": {
+        "url": "https://archive.org/details/ltmm-publicdomain",
+        "verified": "2026-07-26",
+        "note": "Published 1931. US public domain by AGE as of January 1, 2027 per the 95-year rule — VERIFY before ship if shipping in 2026: 1931 publications clear on 2027-01-01. Most of this block is ALSO documented non-renewed (NR). Original B&W only; redrawn/colorized versions excluded."
+      }
+    },
+    {
+      "id": "ups-n-downs",
+      "title": "Ups 'n Downs",
+      "show": "Bosko",
+      "season": 1,
+      "episode": 9,
+      "aired": "1931-01-01",
+      "source": {
+        "iaIdentifier": "ltmm-publicdomain",
+        "iaFile": "Ups 'n Downs (1931).ia.mp4"
+      },
+      "license": {
+        "url": "https://archive.org/details/ltmm-publicdomain",
+        "verified": "2026-07-26",
+        "note": "Published 1931. US public domain by AGE as of January 1, 2027 per the 95-year rule — VERIFY before ship if shipping in 2026: 1931 publications clear on 2027-01-01. Most of this block is ALSO documented non-renewed (NR). Original B&W only; redrawn/colorized versions excluded."
+      }
+    },
+    {
+      "id": "dumb-patrol",
+      "title": "Dumb Patrol",
+      "show": "Bosko",
+      "season": 1,
+      "episode": 10,
+      "aired": "1931-01-01",
+      "source": {
+        "iaIdentifier": "ltmm-publicdomain",
+        "iaFile": "Dumb Patrol (1931).ia.mp4"
+      },
+      "license": {
+        "url": "https://archive.org/details/ltmm-publicdomain",
+        "verified": "2026-07-26",
+        "note": "Published 1931. US public domain by AGE as of January 1, 2027 per the 95-year rule — VERIFY before ship if shipping in 2026: 1931 publications clear on 2027-01-01. Most of this block is ALSO documented non-renewed (NR). Original B&W only; redrawn/colorized versions excluded."
+      }
+    },
+    {
+      "id": "yodeling-yokels",
+      "title": "Yodeling Yokels",
+      "show": "Bosko",
+      "season": 1,
+      "episode": 11,
+      "aired": "1931-01-01",
+      "source": {
+        "iaIdentifier": "ltmm-publicdomain",
+        "iaFile": "Yodeling Yokels (1931).ia.mp4"
+      },
+      "license": {
+        "url": "https://archive.org/details/ltmm-publicdomain",
+        "verified": "2026-07-26",
+        "note": "Published 1931. US public domain by AGE as of January 1, 2027 per the 95-year rule — VERIFY before ship if shipping in 2026: 1931 publications clear on 2027-01-01. Most of this block is ALSO documented non-renewed (NR). Original B&W only; redrawn/colorized versions excluded."
+      }
+    },
+    {
+      "id": "boskos-holiday",
+      "title": "Bosko's Holiday",
+      "show": "Bosko",
+      "season": 1,
+      "episode": 12,
+      "aired": "1931-01-01",
+      "source": {
+        "iaIdentifier": "ltmm-publicdomain",
+        "iaFile": "Bosko's Holiday (1931).ia.mp4"
+      },
+      "license": {
+        "url": "https://archive.org/details/ltmm-publicdomain",
+        "verified": "2026-07-26",
+        "note": "Published 1931. US public domain by AGE as of January 1, 2027 per the 95-year rule — VERIFY before ship if shipping in 2026: 1931 publications clear on 2027-01-01. Most of this block is ALSO documented non-renewed (NR). Original B&W only; redrawn/colorized versions excluded."
+      }
+    },
+    {
+      "id": "the-trees-knees",
+      "title": "The Tree's Knees",
+      "show": "Bosko",
+      "season": 1,
+      "episode": 13,
+      "aired": "1931-01-01",
+      "source": {
+        "iaIdentifier": "ltmm-publicdomain",
+        "iaFile": "The Tree's Knees (1931).ia.mp4"
+      },
+      "license": {
+        "url": "https://archive.org/details/ltmm-publicdomain",
+        "verified": "2026-07-26",
+        "note": "Published 1931. US public domain by AGE as of January 1, 2027 per the 95-year rule — VERIFY before ship if shipping in 2026: 1931 publications clear on 2027-01-01. Most of this block is ALSO documented non-renewed (NR). Original B&W only; redrawn/colorized versions excluded."
+      }
+    },
+    {
+      "id": "lady-play-your-mandolin",
+      "title": "Lady, Play Your Mandolin!",
+      "show": "Merrie Melodies",
+      "season": 1,
+      "episode": 14,
+      "aired": "1931-08-01",
+      "source": {
+        "iaIdentifier": "LadyPlayYourMandolin1931HughHarmanRudolfIsing",
+        "iaFile": "Lady, Play Your Mandolin 1931 Hugh Harman, Rudolf Ising.mp4"
+      },
+      "license": {
+        "url": "https://archive.org/details/LadyPlayYourMandolin1931HughHarmanRudolfIsing",
+        "verified": "2026-07-26",
+        "note": "Published 1931 — the first Merrie Melodie. PD today on documented non-renewal (NR); clears deterministically by AGE on 2027-01-01. Standalone IA item, public-domain marked, original B&W print."
+      }
+    },
+    {
+      "id": "smile-darn-ya-smile",
+      "title": "Smile, Darn Ya, Smile!",
+      "show": "Merrie Melodies",
+      "season": 1,
+      "episode": 15,
+      "aired": "1931-01-01",
+      "source": {
+        "iaIdentifier": "ltmm-publicdomain",
+        "iaFile": "Smile, Darn Ya, Smile! (1931).ia.mp4"
+      },
+      "license": {
+        "url": "https://archive.org/details/ltmm-publicdomain",
+        "verified": "2026-07-26",
+        "note": "Published 1931. US public domain by AGE as of January 1, 2027 per the 95-year rule — VERIFY before ship if shipping in 2026: 1931 publications clear on 2027-01-01. Most of this block is ALSO documented non-renewed (NR). Original B&W only; redrawn/colorized versions excluded."
+      }
+    },
+    {
+      "id": "one-more-time",
+      "title": "One More Time",
+      "show": "Merrie Melodies",
+      "season": 1,
+      "episode": 16,
+      "aired": "1931-01-01",
+      "source": {
+        "iaIdentifier": "ltmm-publicdomain",
+        "iaFile": "One More Time (1931).ia.mp4"
+      },
+      "license": {
+        "url": "https://archive.org/details/ltmm-publicdomain",
+        "verified": "2026-07-26",
+        "note": "Published 1931. US public domain by AGE as of January 1, 2027 per the 95-year rule — VERIFY before ship if shipping in 2026: 1931 publications clear on 2027-01-01. Most of this block is ALSO documented non-renewed (NR). Original B&W only; redrawn/colorized versions excluded."
+      }
+    },
+    {
+      "id": "bosko-shipwrecked",
+      "title": "Bosko Shipwrecked!",
+      "show": "Bosko",
+      "season": 1,
+      "episode": 17,
+      "aired": "1931-01-01",
+      "source": {
+        "iaIdentifier": "ltmm-publicdomain",
+        "iaFile": "Bosko Shipwrecked! (1931).ia.mp4"
+      },
+      "license": {
+        "url": "https://archive.org/details/ltmm-publicdomain",
+        "verified": "2026-07-26",
+        "note": "Published 1931. US public domain by AGE as of January 1, 2027 per the 95-year rule — VERIFY before ship if shipping in 2026: 1931 publications clear on 2027-01-01. Most of this block is ALSO documented non-renewed (NR). Original B&W only; redrawn/colorized versions excluded."
+      }
+    },
+    {
+      "id": "bosko-the-doughboy",
+      "title": "Bosko the Doughboy",
+      "show": "Bosko",
+      "season": 1,
+      "episode": 18,
+      "aired": "1931-01-01",
+      "source": {
+        "iaIdentifier": "ltmm-publicdomain",
+        "iaFile": "Bosko the Doughboy (1931).ia.mp4"
+      },
+      "license": {
+        "url": "https://archive.org/details/ltmm-publicdomain",
+        "verified": "2026-07-26",
+        "note": "Published 1931. US public domain by AGE as of January 1, 2027 per the 95-year rule — VERIFY before ship if shipping in 2026: 1931 publications clear on 2027-01-01. Most of this block is ALSO documented non-renewed (NR). Original B&W only; redrawn/colorized versions excluded."
+      }
+    },
+    {
+      "id": "you-dont-know-what-youre-doin",
+      "title": "You Don't Know What You're Doin'!",
+      "show": "Merrie Melodies",
+      "season": 1,
+      "episode": 19,
+      "aired": "1931-01-01",
+      "source": {
+        "iaIdentifier": "ltmm-publicdomain",
+        "iaFile": "You Don't Know What You're Doin'! (1931).ia.mp4"
+      },
+      "license": {
+        "url": "https://archive.org/details/ltmm-publicdomain",
+        "verified": "2026-07-26",
+        "note": "Published 1931. US public domain by AGE as of January 1, 2027 per the 95-year rule — VERIFY before ship if shipping in 2026: 1931 publications clear on 2027-01-01. Most of this block is ALSO documented non-renewed (NR). Original B&W only; redrawn/colorized versions excluded."
+      }
+    },
+    {
+      "id": "boskos-soda-fountain",
+      "title": "Bosko's Soda Fountain",
+      "show": "Bosko",
+      "season": 1,
+      "episode": 20,
+      "aired": "1931-01-01",
+      "source": {
+        "iaIdentifier": "ltmm-publicdomain",
+        "iaFile": "Bosko's Soda Fountain (1931).ia.mp4"
+      },
+      "license": {
+        "url": "https://archive.org/details/ltmm-publicdomain",
+        "verified": "2026-07-26",
+        "note": "Published 1931. US public domain by AGE as of January 1, 2027 per the 95-year rule — VERIFY before ship if shipping in 2026: 1931 publications clear on 2027-01-01. Most of this block is ALSO documented non-renewed (NR). Original B&W only; redrawn/colorized versions excluded."
+      }
+    },
+    {
+      "id": "boskos-fox-hunt",
+      "title": "Bosko's Fox Hunt",
+      "show": "Bosko",
+      "season": 1,
+      "episode": 21,
+      "aired": "1931-01-01",
+      "source": {
+        "iaIdentifier": "ltmm-publicdomain",
+        "iaFile": "Bosko's Fox Hunt (1931).ia.mp4"
+      },
+      "license": {
+        "url": "https://archive.org/details/ltmm-publicdomain",
+        "verified": "2026-07-26",
+        "note": "Published 1931. US public domain by AGE as of January 1, 2027 per the 95-year rule — VERIFY before ship if shipping in 2026: 1931 publications clear on 2027-01-01. Most of this block is ALSO documented non-renewed (NR). Original B&W only; redrawn/colorized versions excluded."
+      }
+    },
+    {
+      "id": "red-headed-baby",
+      "title": "Red Headed Baby",
+      "show": "Merrie Melodies",
+      "season": 1,
+      "episode": 22,
+      "aired": "1931-01-01",
+      "source": {
+        "iaIdentifier": "ltmm-publicdomain",
+        "iaFile": "Red Headed Baby (1931).ia.mp4"
+      },
+      "license": {
+        "url": "https://archive.org/details/ltmm-publicdomain",
+        "verified": "2026-07-26",
+        "note": "Published 1931. US public domain by AGE as of January 1, 2027 per the 95-year rule — VERIFY before ship if shipping in 2026: 1931 publications clear on 2027-01-01. Most of this block is ALSO documented non-renewed (NR). Original B&W only; redrawn/colorized versions excluded."
+      }
+    }
+  ]
+}

@@ -1,0 +1,534 @@
+{
+  "id": "snafu-and-co",
+  "name": "SNAFU & CO",
+  "version": 1,
+  "kind": "shows",
+  "description": "WWII-era government animation: all 26 released Private Snafu shorts (Warner crew, Dr. Seuss scripts, Mel Blanc), the Mr. Hook Navy trio, and three Warner-made government shorts including the Oscar-winning So Much for So Little.",
+  "audience": "adult",
+  "contentNote": "Adult-oriented WWII military training humor: innuendo, pin-ups, wartime propaganda, and period racial caricature of Axis nations. Presented as history. Not for the kids' lineup — leave off any kid-safe channel list.",
+  "channel": {
+    "number": 10,
+    "name": "SNAFU & CO",
+    "ordering": "shuffle",
+    "seed": 19430628
+  },
+  "encode": {
+    "height": 480,
+    "crf": 28,
+    "preset": "fast",
+    "abitrate": "96k"
+  },
+  "rightsNote": "Every item is a US government work (GOV basis) — produced for the US Army, Navy, Treasury, or Public Health Service. Never copyrighted, so there is no renewal to check and no reissue trap; this is the highest-confidence rights block in the catalog. House rule still applies: raw/unrestored transfers only — commercial restorations (e.g. Blu-ray rips tagged as such on IA) are avoided because a restoration can carry its own derivative copyright.",
+  "items": [
+    {
+      "id": "coming-snafu",
+      "title": "Coming!! Snafu",
+      "show": "Private Snafu",
+      "season": 1,
+      "episode": 1,
+      "source": {
+        "iaIdentifier": "private-snafu-collection",
+        "iaFile": "Coming!! Snafu (1943).ia.mp4"
+      },
+      "license": {
+        "url": "https://archive.org/details/private-snafu-collection",
+        "verified": "2026-07-26",
+        "note": "Produced 1943 for the US Army (Army–Navy Screen Magazine) by the Warner Bros. cartoon unit under government contract — Chuck Jones/Frank Tashlin directing, Ted Geisel (Dr. Seuss) writing, Mel Blanc voicing. US government film, released without copyright notice and never copyrighted. Basis: GOV (highest confidence — no renewal to check, no reissue trap). Source: IA public-domain-marked collection; no commercial-restoration provenance advertised. NARA Signal Corps scans (111-M-*) exist on IA as alternates for Rumors, Censored, Malaria Mike, and Going Home."
+      }
+    },
+    {
+      "id": "gripes",
+      "title": "Gripes",
+      "show": "Private Snafu",
+      "season": 1,
+      "episode": 2,
+      "source": {
+        "iaIdentifier": "private-snafu-collection",
+        "iaFile": "Gripes (1943).ia.mp4"
+      },
+      "license": {
+        "url": "https://archive.org/details/private-snafu-collection",
+        "verified": "2026-07-26",
+        "note": "Produced 1943 for the US Army (Army–Navy Screen Magazine) by the Warner Bros. cartoon unit under government contract — Chuck Jones/Frank Tashlin directing, Ted Geisel (Dr. Seuss) writing, Mel Blanc voicing. US government film, released without copyright notice and never copyrighted. Basis: GOV (highest confidence — no renewal to check, no reissue trap). Source: IA public-domain-marked collection; no commercial-restoration provenance advertised. NARA Signal Corps scans (111-M-*) exist on IA as alternates for Rumors, Censored, Malaria Mike, and Going Home."
+      }
+    },
+    {
+      "id": "spies",
+      "title": "Spies",
+      "show": "Private Snafu",
+      "season": 1,
+      "episode": 3,
+      "source": {
+        "iaIdentifier": "private-snafu-collection",
+        "iaFile": "Spies (1943).ia.mp4"
+      },
+      "license": {
+        "url": "https://archive.org/details/private-snafu-collection",
+        "verified": "2026-07-26",
+        "note": "Produced 1943 for the US Army (Army–Navy Screen Magazine) by the Warner Bros. cartoon unit under government contract — Chuck Jones/Frank Tashlin directing, Ted Geisel (Dr. Seuss) writing, Mel Blanc voicing. US government film, released without copyright notice and never copyrighted. Basis: GOV (highest confidence — no renewal to check, no reissue trap). Source: IA public-domain-marked collection; no commercial-restoration provenance advertised. NARA Signal Corps scans (111-M-*) exist on IA as alternates for Rumors, Censored, Malaria Mike, and Going Home."
+      }
+    },
+    {
+      "id": "the-goldbrick",
+      "title": "The Goldbrick",
+      "show": "Private Snafu",
+      "season": 1,
+      "episode": 4,
+      "source": {
+        "iaIdentifier": "private-snafu-collection",
+        "iaFile": "The Goldbrick (1943).ia.mp4"
+      },
+      "license": {
+        "url": "https://archive.org/details/private-snafu-collection",
+        "verified": "2026-07-26",
+        "note": "Produced 1943 for the US Army (Army–Navy Screen Magazine) by the Warner Bros. cartoon unit under government contract — Chuck Jones/Frank Tashlin directing, Ted Geisel (Dr. Seuss) writing, Mel Blanc voicing. US government film, released without copyright notice and never copyrighted. Basis: GOV (highest confidence — no renewal to check, no reissue trap). Source: IA public-domain-marked collection; no commercial-restoration provenance advertised. NARA Signal Corps scans (111-M-*) exist on IA as alternates for Rumors, Censored, Malaria Mike, and Going Home."
+      }
+    },
+    {
+      "id": "the-infantry-blues",
+      "title": "The Infantry Blues",
+      "show": "Private Snafu",
+      "season": 1,
+      "episode": 5,
+      "source": {
+        "iaIdentifier": "private-snafu-collection",
+        "iaFile": "The Infantry Blues (1943).ia.mp4"
+      },
+      "license": {
+        "url": "https://archive.org/details/private-snafu-collection",
+        "verified": "2026-07-26",
+        "note": "Produced 1943 for the US Army (Army–Navy Screen Magazine) by the Warner Bros. cartoon unit under government contract — Chuck Jones/Frank Tashlin directing, Ted Geisel (Dr. Seuss) writing, Mel Blanc voicing. US government film, released without copyright notice and never copyrighted. Basis: GOV (highest confidence — no renewal to check, no reissue trap). Source: IA public-domain-marked collection; no commercial-restoration provenance advertised. NARA Signal Corps scans (111-M-*) exist on IA as alternates for Rumors, Censored, Malaria Mike, and Going Home."
+      }
+    },
+    {
+      "id": "fighting-tools",
+      "title": "Fighting Tools",
+      "show": "Private Snafu",
+      "season": 1,
+      "episode": 6,
+      "source": {
+        "iaIdentifier": "private-snafu-collection",
+        "iaFile": "Fighting Tools (1943).ia.mp4"
+      },
+      "license": {
+        "url": "https://archive.org/details/private-snafu-collection",
+        "verified": "2026-07-26",
+        "note": "Produced 1943 for the US Army (Army–Navy Screen Magazine) by the Warner Bros. cartoon unit under government contract — Chuck Jones/Frank Tashlin directing, Ted Geisel (Dr. Seuss) writing, Mel Blanc voicing. US government film, released without copyright notice and never copyrighted. Basis: GOV (highest confidence — no renewal to check, no reissue trap). Source: IA public-domain-marked collection; no commercial-restoration provenance advertised. NARA Signal Corps scans (111-M-*) exist on IA as alternates for Rumors, Censored, Malaria Mike, and Going Home."
+      }
+    },
+    {
+      "id": "the-home-front",
+      "title": "The Home Front",
+      "show": "Private Snafu",
+      "season": 1,
+      "episode": 7,
+      "source": {
+        "iaIdentifier": "private-snafu-collection",
+        "iaFile": "The Home Front (1943).ia.mp4"
+      },
+      "license": {
+        "url": "https://archive.org/details/private-snafu-collection",
+        "verified": "2026-07-26",
+        "note": "Produced 1943 for the US Army (Army–Navy Screen Magazine) by the Warner Bros. cartoon unit under government contract — Chuck Jones/Frank Tashlin directing, Ted Geisel (Dr. Seuss) writing, Mel Blanc voicing. US government film, released without copyright notice and never copyrighted. Basis: GOV (highest confidence — no renewal to check, no reissue trap). Source: IA public-domain-marked collection; no commercial-restoration provenance advertised. NARA Signal Corps scans (111-M-*) exist on IA as alternates for Rumors, Censored, Malaria Mike, and Going Home."
+      }
+    },
+    {
+      "id": "rumors",
+      "title": "Rumors",
+      "show": "Private Snafu",
+      "season": 1,
+      "episode": 8,
+      "source": {
+        "iaIdentifier": "private-snafu-collection",
+        "iaFile": "Rumors (1943).ia.mp4"
+      },
+      "license": {
+        "url": "https://archive.org/details/private-snafu-collection",
+        "verified": "2026-07-26",
+        "note": "Produced 1943 for the US Army (Army–Navy Screen Magazine) by the Warner Bros. cartoon unit under government contract — Chuck Jones/Frank Tashlin directing, Ted Geisel (Dr. Seuss) writing, Mel Blanc voicing. US government film, released without copyright notice and never copyrighted. Basis: GOV (highest confidence — no renewal to check, no reissue trap). Source: IA public-domain-marked collection; no commercial-restoration provenance advertised. NARA Signal Corps scans (111-M-*) exist on IA as alternates for Rumors, Censored, Malaria Mike, and Going Home."
+      }
+    },
+    {
+      "id": "booby-traps",
+      "title": "Booby Traps",
+      "show": "Private Snafu",
+      "season": 1,
+      "episode": 9,
+      "source": {
+        "iaIdentifier": "private-snafu-collection",
+        "iaFile": "Booby Traps (1944).ia.mp4"
+      },
+      "license": {
+        "url": "https://archive.org/details/private-snafu-collection",
+        "verified": "2026-07-26",
+        "note": "Produced 1944 for the US Army (Army–Navy Screen Magazine) by the Warner Bros. cartoon unit under government contract — Chuck Jones/Frank Tashlin directing, Ted Geisel (Dr. Seuss) writing, Mel Blanc voicing. US government film, released without copyright notice and never copyrighted. Basis: GOV (highest confidence — no renewal to check, no reissue trap). Source: IA public-domain-marked collection; no commercial-restoration provenance advertised. NARA Signal Corps scans (111-M-*) exist on IA as alternates for Rumors, Censored, Malaria Mike, and Going Home."
+      }
+    },
+    {
+      "id": "snafuperman",
+      "title": "Snafuperman",
+      "show": "Private Snafu",
+      "season": 1,
+      "episode": 10,
+      "source": {
+        "iaIdentifier": "private-snafu-collection",
+        "iaFile": "Snafuperman (1944).ia.mp4"
+      },
+      "license": {
+        "url": "https://archive.org/details/private-snafu-collection",
+        "verified": "2026-07-26",
+        "note": "Produced 1944 for the US Army (Army–Navy Screen Magazine) by the Warner Bros. cartoon unit under government contract — Chuck Jones/Frank Tashlin directing, Ted Geisel (Dr. Seuss) writing, Mel Blanc voicing. US government film, released without copyright notice and never copyrighted. Basis: GOV (highest confidence — no renewal to check, no reissue trap). Source: IA public-domain-marked collection; no commercial-restoration provenance advertised. NARA Signal Corps scans (111-M-*) exist on IA as alternates for Rumors, Censored, Malaria Mike, and Going Home."
+      }
+    },
+    {
+      "id": "malaria-mike",
+      "title": "Private Snafu vs. Malaria Mike",
+      "show": "Private Snafu",
+      "season": 1,
+      "episode": 11,
+      "source": {
+        "iaIdentifier": "private-snafu-collection",
+        "iaFile": "Private Snafu vs. Malaria Mike (1944).ia.mp4"
+      },
+      "license": {
+        "url": "https://archive.org/details/private-snafu-collection",
+        "verified": "2026-07-26",
+        "note": "Produced 1944 for the US Army (Army–Navy Screen Magazine) by the Warner Bros. cartoon unit under government contract — Chuck Jones/Frank Tashlin directing, Ted Geisel (Dr. Seuss) writing, Mel Blanc voicing. US government film, released without copyright notice and never copyrighted. Basis: GOV (highest confidence — no renewal to check, no reissue trap). Source: IA public-domain-marked collection; no commercial-restoration provenance advertised. NARA Signal Corps scans (111-M-*) exist on IA as alternates for Rumors, Censored, Malaria Mike, and Going Home."
+      }
+    },
+    {
+      "id": "lecture-on-camouflage",
+      "title": "A Lecture on Camouflage",
+      "show": "Private Snafu",
+      "season": 1,
+      "episode": 12,
+      "source": {
+        "iaIdentifier": "private-snafu-collection",
+        "iaFile": "A Lecture On Camouflage (1944).ia.mp4"
+      },
+      "license": {
+        "url": "https://archive.org/details/private-snafu-collection",
+        "verified": "2026-07-26",
+        "note": "Produced 1944 for the US Army (Army–Navy Screen Magazine) by the Warner Bros. cartoon unit under government contract — Chuck Jones/Frank Tashlin directing, Ted Geisel (Dr. Seuss) writing, Mel Blanc voicing. US government film, released without copyright notice and never copyrighted. Basis: GOV (highest confidence — no renewal to check, no reissue trap). Source: IA public-domain-marked collection; no commercial-restoration provenance advertised. NARA Signal Corps scans (111-M-*) exist on IA as alternates for Rumors, Censored, Malaria Mike, and Going Home."
+      }
+    },
+    {
+      "id": "gas",
+      "title": "Gas",
+      "show": "Private Snafu",
+      "season": 1,
+      "episode": 13,
+      "source": {
+        "iaIdentifier": "private-snafu-collection",
+        "iaFile": "Gas (1944).ia.mp4"
+      },
+      "license": {
+        "url": "https://archive.org/details/private-snafu-collection",
+        "verified": "2026-07-26",
+        "note": "Produced 1944 for the US Army (Army–Navy Screen Magazine) by the Warner Bros. cartoon unit under government contract — Chuck Jones/Frank Tashlin directing, Ted Geisel (Dr. Seuss) writing, Mel Blanc voicing. US government film, released without copyright notice and never copyrighted. Basis: GOV (highest confidence — no renewal to check, no reissue trap). Source: IA public-domain-marked collection; no commercial-restoration provenance advertised. NARA Signal Corps scans (111-M-*) exist on IA as alternates for Rumors, Censored, Malaria Mike, and Going Home."
+      }
+    },
+    {
+      "id": "the-chow-hound",
+      "title": "The Chow Hound",
+      "show": "Private Snafu",
+      "season": 1,
+      "episode": 14,
+      "source": {
+        "iaIdentifier": "private-snafu-collection",
+        "iaFile": "The Chow Hound (1944).ia.mp4"
+      },
+      "license": {
+        "url": "https://archive.org/details/private-snafu-collection",
+        "verified": "2026-07-26",
+        "note": "Produced 1944 for the US Army (Army–Navy Screen Magazine) by the Warner Bros. cartoon unit under government contract — Chuck Jones/Frank Tashlin directing, Ted Geisel (Dr. Seuss) writing, Mel Blanc voicing. US government film, released without copyright notice and never copyrighted. Basis: GOV (highest confidence — no renewal to check, no reissue trap). Source: IA public-domain-marked collection; no commercial-restoration provenance advertised. NARA Signal Corps scans (111-M-*) exist on IA as alternates for Rumors, Censored, Malaria Mike, and Going Home."
+      }
+    },
+    {
+      "id": "censored",
+      "title": "Censored",
+      "show": "Private Snafu",
+      "season": 1,
+      "episode": 15,
+      "source": {
+        "iaIdentifier": "private-snafu-collection",
+        "iaFile": "Censored (1944).ia.mp4"
+      },
+      "license": {
+        "url": "https://archive.org/details/private-snafu-collection",
+        "verified": "2026-07-26",
+        "note": "Produced 1944 for the US Army (Army–Navy Screen Magazine) by the Warner Bros. cartoon unit under government contract — Chuck Jones/Frank Tashlin directing, Ted Geisel (Dr. Seuss) writing, Mel Blanc voicing. US government film, released without copyright notice and never copyrighted. Basis: GOV (highest confidence — no renewal to check, no reissue trap). Source: IA public-domain-marked collection; no commercial-restoration provenance advertised. NARA Signal Corps scans (111-M-*) exist on IA as alternates for Rumors, Censored, Malaria Mike, and Going Home."
+      }
+    },
+    {
+      "id": "the-outpost",
+      "title": "Outpost",
+      "show": "Private Snafu",
+      "season": 1,
+      "episode": 16,
+      "source": {
+        "iaIdentifier": "private-snafu-collection",
+        "iaFile": "The Outpost (1944).ia.mp4"
+      },
+      "license": {
+        "url": "https://archive.org/details/private-snafu-collection",
+        "verified": "2026-07-26",
+        "note": "Produced 1944 for the US Army (Army–Navy Screen Magazine) by the Warner Bros. cartoon unit under government contract — Chuck Jones/Frank Tashlin directing, Ted Geisel (Dr. Seuss) writing, Mel Blanc voicing. US government film, released without copyright notice and never copyrighted. Basis: GOV (highest confidence — no renewal to check, no reissue trap). Source: IA public-domain-marked collection; no commercial-restoration provenance advertised. NARA Signal Corps scans (111-M-*) exist on IA as alternates for Rumors, Censored, Malaria Mike, and Going Home."
+      }
+    },
+    {
+      "id": "pay-day",
+      "title": "Pay Day",
+      "show": "Private Snafu",
+      "season": 1,
+      "episode": 17,
+      "source": {
+        "iaIdentifier": "private-snafu-collection",
+        "iaFile": "Pay Day (1944).ia.mp4"
+      },
+      "license": {
+        "url": "https://archive.org/details/private-snafu-collection",
+        "verified": "2026-07-26",
+        "note": "Produced 1944 for the US Army (Army–Navy Screen Magazine) by the Warner Bros. cartoon unit under government contract — Chuck Jones/Frank Tashlin directing, Ted Geisel (Dr. Seuss) writing, Mel Blanc voicing. US government film, released without copyright notice and never copyrighted. Basis: GOV (highest confidence — no renewal to check, no reissue trap). Source: IA public-domain-marked collection; no commercial-restoration provenance advertised. NARA Signal Corps scans (111-M-*) exist on IA as alternates for Rumors, Censored, Malaria Mike, and Going Home."
+      }
+    },
+    {
+      "id": "three-brothers",
+      "title": "Three Brothers",
+      "show": "Private Snafu",
+      "season": 1,
+      "episode": 18,
+      "source": {
+        "iaIdentifier": "private-snafu-collection",
+        "iaFile": "Three Brothers (1944).ia.mp4"
+      },
+      "license": {
+        "url": "https://archive.org/details/private-snafu-collection",
+        "verified": "2026-07-26",
+        "note": "Produced 1944 for the US Army (Army–Navy Screen Magazine) by the Warner Bros. cartoon unit under government contract — Chuck Jones/Frank Tashlin directing, Ted Geisel (Dr. Seuss) writing, Mel Blanc voicing. US government film, released without copyright notice and never copyrighted. Basis: GOV (highest confidence — no renewal to check, no reissue trap). Source: IA public-domain-marked collection; no commercial-restoration provenance advertised. NARA Signal Corps scans (111-M-*) exist on IA as alternates for Rumors, Censored, Malaria Mike, and Going Home."
+      }
+    },
+    {
+      "id": "target-snafu",
+      "title": "Target Snafu",
+      "show": "Private Snafu",
+      "season": 1,
+      "episode": 19,
+      "source": {
+        "iaIdentifier": "private-snafu-collection",
+        "iaFile": "Target Snafu (1944).ia.mp4"
+      },
+      "license": {
+        "url": "https://archive.org/details/private-snafu-collection",
+        "verified": "2026-07-26",
+        "note": "Produced 1944 for the US Army (Army–Navy Screen Magazine) by the Warner Bros. cartoon unit under government contract — Chuck Jones/Frank Tashlin directing, Ted Geisel (Dr. Seuss) writing, Mel Blanc voicing. US government film, released without copyright notice and never copyrighted. Basis: GOV (highest confidence — no renewal to check, no reissue trap). Source: IA public-domain-marked collection; no commercial-restoration provenance advertised. NARA Signal Corps scans (111-M-*) exist on IA as alternates for Rumors, Censored, Malaria Mike, and Going Home."
+      }
+    },
+    {
+      "id": "going-home",
+      "title": "Going Home",
+      "show": "Private Snafu",
+      "season": 1,
+      "episode": 20,
+      "source": {
+        "iaIdentifier": "private-snafu-collection",
+        "iaFile": "Going Home (1944).ia.mp4"
+      },
+      "license": {
+        "url": "https://archive.org/details/private-snafu-collection",
+        "verified": "2026-07-26",
+        "note": "Produced 1944 for the US Army (Army–Navy Screen Magazine) by the Warner Bros. cartoon unit under government contract — Chuck Jones/Frank Tashlin directing, Ted Geisel (Dr. Seuss) writing, Mel Blanc voicing. US government film, released without copyright notice and never copyrighted. Basis: GOV (highest confidence — no renewal to check, no reissue trap). Source: IA public-domain-marked collection; no commercial-restoration provenance advertised. NARA Signal Corps scans (111-M-*) exist on IA as alternates for Rumors, Censored, Malaria Mike, and Going Home."
+      }
+    },
+    {
+      "id": "in-the-aleutians",
+      "title": "In the Aleutians — Isles of Enchantment",
+      "show": "Private Snafu",
+      "season": 1,
+      "episode": 21,
+      "source": {
+        "iaIdentifier": "private-snafu-collection",
+        "iaFile": "In The Aleutians - Isles Of Enchantment (1945).ia.mp4"
+      },
+      "license": {
+        "url": "https://archive.org/details/private-snafu-collection",
+        "verified": "2026-07-26",
+        "note": "Produced 1945 for the US Army (Army–Navy Screen Magazine) by the Warner Bros. cartoon unit under government contract — Chuck Jones/Frank Tashlin directing, Ted Geisel (Dr. Seuss) writing, Mel Blanc voicing. US government film, released without copyright notice and never copyrighted. Basis: GOV (highest confidence — no renewal to check, no reissue trap). Source: IA public-domain-marked collection; no commercial-restoration provenance advertised. NARA Signal Corps scans (111-M-*) exist on IA as alternates for Rumors, Censored, Malaria Mike, and Going Home."
+      }
+    },
+    {
+      "id": "its-murder-she-says",
+      "title": "It's Murder She Says",
+      "show": "Private Snafu",
+      "season": 1,
+      "episode": 22,
+      "source": {
+        "iaIdentifier": "private-snafu-collection",
+        "iaFile": "It's Murder She Says (1945).ia.mp4"
+      },
+      "license": {
+        "url": "https://archive.org/details/private-snafu-collection",
+        "verified": "2026-07-26",
+        "note": "Produced 1945 for the US Army (Army–Navy Screen Magazine) by the Warner Bros. cartoon unit under government contract — Chuck Jones/Frank Tashlin directing, Ted Geisel (Dr. Seuss) writing, Mel Blanc voicing. US government film, released without copyright notice and never copyrighted. Basis: GOV (highest confidence — no renewal to check, no reissue trap). Source: IA public-domain-marked collection; no commercial-restoration provenance advertised. NARA Signal Corps scans (111-M-*) exist on IA as alternates for Rumors, Censored, Malaria Mike, and Going Home."
+      }
+    },
+    {
+      "id": "hot-spot",
+      "title": "Hot Spot",
+      "show": "Private Snafu",
+      "season": 1,
+      "episode": 23,
+      "source": {
+        "iaIdentifier": "private-snafu-collection",
+        "iaFile": "Hot Spot (1945).ia.mp4"
+      },
+      "license": {
+        "url": "https://archive.org/details/private-snafu-collection",
+        "verified": "2026-07-26",
+        "note": "Produced 1945 for the US Army (Army–Navy Screen Magazine) by the Warner Bros. cartoon unit under government contract — Chuck Jones/Frank Tashlin directing, Ted Geisel (Dr. Seuss) writing, Mel Blanc voicing. US government film, released without copyright notice and never copyrighted. Basis: GOV (highest confidence — no renewal to check, no reissue trap). Source: IA public-domain-marked collection; no commercial-restoration provenance advertised. NARA Signal Corps scans (111-M-*) exist on IA as alternates for Rumors, Censored, Malaria Mike, and Going Home."
+      }
+    },
+    {
+      "id": "operation-snafu",
+      "title": "Operation Snafu",
+      "show": "Private Snafu",
+      "season": 1,
+      "episode": 24,
+      "source": {
+        "iaIdentifier": "private-snafu-collection",
+        "iaFile": "Operation Snafu (1945).ia.mp4"
+      },
+      "license": {
+        "url": "https://archive.org/details/private-snafu-collection",
+        "verified": "2026-07-26",
+        "note": "Produced 1945 for the US Army (Army–Navy Screen Magazine) by the Warner Bros. cartoon unit under government contract — Chuck Jones/Frank Tashlin directing, Ted Geisel (Dr. Seuss) writing, Mel Blanc voicing. US government film, released without copyright notice and never copyrighted. Basis: GOV (highest confidence — no renewal to check, no reissue trap). Source: IA public-domain-marked collection; no commercial-restoration provenance advertised. NARA Signal Corps scans (111-M-*) exist on IA as alternates for Rumors, Censored, Malaria Mike, and Going Home."
+      }
+    },
+    {
+      "id": "no-buddy-atoll",
+      "title": "No Buddy Atoll",
+      "show": "Private Snafu",
+      "season": 1,
+      "episode": 25,
+      "source": {
+        "iaIdentifier": "private-snafu-collection",
+        "iaFile": "No Buddy Atoll (1945).ia.mp4"
+      },
+      "license": {
+        "url": "https://archive.org/details/private-snafu-collection",
+        "verified": "2026-07-26",
+        "note": "Produced 1945 for the US Army (Army–Navy Screen Magazine) by the Warner Bros. cartoon unit under government contract — Chuck Jones/Frank Tashlin directing, Ted Geisel (Dr. Seuss) writing, Mel Blanc voicing. US government film, released without copyright notice and never copyrighted. Basis: GOV (highest confidence — no renewal to check, no reissue trap). Source: IA public-domain-marked collection; no commercial-restoration provenance advertised. NARA Signal Corps scans (111-M-*) exist on IA as alternates for Rumors, Censored, Malaria Mike, and Going Home."
+      }
+    },
+    {
+      "id": "seaman-tarfu",
+      "title": "Seaman Tarfu in the Navy",
+      "show": "Private Snafu",
+      "season": 1,
+      "episode": 26,
+      "source": {
+        "iaIdentifier": "private-snafu-collection",
+        "iaFile": "Private Snafu Presents Seaman Tarfu in the Navy (1945).ia.mp4"
+      },
+      "license": {
+        "url": "https://archive.org/details/private-snafu-collection",
+        "verified": "2026-07-26",
+        "note": "Produced 1945 for the US Army (Army–Navy Screen Magazine) by the Warner Bros. cartoon unit under government contract — Chuck Jones/Frank Tashlin directing, Ted Geisel (Dr. Seuss) writing, Mel Blanc voicing. US government film, released without copyright notice and never copyrighted. Basis: GOV (highest confidence — no renewal to check, no reissue trap). Source: IA public-domain-marked collection; no commercial-restoration provenance advertised. NARA Signal Corps scans (111-M-*) exist on IA as alternates for Rumors, Censored, Malaria Mike, and Going Home."
+      }
+    },
+    {
+      "id": "the-good-egg",
+      "title": "The Good Egg",
+      "show": "Mr. Hook",
+      "season": 1,
+      "episode": 27,
+      "source": {
+        "iaIdentifier": "mr-hook",
+        "iaFile": "The Good Egg (1945).ia.mp4"
+      },
+      "license": {
+        "url": "https://archive.org/details/mr-hook",
+        "verified": "2026-07-26",
+        "note": "Mr. Hook series, produced 1945 for the US Navy's incentive/training program. US government work, never copyrighted. Basis: GOV. IA item carries a public-domain mark."
+      }
+    },
+    {
+      "id": "return-of-mr-hook",
+      "title": "The Return of Mr. Hook",
+      "show": "Mr. Hook",
+      "season": 1,
+      "episode": 28,
+      "source": {
+        "iaIdentifier": "mr-hook",
+        "iaFile": "The Return of Mr. Hook (1945).ia.mp4"
+      },
+      "license": {
+        "url": "https://archive.org/details/mr-hook",
+        "verified": "2026-07-26",
+        "note": "Mr. Hook series, produced 1945 for the US Navy's incentive/training program. US government work, never copyrighted. Basis: GOV. IA item carries a public-domain mark."
+      }
+    },
+    {
+      "id": "tokyo-woes",
+      "title": "Tokyo Woes",
+      "show": "Mr. Hook",
+      "season": 1,
+      "episode": 29,
+      "source": {
+        "iaIdentifier": "mr-hook",
+        "iaFile": "Tokyo Woes (1945).ia.mp4"
+      },
+      "license": {
+        "url": "https://archive.org/details/mr-hook",
+        "verified": "2026-07-26",
+        "note": "Mr. Hook series, produced 1945 for the US Navy's incentive/training program. US government work, never copyrighted. Basis: GOV. IA item carries a public-domain mark."
+      }
+    },
+    {
+      "id": "any-bonds-today",
+      "title": "Any Bonds Today?",
+      "show": "Wartime Shorts",
+      "season": 1,
+      "episode": 30,
+      "source": {
+        "iaIdentifier": "any-bonds-today-1942"
+      },
+      "license": {
+        "url": "https://archive.org/details/any-bonds-today-1942",
+        "verified": "2026-07-26",
+        "note": "1942 Defense Bond drive short made by the Warner Bros. cartoon unit for the US Treasury; distributed as a government bond-promotion film and universally documented PD (GOV basis; no renewal was ever filed either). IA item PD-marked."
+      },
+      "contentNote": "Contains a blackface caricature segment (Al Jolson parody) — period context required."
+    },
+    {
+      "id": "so-much-for-so-little",
+      "title": "So Much for So Little",
+      "show": "Wartime Shorts",
+      "season": 1,
+      "episode": 31,
+      "source": {
+        "iaIdentifier": "so-much-for-so-little-1949"
+      },
+      "license": {
+        "url": "https://archive.org/details/so-much-for-so-little-1949",
+        "verified": "2026-07-26",
+        "note": "Made by Warner Bros. for the Federal Security Agency / US Public Health Service (1949); Academy Award winner, Documentary Short. US government work, never copyrighted. Basis: GOV. IA item PD-marked."
+      }
+    },
+    {
+      "id": "a-hitch-in-time",
+      "title": "A Hitch in Time",
+      "show": "Wartime Shorts",
+      "season": 1,
+      "episode": 32,
+      "source": {
+        "iaIdentifier": "a-hitch-in-time-1955"
+      },
+      "license": {
+        "url": "https://archive.org/details/a-hitch-in-time-1955",
+        "verified": "2026-07-26",
+        "note": "Made by Warner Bros. for the US Army (1955, Chuck Jones). US government work, never copyrighted. Basis: GOV. IA item PD-marked."
+      }
+    }
+  ]
+}

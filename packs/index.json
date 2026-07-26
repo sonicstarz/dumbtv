@@ -31,6 +31,399 @@
       ]
     },
     {
+      "id": "bosko-and-friends",
+      "name": "BOSKO & FRIENDS",
+      "kind": "shows",
+      "description": "Where Looney Tunes began: the 1929–1931 Bosko shorts and the first Merrie Melodies, public domain by age.",
+      "audience": "all",
+      "contentNote": "Bosko (1929) is a minstrel-derived caricature — the very first Looney Tune, presented here as animation history. Pre-Code humor throughout. The one Censored Eleven title from this era is excluded.",
+      "channel": {
+        "number": 11,
+        "name": "BOSKO & FRIENDS",
+        "ordering": "sequential",
+        "seed": 19290501
+      },
+      "itemCount": 22,
+      "runtimeMs": 8987850,
+      "downloadBytes": 1919827029,
+      "items": [
+        {
+          "id": "bosko-the-talk-ink-kid",
+          "title": "Bosko, the Talk Ink Kid",
+          "show": "Bosko",
+          "season": 1,
+          "episode": 1,
+          "aired": "1929-01-01",
+          "durationMs": 283470,
+          "file": "bosko-the-talk-ink-kid.mp4",
+          "url": "https://archive.org/download/ltmm-publicdomain/Bosko%2C%20the%20Talk%20Ink%20Kid%20(1929).ia.mp4",
+          "bytes": 137351897,
+          "license": {
+            "url": "https://archive.org/details/ltmm-publicdomain",
+            "verified": "2026-07-26",
+            "note": "Published 1929. US public domain by AGE — published more than 95 years ago (1929 + 95 ≤ 2026), the deterministic basis: no renewal question, no reissue trap. Original black-and-white version only; the 1970s 'redrawn and colorized' versions in the same IA item carry their own 1990s-renewed copyright and are deliberately NOT used. IA item carries a public-domain mark."
+          }
+        },
+        {
+          "id": "sinkin-in-the-bathtub",
+          "title": "Sinkin' in the Bathtub",
+          "show": "Bosko",
+          "season": 1,
+          "episode": 2,
+          "aired": "1930-01-01",
+          "durationMs": 473560,
+          "file": "sinkin-in-the-bathtub.mp4",
+          "url": "https://archive.org/download/ltmm-publicdomain/Sinkin'%20in%20the%20Bathtub%20(1930).ia.mp4",
+          "bytes": 123786918,
+          "license": {
+            "url": "https://archive.org/details/ltmm-publicdomain",
+            "verified": "2026-07-26",
+            "note": "Published 1930. US public domain by AGE — published more than 95 years ago (1930 + 95 ≤ 2026), the deterministic basis: no renewal question, no reissue trap. Original black-and-white version only; the 1970s 'redrawn and colorized' versions in the same IA item carry their own 1990s-renewed copyright and are deliberately NOT used. IA item carries a public-domain mark."
+          }
+        },
+        {
+          "id": "congo-jazz",
+          "title": "Congo Jazz",
+          "show": "Bosko",
+          "season": 1,
+          "episode": 3,
+          "aired": "1930-01-01",
+          "durationMs": 380010,
+          "file": "congo-jazz.mp4",
+          "url": "https://archive.org/download/ltmm-publicdomain/Congo%20Jazz%20(1930).ia.mp4",
+          "bytes": 92538822,
+          "license": {
+            "url": "https://archive.org/details/ltmm-publicdomain",
+            "verified": "2026-07-26",
+            "note": "Published 1930. US public domain by AGE — published more than 95 years ago (1930 + 95 ≤ 2026), the deterministic basis: no renewal question, no reissue trap. Original black-and-white version only; the 1970s 'redrawn and colorized' versions in the same IA item carry their own 1990s-renewed copyright and are deliberately NOT used. IA item carries a public-domain mark."
+          }
+        },
+        {
+          "id": "hold-anything",
+          "title": "Hold Anything",
+          "show": "Bosko",
+          "season": 1,
+          "episode": 4,
+          "aired": "1930-01-01",
+          "durationMs": 381220,
+          "file": "hold-anything.mp4",
+          "url": "https://archive.org/download/ltmm-publicdomain/Hold%20Anything%20(1930).ia.mp4",
+          "bytes": 54394793,
+          "license": {
+            "url": "https://archive.org/details/ltmm-publicdomain",
+            "verified": "2026-07-26",
+            "note": "Published 1930. US public domain by AGE — published more than 95 years ago (1930 + 95 ≤ 2026), the deterministic basis: no renewal question, no reissue trap. Original black-and-white version only; the 1970s 'redrawn and colorized' versions in the same IA item carry their own 1990s-renewed copyright and are deliberately NOT used. IA item carries a public-domain mark."
+          }
+        },
+        {
+          "id": "the-booze-hangs-high",
+          "title": "The Booze Hangs High",
+          "show": "Bosko",
+          "season": 1,
+          "episode": 5,
+          "aired": "1930-01-01",
+          "durationMs": 368010,
+          "file": "the-booze-hangs-high.mp4",
+          "url": "https://archive.org/download/ltmm-publicdomain/The%20Booze%20Hangs%20High%20(1930).ia.mp4",
+          "bytes": 99893319,
+          "license": {
+            "url": "https://archive.org/details/ltmm-publicdomain",
+            "verified": "2026-07-26",
+            "note": "Published 1930. US public domain by AGE — published more than 95 years ago (1930 + 95 ≤ 2026), the deterministic basis: no renewal question, no reissue trap. Original black-and-white version only; the 1970s 'redrawn and colorized' versions in the same IA item carry their own 1990s-renewed copyright and are deliberately NOT used. IA item carries a public-domain mark."
+          }
+        },
+        {
+          "id": "box-car-blues",
+          "title": "Box Car Blues",
+          "show": "Bosko",
+          "season": 1,
+          "episode": 6,
+          "aired": "1930-01-01",
+          "durationMs": 399760,
+          "file": "box-car-blues.mp4",
+          "url": "https://archive.org/download/ltmm-publicdomain/Box%20Car%20Blues%20(1930).ia.mp4",
+          "bytes": 91178139,
+          "license": {
+            "url": "https://archive.org/details/ltmm-publicdomain",
+            "verified": "2026-07-26",
+            "note": "Published 1930. US public domain by AGE — published more than 95 years ago (1930 + 95 ≤ 2026), the deterministic basis: no renewal question, no reissue trap. Original black-and-white version only; the 1970s 'redrawn and colorized' versions in the same IA item carry their own 1990s-renewed copyright and are deliberately NOT used. IA item carries a public-domain mark."
+          }
+        },
+        {
+          "id": "big-man-from-the-north",
+          "title": "Big Man from the North",
+          "show": "Bosko",
+          "season": 1,
+          "episode": 7,
+          "aired": "1931-01-01",
+          "durationMs": 467120,
+          "file": "big-man-from-the-north.mp4",
+          "url": "https://archive.org/download/ltmm-publicdomain/Big%20Man%20from%20the%20North%20(1931).ia.mp4",
+          "bytes": 128694944,
+          "license": {
+            "url": "https://archive.org/details/ltmm-publicdomain",
+            "verified": "2026-07-26",
+            "note": "Published 1931. US public domain by AGE as of January 1, 2027 per the 95-year rule — VERIFY before ship if shipping in 2026: 1931 publications clear on 2027-01-01. Most of this block is ALSO documented non-renewed (NR). Original B&W only; redrawn/colorized versions excluded."
+          }
+        },
+        {
+          "id": "aint-nature-grand",
+          "title": "Ain't Nature Grand",
+          "show": "Bosko",
+          "season": 1,
+          "episode": 8,
+          "aired": "1931-01-01",
+          "durationMs": 410540,
+          "file": "aint-nature-grand.mp4",
+          "url": "https://archive.org/download/ltmm-publicdomain/Ain't%20Nature%20Grand%20(1931).ia.mp4",
+          "bytes": 86250391,
+          "license": {
+            "url": "https://archive.org/details/ltmm-publicdomain",
+            "verified": "2026-07-26",
+            "note": "Published 1931. US public domain by AGE as of January 1, 2027 per the 95-year rule — VERIFY before ship if shipping in 2026: 1931 publications clear on 2027-01-01. Most of this block is ALSO documented non-renewed (NR). Original B&W only; redrawn/colorized versions excluded."
+          }
+        },
+        {
+          "id": "ups-n-downs",
+          "title": "Ups 'n Downs",
+          "show": "Bosko",
+          "season": 1,
+          "episode": 9,
+          "aired": "1931-01-01",
+          "durationMs": 409870,
+          "file": "ups-n-downs.mp4",
+          "url": "https://archive.org/download/ltmm-publicdomain/Ups%20'n%20Downs%20(1931).ia.mp4",
+          "bytes": 75130508,
+          "license": {
+            "url": "https://archive.org/details/ltmm-publicdomain",
+            "verified": "2026-07-26",
+            "note": "Published 1931. US public domain by AGE as of January 1, 2027 per the 95-year rule — VERIFY before ship if shipping in 2026: 1931 publications clear on 2027-01-01. Most of this block is ALSO documented non-renewed (NR). Original B&W only; redrawn/colorized versions excluded."
+          }
+        },
+        {
+          "id": "dumb-patrol",
+          "title": "Dumb Patrol",
+          "show": "Bosko",
+          "season": 1,
+          "episode": 10,
+          "aired": "1931-01-01",
+          "durationMs": 435330,
+          "file": "dumb-patrol.mp4",
+          "url": "https://archive.org/download/ltmm-publicdomain/Dumb%20Patrol%20(1931).ia.mp4",
+          "bytes": 41210167,
+          "license": {
+            "url": "https://archive.org/details/ltmm-publicdomain",
+            "verified": "2026-07-26",
+            "note": "Published 1931. US public domain by AGE as of January 1, 2027 per the 95-year rule — VERIFY before ship if shipping in 2026: 1931 publications clear on 2027-01-01. Most of this block is ALSO documented non-renewed (NR). Original B&W only; redrawn/colorized versions excluded."
+          }
+        },
+        {
+          "id": "yodeling-yokels",
+          "title": "Yodeling Yokels",
+          "show": "Bosko",
+          "season": 1,
+          "episode": 11,
+          "aired": "1931-01-01",
+          "durationMs": 399570,
+          "file": "yodeling-yokels.mp4",
+          "url": "https://archive.org/download/ltmm-publicdomain/Yodeling%20Yokels%20(1931).ia.mp4",
+          "bytes": 75633607,
+          "license": {
+            "url": "https://archive.org/details/ltmm-publicdomain",
+            "verified": "2026-07-26",
+            "note": "Published 1931. US public domain by AGE as of January 1, 2027 per the 95-year rule — VERIFY before ship if shipping in 2026: 1931 publications clear on 2027-01-01. Most of this block is ALSO documented non-renewed (NR). Original B&W only; redrawn/colorized versions excluded."
+          }
+        },
+        {
+          "id": "boskos-holiday",
+          "title": "Bosko's Holiday",
+          "show": "Bosko",
+          "season": 1,
+          "episode": 12,
+          "aired": "1931-01-01",
+          "durationMs": 431500,
+          "file": "boskos-holiday.mp4",
+          "url": "https://archive.org/download/ltmm-publicdomain/Bosko's%20Holiday%20(1931).ia.mp4",
+          "bytes": 66071302,
+          "license": {
+            "url": "https://archive.org/details/ltmm-publicdomain",
+            "verified": "2026-07-26",
+            "note": "Published 1931. US public domain by AGE as of January 1, 2027 per the 95-year rule — VERIFY before ship if shipping in 2026: 1931 publications clear on 2027-01-01. Most of this block is ALSO documented non-renewed (NR). Original B&W only; redrawn/colorized versions excluded."
+          }
+        },
+        {
+          "id": "the-trees-knees",
+          "title": "The Tree's Knees",
+          "show": "Bosko",
+          "season": 1,
+          "episode": 13,
+          "aired": "1931-01-01",
+          "durationMs": 422920,
+          "file": "the-trees-knees.mp4",
+          "url": "https://archive.org/download/ltmm-publicdomain/The%20Tree's%20Knees%20(1931).ia.mp4",
+          "bytes": 81619711,
+          "license": {
+            "url": "https://archive.org/details/ltmm-publicdomain",
+            "verified": "2026-07-26",
+            "note": "Published 1931. US public domain by AGE as of January 1, 2027 per the 95-year rule — VERIFY before ship if shipping in 2026: 1931 publications clear on 2027-01-01. Most of this block is ALSO documented non-renewed (NR). Original B&W only; redrawn/colorized versions excluded."
+          }
+        },
+        {
+          "id": "lady-play-your-mandolin",
+          "title": "Lady, Play Your Mandolin!",
+          "show": "Merrie Melodies",
+          "season": 1,
+          "episode": 14,
+          "aired": "1931-08-01",
+          "durationMs": 437470,
+          "file": "lady-play-your-mandolin.mp4",
+          "url": "https://archive.org/download/LadyPlayYourMandolin1931HughHarmanRudolfIsing/Lady%2C%20Play%20Your%20Mandolin%201931%20Hugh%20Harman%2C%20Rudolf%20Ising.mp4",
+          "bytes": 45344387,
+          "license": {
+            "url": "https://archive.org/details/LadyPlayYourMandolin1931HughHarmanRudolfIsing",
+            "verified": "2026-07-26",
+            "note": "Published 1931 — the first Merrie Melodie. PD today on documented non-renewal (NR); clears deterministically by AGE on 2027-01-01. Standalone IA item, public-domain marked, original B&W print."
+          }
+        },
+        {
+          "id": "smile-darn-ya-smile",
+          "title": "Smile, Darn Ya, Smile!",
+          "show": "Merrie Melodies",
+          "season": 1,
+          "episode": 15,
+          "aired": "1931-01-01",
+          "durationMs": 417390,
+          "file": "smile-darn-ya-smile.mp4",
+          "url": "https://archive.org/download/ltmm-publicdomain/Smile%2C%20Darn%20Ya%2C%20Smile!%20(1931).ia.mp4",
+          "bytes": 39744487,
+          "license": {
+            "url": "https://archive.org/details/ltmm-publicdomain",
+            "verified": "2026-07-26",
+            "note": "Published 1931. US public domain by AGE as of January 1, 2027 per the 95-year rule — VERIFY before ship if shipping in 2026: 1931 publications clear on 2027-01-01. Most of this block is ALSO documented non-renewed (NR). Original B&W only; redrawn/colorized versions excluded."
+          }
+        },
+        {
+          "id": "one-more-time",
+          "title": "One More Time",
+          "show": "Merrie Melodies",
+          "season": 1,
+          "episode": 16,
+          "aired": "1931-01-01",
+          "durationMs": 421480,
+          "file": "one-more-time.mp4",
+          "url": "https://archive.org/download/ltmm-publicdomain/One%20More%20Time%20(1931).ia.mp4",
+          "bytes": 145868292,
+          "license": {
+            "url": "https://archive.org/details/ltmm-publicdomain",
+            "verified": "2026-07-26",
+            "note": "Published 1931. US public domain by AGE as of January 1, 2027 per the 95-year rule — VERIFY before ship if shipping in 2026: 1931 publications clear on 2027-01-01. Most of this block is ALSO documented non-renewed (NR). Original B&W only; redrawn/colorized versions excluded."
+          }
+        },
+        {
+          "id": "bosko-shipwrecked",
+          "title": "Bosko Shipwrecked!",
+          "show": "Bosko",
+          "season": 1,
+          "episode": 17,
+          "aired": "1931-01-01",
+          "durationMs": 398890,
+          "file": "bosko-shipwrecked.mp4",
+          "url": "https://archive.org/download/ltmm-publicdomain/Bosko%20Shipwrecked!%20(1931).ia.mp4",
+          "bytes": 75175090,
+          "license": {
+            "url": "https://archive.org/details/ltmm-publicdomain",
+            "verified": "2026-07-26",
+            "note": "Published 1931. US public domain by AGE as of January 1, 2027 per the 95-year rule — VERIFY before ship if shipping in 2026: 1931 publications clear on 2027-01-01. Most of this block is ALSO documented non-renewed (NR). Original B&W only; redrawn/colorized versions excluded."
+          }
+        },
+        {
+          "id": "bosko-the-doughboy",
+          "title": "Bosko the Doughboy",
+          "show": "Bosko",
+          "season": 1,
+          "episode": 18,
+          "aired": "1931-01-01",
+          "durationMs": 418060,
+          "file": "bosko-the-doughboy.mp4",
+          "url": "https://archive.org/download/ltmm-publicdomain/Bosko%20the%20Doughboy%20(1931).ia.mp4",
+          "bytes": 145478069,
+          "license": {
+            "url": "https://archive.org/details/ltmm-publicdomain",
+            "verified": "2026-07-26",
+            "note": "Published 1931. US public domain by AGE as of January 1, 2027 per the 95-year rule — VERIFY before ship if shipping in 2026: 1931 publications clear on 2027-01-01. Most of this block is ALSO documented non-renewed (NR). Original B&W only; redrawn/colorized versions excluded."
+          }
+        },
+        {
+          "id": "you-dont-know-what-youre-doin",
+          "title": "You Don't Know What You're Doin'!",
+          "show": "Merrie Melodies",
+          "season": 1,
+          "episode": 19,
+          "aired": "1931-01-01",
+          "durationMs": 413040,
+          "file": "you-dont-know-what-youre-doin.mp4",
+          "url": "https://archive.org/download/ltmm-publicdomain/You%20Don't%20Know%20What%20You're%20Doin'!%20(1931).ia.mp4",
+          "bytes": 110506897,
+          "license": {
+            "url": "https://archive.org/details/ltmm-publicdomain",
+            "verified": "2026-07-26",
+            "note": "Published 1931. US public domain by AGE as of January 1, 2027 per the 95-year rule — VERIFY before ship if shipping in 2026: 1931 publications clear on 2027-01-01. Most of this block is ALSO documented non-renewed (NR). Original B&W only; redrawn/colorized versions excluded."
+          }
+        },
+        {
+          "id": "boskos-soda-fountain",
+          "title": "Bosko's Soda Fountain",
+          "show": "Bosko",
+          "season": 1,
+          "episode": 20,
+          "aired": "1931-01-01",
+          "durationMs": 410290,
+          "file": "boskos-soda-fountain.mp4",
+          "url": "https://archive.org/download/ltmm-publicdomain/Bosko's%20Soda%20Fountain%20(1931).ia.mp4",
+          "bytes": 68997949,
+          "license": {
+            "url": "https://archive.org/details/ltmm-publicdomain",
+            "verified": "2026-07-26",
+            "note": "Published 1931. US public domain by AGE as of January 1, 2027 per the 95-year rule — VERIFY before ship if shipping in 2026: 1931 publications clear on 2027-01-01. Most of this block is ALSO documented non-renewed (NR). Original B&W only; redrawn/colorized versions excluded."
+          }
+        },
+        {
+          "id": "boskos-fox-hunt",
+          "title": "Bosko's Fox Hunt",
+          "show": "Bosko",
+          "season": 1,
+          "episode": 21,
+          "aired": "1931-01-01",
+          "durationMs": 407280,
+          "file": "boskos-fox-hunt.mp4",
+          "url": "https://archive.org/download/ltmm-publicdomain/Bosko's%20Fox%20Hunt%20(1931).ia.mp4",
+          "bytes": 65720783,
+          "license": {
+            "url": "https://archive.org/details/ltmm-publicdomain",
+            "verified": "2026-07-26",
+            "note": "Published 1931. US public domain by AGE as of January 1, 2027 per the 95-year rule — VERIFY before ship if shipping in 2026: 1931 publications clear on 2027-01-01. Most of this block is ALSO documented non-renewed (NR). Original B&W only; redrawn/colorized versions excluded."
+          }
+        },
+        {
+          "id": "red-headed-baby",
+          "title": "Red Headed Baby",
+          "show": "Merrie Melodies",
+          "season": 1,
+          "episode": 22,
+          "aired": "1931-01-01",
+          "durationMs": 401070,
+          "file": "red-headed-baby.mp4",
+          "url": "https://archive.org/download/ltmm-publicdomain/Red%20Headed%20Baby%20(1931).ia.mp4",
+          "bytes": 69236557,
+          "license": {
+            "url": "https://archive.org/details/ltmm-publicdomain",
+            "verified": "2026-07-26",
+            "note": "Published 1931. US public domain by AGE as of January 1, 2027 per the 95-year rule — VERIFY before ship if shipping in 2026: 1931 publications clear on 2027-01-01. Most of this block is ALSO documented non-renewed (NR). Original B&W only; redrawn/colorized versions excluded."
+          }
+        }
+      ]
+    },
+    {
       "id": "early-disney",
       "name": "EARLY DISNEY",
       "kind": "shows",
@@ -42,8 +435,8 @@
         "seed": 19009
       },
       "itemCount": 3,
-      "runtimeMs": 1133570,
-      "downloadBytes": 77356881,
+      "runtimeMs": 1133290,
+      "downloadBytes": 80446450,
       "items": [
         {
           "id": "plane-crazy",
@@ -52,14 +445,14 @@
           "season": 1,
           "episode": 1,
           "aired": "1928-05-15",
-          "durationMs": 359960,
+          "durationMs": 359680,
           "file": "plane-crazy.mp4",
-          "url": "https://archive.org/download/plane-crazy-1928/getvid%20(1).mp4",
-          "bytes": 25235355,
+          "url": "https://archive.org/download/PlaneCrazy_201511/Plane%20Crazy.mp4",
+          "bytes": 28324924,
           "license": {
-            "url": "https://creativecommons.org/publicdomain/mark/1.0/",
+            "url": "https://archive.org/details/PlaneCrazy_201511",
             "verified": "2026-07-26",
-            "note": "1928 work → US public domain Jan 2024. IA item PD-marked. TRADEMARK CAUTION: the films are PD; Mickey Mouse remains a Disney trademark — never use Disney characters in dumbTV marketing."
+            "note": "1928 work → US public domain Jan 2024. IA item PD-marked. TRADEMARK CAUTION: the films are PD; Mickey Mouse remains a Disney trademark — never use Disney characters in dumbTV marketing. RE-SOURCED 2026-07-26: the original IA item (plane-crazy-1928) went dark — 404, apparently a takedown sweep of Disney-adjacent items; a second copy (plane-crazy-1928_202406) vanished in the same wave. The film's PD-by-age status (1928 + 95) is unaffected; only the hosting item changed. New source is PD-marked on IA."
           }
         },
         {
@@ -230,6 +623,570 @@
             "url": "https://archive.org/details/bb_house_cleaning_blues",
             "verified": "2026-07-26",
             "note": "Fleischer/Paramount Betty Boop short; copyright not renewed → US public domain. IA item carries a CC public-domain license."
+          }
+        }
+      ]
+    },
+    {
+      "id": "snafu-and-co",
+      "name": "SNAFU & CO",
+      "kind": "shows",
+      "description": "WWII-era government animation: all 26 released Private Snafu shorts (Warner crew, Dr. Seuss scripts, Mel Blanc), the Mr. Hook Navy trio, and three Warner-made government shorts including the Oscar-winning So Much for So Little.",
+      "audience": "adult",
+      "contentNote": "Adult-oriented WWII military training humor: innuendo, pin-ups, wartime propaganda, and period racial caricature of Axis nations. Presented as history. Not for the kids' lineup — leave off any kid-safe channel list.",
+      "channel": {
+        "number": 10,
+        "name": "SNAFU & CO",
+        "ordering": "shuffle",
+        "seed": 19430628
+      },
+      "itemCount": 32,
+      "runtimeMs": 9104690,
+      "downloadBytes": 5533963359,
+      "items": [
+        {
+          "id": "coming-snafu",
+          "title": "Coming!! Snafu",
+          "show": "Private Snafu",
+          "season": 1,
+          "episode": 1,
+          "aired": null,
+          "durationMs": 201550,
+          "file": "coming-snafu.mp4",
+          "url": "https://archive.org/download/private-snafu-collection/Coming!!%20Snafu%20(1943).ia.mp4",
+          "bytes": 113324591,
+          "license": {
+            "url": "https://archive.org/details/private-snafu-collection",
+            "verified": "2026-07-26",
+            "note": "Produced 1943 for the US Army (Army–Navy Screen Magazine) by the Warner Bros. cartoon unit under government contract — Chuck Jones/Frank Tashlin directing, Ted Geisel (Dr. Seuss) writing, Mel Blanc voicing. US government film, released without copyright notice and never copyrighted. Basis: GOV (highest confidence — no renewal to check, no reissue trap). Source: IA public-domain-marked collection; no commercial-restoration provenance advertised. NARA Signal Corps scans (111-M-*) exist on IA as alternates for Rumors, Censored, Malaria Mike, and Going Home."
+          }
+        },
+        {
+          "id": "gripes",
+          "title": "Gripes",
+          "show": "Private Snafu",
+          "season": 1,
+          "episode": 2,
+          "aired": null,
+          "durationMs": 267890,
+          "file": "gripes.mp4",
+          "url": "https://archive.org/download/private-snafu-collection/Gripes%20(1943).ia.mp4",
+          "bytes": 119275890,
+          "license": {
+            "url": "https://archive.org/details/private-snafu-collection",
+            "verified": "2026-07-26",
+            "note": "Produced 1943 for the US Army (Army–Navy Screen Magazine) by the Warner Bros. cartoon unit under government contract — Chuck Jones/Frank Tashlin directing, Ted Geisel (Dr. Seuss) writing, Mel Blanc voicing. US government film, released without copyright notice and never copyrighted. Basis: GOV (highest confidence — no renewal to check, no reissue trap). Source: IA public-domain-marked collection; no commercial-restoration provenance advertised. NARA Signal Corps scans (111-M-*) exist on IA as alternates for Rumors, Censored, Malaria Mike, and Going Home."
+          }
+        },
+        {
+          "id": "spies",
+          "title": "Spies",
+          "show": "Private Snafu",
+          "season": 1,
+          "episode": 3,
+          "aired": null,
+          "durationMs": 227400,
+          "file": "spies.mp4",
+          "url": "https://archive.org/download/private-snafu-collection/Spies%20(1943).ia.mp4",
+          "bytes": 204769727,
+          "license": {
+            "url": "https://archive.org/details/private-snafu-collection",
+            "verified": "2026-07-26",
+            "note": "Produced 1943 for the US Army (Army–Navy Screen Magazine) by the Warner Bros. cartoon unit under government contract — Chuck Jones/Frank Tashlin directing, Ted Geisel (Dr. Seuss) writing, Mel Blanc voicing. US government film, released without copyright notice and never copyrighted. Basis: GOV (highest confidence — no renewal to check, no reissue trap). Source: IA public-domain-marked collection; no commercial-restoration provenance advertised. NARA Signal Corps scans (111-M-*) exist on IA as alternates for Rumors, Censored, Malaria Mike, and Going Home."
+          }
+        },
+        {
+          "id": "the-goldbrick",
+          "title": "The Goldbrick",
+          "show": "Private Snafu",
+          "season": 1,
+          "episode": 4,
+          "aired": null,
+          "durationMs": 257080,
+          "file": "the-goldbrick.mp4",
+          "url": "https://archive.org/download/private-snafu-collection/The%20Goldbrick%20(1943).ia.mp4",
+          "bytes": 117593934,
+          "license": {
+            "url": "https://archive.org/details/private-snafu-collection",
+            "verified": "2026-07-26",
+            "note": "Produced 1943 for the US Army (Army–Navy Screen Magazine) by the Warner Bros. cartoon unit under government contract — Chuck Jones/Frank Tashlin directing, Ted Geisel (Dr. Seuss) writing, Mel Blanc voicing. US government film, released without copyright notice and never copyrighted. Basis: GOV (highest confidence — no renewal to check, no reissue trap). Source: IA public-domain-marked collection; no commercial-restoration provenance advertised. NARA Signal Corps scans (111-M-*) exist on IA as alternates for Rumors, Censored, Malaria Mike, and Going Home."
+          }
+        },
+        {
+          "id": "the-infantry-blues",
+          "title": "The Infantry Blues",
+          "show": "Private Snafu",
+          "season": 1,
+          "episode": 5,
+          "aired": null,
+          "durationMs": 264290,
+          "file": "the-infantry-blues.mp4",
+          "url": "https://archive.org/download/private-snafu-collection/The%20Infantry%20Blues%20(1943).ia.mp4",
+          "bytes": 263648337,
+          "license": {
+            "url": "https://archive.org/details/private-snafu-collection",
+            "verified": "2026-07-26",
+            "note": "Produced 1943 for the US Army (Army–Navy Screen Magazine) by the Warner Bros. cartoon unit under government contract — Chuck Jones/Frank Tashlin directing, Ted Geisel (Dr. Seuss) writing, Mel Blanc voicing. US government film, released without copyright notice and never copyrighted. Basis: GOV (highest confidence — no renewal to check, no reissue trap). Source: IA public-domain-marked collection; no commercial-restoration provenance advertised. NARA Signal Corps scans (111-M-*) exist on IA as alternates for Rumors, Censored, Malaria Mike, and Going Home."
+          }
+        },
+        {
+          "id": "fighting-tools",
+          "title": "Fighting Tools",
+          "show": "Private Snafu",
+          "season": 1,
+          "episode": 6,
+          "aired": null,
+          "durationMs": 267490,
+          "file": "fighting-tools.mp4",
+          "url": "https://archive.org/download/private-snafu-collection/Fighting%20Tools%20(1943).ia.mp4",
+          "bytes": 288677665,
+          "license": {
+            "url": "https://archive.org/details/private-snafu-collection",
+            "verified": "2026-07-26",
+            "note": "Produced 1943 for the US Army (Army–Navy Screen Magazine) by the Warner Bros. cartoon unit under government contract — Chuck Jones/Frank Tashlin directing, Ted Geisel (Dr. Seuss) writing, Mel Blanc voicing. US government film, released without copyright notice and never copyrighted. Basis: GOV (highest confidence — no renewal to check, no reissue trap). Source: IA public-domain-marked collection; no commercial-restoration provenance advertised. NARA Signal Corps scans (111-M-*) exist on IA as alternates for Rumors, Censored, Malaria Mike, and Going Home."
+          }
+        },
+        {
+          "id": "the-home-front",
+          "title": "The Home Front",
+          "show": "Private Snafu",
+          "season": 1,
+          "episode": 7,
+          "aired": null,
+          "durationMs": 284190,
+          "file": "the-home-front.mp4",
+          "url": "https://archive.org/download/private-snafu-collection/The%20Home%20Front%20(1943).ia.mp4",
+          "bytes": 136498351,
+          "license": {
+            "url": "https://archive.org/details/private-snafu-collection",
+            "verified": "2026-07-26",
+            "note": "Produced 1943 for the US Army (Army–Navy Screen Magazine) by the Warner Bros. cartoon unit under government contract — Chuck Jones/Frank Tashlin directing, Ted Geisel (Dr. Seuss) writing, Mel Blanc voicing. US government film, released without copyright notice and never copyrighted. Basis: GOV (highest confidence — no renewal to check, no reissue trap). Source: IA public-domain-marked collection; no commercial-restoration provenance advertised. NARA Signal Corps scans (111-M-*) exist on IA as alternates for Rumors, Censored, Malaria Mike, and Going Home."
+          }
+        },
+        {
+          "id": "rumors",
+          "title": "Rumors",
+          "show": "Private Snafu",
+          "season": 1,
+          "episode": 8,
+          "aired": null,
+          "durationMs": 277030,
+          "file": "rumors.mp4",
+          "url": "https://archive.org/download/private-snafu-collection/Rumors%20(1943).ia.mp4",
+          "bytes": 189152748,
+          "license": {
+            "url": "https://archive.org/details/private-snafu-collection",
+            "verified": "2026-07-26",
+            "note": "Produced 1943 for the US Army (Army–Navy Screen Magazine) by the Warner Bros. cartoon unit under government contract — Chuck Jones/Frank Tashlin directing, Ted Geisel (Dr. Seuss) writing, Mel Blanc voicing. US government film, released without copyright notice and never copyrighted. Basis: GOV (highest confidence — no renewal to check, no reissue trap). Source: IA public-domain-marked collection; no commercial-restoration provenance advertised. NARA Signal Corps scans (111-M-*) exist on IA as alternates for Rumors, Censored, Malaria Mike, and Going Home."
+          }
+        },
+        {
+          "id": "booby-traps",
+          "title": "Booby Traps",
+          "show": "Private Snafu",
+          "season": 1,
+          "episode": 9,
+          "aired": null,
+          "durationMs": 275820,
+          "file": "booby-traps.mp4",
+          "url": "https://archive.org/download/private-snafu-collection/Booby%20Traps%20(1944).ia.mp4",
+          "bytes": 214681206,
+          "license": {
+            "url": "https://archive.org/details/private-snafu-collection",
+            "verified": "2026-07-26",
+            "note": "Produced 1944 for the US Army (Army–Navy Screen Magazine) by the Warner Bros. cartoon unit under government contract — Chuck Jones/Frank Tashlin directing, Ted Geisel (Dr. Seuss) writing, Mel Blanc voicing. US government film, released without copyright notice and never copyrighted. Basis: GOV (highest confidence — no renewal to check, no reissue trap). Source: IA public-domain-marked collection; no commercial-restoration provenance advertised. NARA Signal Corps scans (111-M-*) exist on IA as alternates for Rumors, Censored, Malaria Mike, and Going Home."
+          }
+        },
+        {
+          "id": "snafuperman",
+          "title": "Snafuperman",
+          "show": "Private Snafu",
+          "season": 1,
+          "episode": 10,
+          "aired": null,
+          "durationMs": 278040,
+          "file": "snafuperman.mp4",
+          "url": "https://archive.org/download/private-snafu-collection/Snafuperman%20(1944).ia.mp4",
+          "bytes": 26568882,
+          "license": {
+            "url": "https://archive.org/details/private-snafu-collection",
+            "verified": "2026-07-26",
+            "note": "Produced 1944 for the US Army (Army–Navy Screen Magazine) by the Warner Bros. cartoon unit under government contract — Chuck Jones/Frank Tashlin directing, Ted Geisel (Dr. Seuss) writing, Mel Blanc voicing. US government film, released without copyright notice and never copyrighted. Basis: GOV (highest confidence — no renewal to check, no reissue trap). Source: IA public-domain-marked collection; no commercial-restoration provenance advertised. NARA Signal Corps scans (111-M-*) exist on IA as alternates for Rumors, Censored, Malaria Mike, and Going Home."
+          }
+        },
+        {
+          "id": "malaria-mike",
+          "title": "Private Snafu vs. Malaria Mike",
+          "show": "Private Snafu",
+          "season": 1,
+          "episode": 11,
+          "aired": null,
+          "durationMs": 299320,
+          "file": "malaria-mike.mp4",
+          "url": "https://archive.org/download/private-snafu-collection/Private%20Snafu%20vs.%20Malaria%20Mike%20(1944).ia.mp4",
+          "bytes": 177434569,
+          "license": {
+            "url": "https://archive.org/details/private-snafu-collection",
+            "verified": "2026-07-26",
+            "note": "Produced 1944 for the US Army (Army–Navy Screen Magazine) by the Warner Bros. cartoon unit under government contract — Chuck Jones/Frank Tashlin directing, Ted Geisel (Dr. Seuss) writing, Mel Blanc voicing. US government film, released without copyright notice and never copyrighted. Basis: GOV (highest confidence — no renewal to check, no reissue trap). Source: IA public-domain-marked collection; no commercial-restoration provenance advertised. NARA Signal Corps scans (111-M-*) exist on IA as alternates for Rumors, Censored, Malaria Mike, and Going Home."
+          }
+        },
+        {
+          "id": "lecture-on-camouflage",
+          "title": "A Lecture on Camouflage",
+          "show": "Private Snafu",
+          "season": 1,
+          "episode": 12,
+          "aired": null,
+          "durationMs": 259200,
+          "file": "lecture-on-camouflage.mp4",
+          "url": "https://archive.org/download/private-snafu-collection/A%20Lecture%20On%20Camouflage%20(1944).ia.mp4",
+          "bytes": 218831883,
+          "license": {
+            "url": "https://archive.org/details/private-snafu-collection",
+            "verified": "2026-07-26",
+            "note": "Produced 1944 for the US Army (Army–Navy Screen Magazine) by the Warner Bros. cartoon unit under government contract — Chuck Jones/Frank Tashlin directing, Ted Geisel (Dr. Seuss) writing, Mel Blanc voicing. US government film, released without copyright notice and never copyrighted. Basis: GOV (highest confidence — no renewal to check, no reissue trap). Source: IA public-domain-marked collection; no commercial-restoration provenance advertised. NARA Signal Corps scans (111-M-*) exist on IA as alternates for Rumors, Censored, Malaria Mike, and Going Home."
+          }
+        },
+        {
+          "id": "gas",
+          "title": "Gas",
+          "show": "Private Snafu",
+          "season": 1,
+          "episode": 13,
+          "aired": null,
+          "durationMs": 285790,
+          "file": "gas.mp4",
+          "url": "https://archive.org/download/private-snafu-collection/Gas%20(1944).ia.mp4",
+          "bytes": 203374791,
+          "license": {
+            "url": "https://archive.org/details/private-snafu-collection",
+            "verified": "2026-07-26",
+            "note": "Produced 1944 for the US Army (Army–Navy Screen Magazine) by the Warner Bros. cartoon unit under government contract — Chuck Jones/Frank Tashlin directing, Ted Geisel (Dr. Seuss) writing, Mel Blanc voicing. US government film, released without copyright notice and never copyrighted. Basis: GOV (highest confidence — no renewal to check, no reissue trap). Source: IA public-domain-marked collection; no commercial-restoration provenance advertised. NARA Signal Corps scans (111-M-*) exist on IA as alternates for Rumors, Censored, Malaria Mike, and Going Home."
+          }
+        },
+        {
+          "id": "the-chow-hound",
+          "title": "The Chow Hound",
+          "show": "Private Snafu",
+          "season": 1,
+          "episode": 14,
+          "aired": null,
+          "durationMs": 276330,
+          "file": "the-chow-hound.mp4",
+          "url": "https://archive.org/download/private-snafu-collection/The%20Chow%20Hound%20(1944).ia.mp4",
+          "bytes": 234025069,
+          "license": {
+            "url": "https://archive.org/details/private-snafu-collection",
+            "verified": "2026-07-26",
+            "note": "Produced 1944 for the US Army (Army–Navy Screen Magazine) by the Warner Bros. cartoon unit under government contract — Chuck Jones/Frank Tashlin directing, Ted Geisel (Dr. Seuss) writing, Mel Blanc voicing. US government film, released without copyright notice and never copyrighted. Basis: GOV (highest confidence — no renewal to check, no reissue trap). Source: IA public-domain-marked collection; no commercial-restoration provenance advertised. NARA Signal Corps scans (111-M-*) exist on IA as alternates for Rumors, Censored, Malaria Mike, and Going Home."
+          }
+        },
+        {
+          "id": "censored",
+          "title": "Censored",
+          "show": "Private Snafu",
+          "season": 1,
+          "episode": 15,
+          "aired": null,
+          "durationMs": 288850,
+          "file": "censored.mp4",
+          "url": "https://archive.org/download/private-snafu-collection/Censored%20(1944).ia.mp4",
+          "bytes": 294611382,
+          "license": {
+            "url": "https://archive.org/details/private-snafu-collection",
+            "verified": "2026-07-26",
+            "note": "Produced 1944 for the US Army (Army–Navy Screen Magazine) by the Warner Bros. cartoon unit under government contract — Chuck Jones/Frank Tashlin directing, Ted Geisel (Dr. Seuss) writing, Mel Blanc voicing. US government film, released without copyright notice and never copyrighted. Basis: GOV (highest confidence — no renewal to check, no reissue trap). Source: IA public-domain-marked collection; no commercial-restoration provenance advertised. NARA Signal Corps scans (111-M-*) exist on IA as alternates for Rumors, Censored, Malaria Mike, and Going Home."
+          }
+        },
+        {
+          "id": "the-outpost",
+          "title": "Outpost",
+          "show": "Private Snafu",
+          "season": 1,
+          "episode": 16,
+          "aired": null,
+          "durationMs": 305120,
+          "file": "the-outpost.mp4",
+          "url": "https://archive.org/download/private-snafu-collection/The%20Outpost%20(1944).ia.mp4",
+          "bytes": 265450150,
+          "license": {
+            "url": "https://archive.org/details/private-snafu-collection",
+            "verified": "2026-07-26",
+            "note": "Produced 1944 for the US Army (Army–Navy Screen Magazine) by the Warner Bros. cartoon unit under government contract — Chuck Jones/Frank Tashlin directing, Ted Geisel (Dr. Seuss) writing, Mel Blanc voicing. US government film, released without copyright notice and never copyrighted. Basis: GOV (highest confidence — no renewal to check, no reissue trap). Source: IA public-domain-marked collection; no commercial-restoration provenance advertised. NARA Signal Corps scans (111-M-*) exist on IA as alternates for Rumors, Censored, Malaria Mike, and Going Home."
+          }
+        },
+        {
+          "id": "pay-day",
+          "title": "Pay Day",
+          "show": "Private Snafu",
+          "season": 1,
+          "episode": 17,
+          "aired": null,
+          "durationMs": 284160,
+          "file": "pay-day.mp4",
+          "url": "https://archive.org/download/private-snafu-collection/Pay%20Day%20(1944).ia.mp4",
+          "bytes": 239692747,
+          "license": {
+            "url": "https://archive.org/details/private-snafu-collection",
+            "verified": "2026-07-26",
+            "note": "Produced 1944 for the US Army (Army–Navy Screen Magazine) by the Warner Bros. cartoon unit under government contract — Chuck Jones/Frank Tashlin directing, Ted Geisel (Dr. Seuss) writing, Mel Blanc voicing. US government film, released without copyright notice and never copyrighted. Basis: GOV (highest confidence — no renewal to check, no reissue trap). Source: IA public-domain-marked collection; no commercial-restoration provenance advertised. NARA Signal Corps scans (111-M-*) exist on IA as alternates for Rumors, Censored, Malaria Mike, and Going Home."
+          }
+        },
+        {
+          "id": "three-brothers",
+          "title": "Three Brothers",
+          "show": "Private Snafu",
+          "season": 1,
+          "episode": 18,
+          "aired": null,
+          "durationMs": 296660,
+          "file": "three-brothers.mp4",
+          "url": "https://archive.org/download/private-snafu-collection/Three%20Brothers%20(1944).ia.mp4",
+          "bytes": 379534586,
+          "license": {
+            "url": "https://archive.org/details/private-snafu-collection",
+            "verified": "2026-07-26",
+            "note": "Produced 1944 for the US Army (Army–Navy Screen Magazine) by the Warner Bros. cartoon unit under government contract — Chuck Jones/Frank Tashlin directing, Ted Geisel (Dr. Seuss) writing, Mel Blanc voicing. US government film, released without copyright notice and never copyrighted. Basis: GOV (highest confidence — no renewal to check, no reissue trap). Source: IA public-domain-marked collection; no commercial-restoration provenance advertised. NARA Signal Corps scans (111-M-*) exist on IA as alternates for Rumors, Censored, Malaria Mike, and Going Home."
+          }
+        },
+        {
+          "id": "target-snafu",
+          "title": "Target Snafu",
+          "show": "Private Snafu",
+          "season": 1,
+          "episode": 19,
+          "aired": null,
+          "durationMs": 276820,
+          "file": "target-snafu.mp4",
+          "url": "https://archive.org/download/private-snafu-collection/Target%20Snafu%20(1944).ia.mp4",
+          "bytes": 26241832,
+          "license": {
+            "url": "https://archive.org/details/private-snafu-collection",
+            "verified": "2026-07-26",
+            "note": "Produced 1944 for the US Army (Army–Navy Screen Magazine) by the Warner Bros. cartoon unit under government contract — Chuck Jones/Frank Tashlin directing, Ted Geisel (Dr. Seuss) writing, Mel Blanc voicing. US government film, released without copyright notice and never copyrighted. Basis: GOV (highest confidence — no renewal to check, no reissue trap). Source: IA public-domain-marked collection; no commercial-restoration provenance advertised. NARA Signal Corps scans (111-M-*) exist on IA as alternates for Rumors, Censored, Malaria Mike, and Going Home."
+          }
+        },
+        {
+          "id": "going-home",
+          "title": "Going Home",
+          "show": "Private Snafu",
+          "season": 1,
+          "episode": 20,
+          "aired": null,
+          "durationMs": 227340,
+          "file": "going-home.mp4",
+          "url": "https://archive.org/download/private-snafu-collection/Going%20Home%20(1944).ia.mp4",
+          "bytes": 192416386,
+          "license": {
+            "url": "https://archive.org/details/private-snafu-collection",
+            "verified": "2026-07-26",
+            "note": "Produced 1944 for the US Army (Army–Navy Screen Magazine) by the Warner Bros. cartoon unit under government contract — Chuck Jones/Frank Tashlin directing, Ted Geisel (Dr. Seuss) writing, Mel Blanc voicing. US government film, released without copyright notice and never copyrighted. Basis: GOV (highest confidence — no renewal to check, no reissue trap). Source: IA public-domain-marked collection; no commercial-restoration provenance advertised. NARA Signal Corps scans (111-M-*) exist on IA as alternates for Rumors, Censored, Malaria Mike, and Going Home."
+          }
+        },
+        {
+          "id": "in-the-aleutians",
+          "title": "In the Aleutians — Isles of Enchantment",
+          "show": "Private Snafu",
+          "season": 1,
+          "episode": 21,
+          "aired": null,
+          "durationMs": 291520,
+          "file": "in-the-aleutians.mp4",
+          "url": "https://archive.org/download/private-snafu-collection/In%20The%20Aleutians%20-%20Isles%20Of%20Enchantment%20(1945).ia.mp4",
+          "bytes": 232088299,
+          "license": {
+            "url": "https://archive.org/details/private-snafu-collection",
+            "verified": "2026-07-26",
+            "note": "Produced 1945 for the US Army (Army–Navy Screen Magazine) by the Warner Bros. cartoon unit under government contract — Chuck Jones/Frank Tashlin directing, Ted Geisel (Dr. Seuss) writing, Mel Blanc voicing. US government film, released without copyright notice and never copyrighted. Basis: GOV (highest confidence — no renewal to check, no reissue trap). Source: IA public-domain-marked collection; no commercial-restoration provenance advertised. NARA Signal Corps scans (111-M-*) exist on IA as alternates for Rumors, Censored, Malaria Mike, and Going Home."
+          }
+        },
+        {
+          "id": "its-murder-she-says",
+          "title": "It's Murder She Says",
+          "show": "Private Snafu",
+          "season": 1,
+          "episode": 22,
+          "aired": null,
+          "durationMs": 302210,
+          "file": "its-murder-she-says.mp4",
+          "url": "https://archive.org/download/private-snafu-collection/It's%20Murder%20She%20Says%20(1945).ia.mp4",
+          "bytes": 200928401,
+          "license": {
+            "url": "https://archive.org/details/private-snafu-collection",
+            "verified": "2026-07-26",
+            "note": "Produced 1945 for the US Army (Army–Navy Screen Magazine) by the Warner Bros. cartoon unit under government contract — Chuck Jones/Frank Tashlin directing, Ted Geisel (Dr. Seuss) writing, Mel Blanc voicing. US government film, released without copyright notice and never copyrighted. Basis: GOV (highest confidence — no renewal to check, no reissue trap). Source: IA public-domain-marked collection; no commercial-restoration provenance advertised. NARA Signal Corps scans (111-M-*) exist on IA as alternates for Rumors, Censored, Malaria Mike, and Going Home."
+          }
+        },
+        {
+          "id": "hot-spot",
+          "title": "Hot Spot",
+          "show": "Private Snafu",
+          "season": 1,
+          "episode": 23,
+          "aired": null,
+          "durationMs": 340520,
+          "file": "hot-spot.mp4",
+          "url": "https://archive.org/download/private-snafu-collection/Hot%20Spot%20(1945).ia.mp4",
+          "bytes": 265327072,
+          "license": {
+            "url": "https://archive.org/details/private-snafu-collection",
+            "verified": "2026-07-26",
+            "note": "Produced 1945 for the US Army (Army–Navy Screen Magazine) by the Warner Bros. cartoon unit under government contract — Chuck Jones/Frank Tashlin directing, Ted Geisel (Dr. Seuss) writing, Mel Blanc voicing. US government film, released without copyright notice and never copyrighted. Basis: GOV (highest confidence — no renewal to check, no reissue trap). Source: IA public-domain-marked collection; no commercial-restoration provenance advertised. NARA Signal Corps scans (111-M-*) exist on IA as alternates for Rumors, Censored, Malaria Mike, and Going Home."
+          }
+        },
+        {
+          "id": "operation-snafu",
+          "title": "Operation Snafu",
+          "show": "Private Snafu",
+          "season": 1,
+          "episode": 24,
+          "aired": null,
+          "durationMs": 302680,
+          "file": "operation-snafu.mp4",
+          "url": "https://archive.org/download/private-snafu-collection/Operation%20Snafu%20(1945).ia.mp4",
+          "bytes": 246303013,
+          "license": {
+            "url": "https://archive.org/details/private-snafu-collection",
+            "verified": "2026-07-26",
+            "note": "Produced 1945 for the US Army (Army–Navy Screen Magazine) by the Warner Bros. cartoon unit under government contract — Chuck Jones/Frank Tashlin directing, Ted Geisel (Dr. Seuss) writing, Mel Blanc voicing. US government film, released without copyright notice and never copyrighted. Basis: GOV (highest confidence — no renewal to check, no reissue trap). Source: IA public-domain-marked collection; no commercial-restoration provenance advertised. NARA Signal Corps scans (111-M-*) exist on IA as alternates for Rumors, Censored, Malaria Mike, and Going Home."
+          }
+        },
+        {
+          "id": "no-buddy-atoll",
+          "title": "No Buddy Atoll",
+          "show": "Private Snafu",
+          "season": 1,
+          "episode": 25,
+          "aired": null,
+          "durationMs": 313740,
+          "file": "no-buddy-atoll.mp4",
+          "url": "https://archive.org/download/private-snafu-collection/No%20Buddy%20Atoll%20(1945).ia.mp4",
+          "bytes": 173862082,
+          "license": {
+            "url": "https://archive.org/details/private-snafu-collection",
+            "verified": "2026-07-26",
+            "note": "Produced 1945 for the US Army (Army–Navy Screen Magazine) by the Warner Bros. cartoon unit under government contract — Chuck Jones/Frank Tashlin directing, Ted Geisel (Dr. Seuss) writing, Mel Blanc voicing. US government film, released without copyright notice and never copyrighted. Basis: GOV (highest confidence — no renewal to check, no reissue trap). Source: IA public-domain-marked collection; no commercial-restoration provenance advertised. NARA Signal Corps scans (111-M-*) exist on IA as alternates for Rumors, Censored, Malaria Mike, and Going Home."
+          }
+        },
+        {
+          "id": "seaman-tarfu",
+          "title": "Seaman Tarfu in the Navy",
+          "show": "Private Snafu",
+          "season": 1,
+          "episode": 26,
+          "aired": null,
+          "durationMs": 313940,
+          "file": "seaman-tarfu.mp4",
+          "url": "https://archive.org/download/private-snafu-collection/Private%20Snafu%20Presents%20Seaman%20Tarfu%20in%20the%20Navy%20(1945).ia.mp4",
+          "bytes": 244006900,
+          "license": {
+            "url": "https://archive.org/details/private-snafu-collection",
+            "verified": "2026-07-26",
+            "note": "Produced 1945 for the US Army (Army–Navy Screen Magazine) by the Warner Bros. cartoon unit under government contract — Chuck Jones/Frank Tashlin directing, Ted Geisel (Dr. Seuss) writing, Mel Blanc voicing. US government film, released without copyright notice and never copyrighted. Basis: GOV (highest confidence — no renewal to check, no reissue trap). Source: IA public-domain-marked collection; no commercial-restoration provenance advertised. NARA Signal Corps scans (111-M-*) exist on IA as alternates for Rumors, Censored, Malaria Mike, and Going Home."
+          }
+        },
+        {
+          "id": "the-good-egg",
+          "title": "The Good Egg",
+          "show": "Mr. Hook",
+          "season": 1,
+          "episode": 27,
+          "aired": null,
+          "durationMs": 187440,
+          "file": "the-good-egg.mp4",
+          "url": "https://archive.org/download/mr-hook/The%20Good%20Egg%20(1945).ia.mp4",
+          "bytes": 14790752,
+          "license": {
+            "url": "https://archive.org/details/mr-hook",
+            "verified": "2026-07-26",
+            "note": "Mr. Hook series, produced 1945 for the US Navy's incentive/training program. US government work, never copyrighted. Basis: GOV. IA item carries a public-domain mark."
+          }
+        },
+        {
+          "id": "return-of-mr-hook",
+          "title": "The Return of Mr. Hook",
+          "show": "Mr. Hook",
+          "season": 1,
+          "episode": 28,
+          "aired": null,
+          "durationMs": 232240,
+          "file": "return-of-mr-hook.mp4",
+          "url": "https://archive.org/download/mr-hook/The%20Return%20of%20Mr.%20Hook%20(1945).ia.mp4",
+          "bytes": 31946833,
+          "license": {
+            "url": "https://archive.org/details/mr-hook",
+            "verified": "2026-07-26",
+            "note": "Mr. Hook series, produced 1945 for the US Navy's incentive/training program. US government work, never copyrighted. Basis: GOV. IA item carries a public-domain mark."
+          }
+        },
+        {
+          "id": "tokyo-woes",
+          "title": "Tokyo Woes",
+          "show": "Mr. Hook",
+          "season": 1,
+          "episode": 29,
+          "aired": null,
+          "durationMs": 253340,
+          "file": "tokyo-woes.mp4",
+          "url": "https://archive.org/download/mr-hook/Tokyo%20Woes%20(1945).ia.mp4",
+          "bytes": 32176367,
+          "license": {
+            "url": "https://archive.org/details/mr-hook",
+            "verified": "2026-07-26",
+            "note": "Mr. Hook series, produced 1945 for the US Navy's incentive/training program. US government work, never copyrighted. Basis: GOV. IA item carries a public-domain mark."
+          }
+        },
+        {
+          "id": "any-bonds-today",
+          "title": "Any Bonds Today?",
+          "show": "Wartime Shorts",
+          "season": 1,
+          "episode": 30,
+          "aired": null,
+          "durationMs": 91600,
+          "file": "any-bonds-today.mp4",
+          "url": "https://archive.org/download/any-bonds-today-1942/Any%20Bonds%20Today%20(1942).mp4",
+          "bytes": 4142114,
+          "license": {
+            "url": "https://archive.org/details/any-bonds-today-1942",
+            "verified": "2026-07-26",
+            "note": "1942 Defense Bond drive short made by the Warner Bros. cartoon unit for the US Treasury; distributed as a government bond-promotion film and universally documented PD (GOV basis; no renewal was ever filed either). IA item PD-marked."
+          },
+          "contentNote": "Contains a blackface caricature segment (Al Jolson parody) — period context required."
+        },
+        {
+          "id": "so-much-for-so-little",
+          "title": "So Much for So Little",
+          "show": "Wartime Shorts",
+          "season": 1,
+          "episode": 31,
+          "aired": null,
+          "durationMs": 619460,
+          "file": "so-much-for-so-little.mp4",
+          "url": "https://archive.org/download/so-much-for-so-little-1949/So%20Much%20for%20So%20Little%20(1949).mp4",
+          "bytes": 66241708,
+          "license": {
+            "url": "https://archive.org/details/so-much-for-so-little-1949",
+            "verified": "2026-07-26",
+            "note": "Made by Warner Bros. for the Federal Security Agency / US Public Health Service (1949); Academy Award winner, Documentary Short. US government work, never copyrighted. Basis: GOV. IA item PD-marked."
+          }
+        },
+        {
+          "id": "a-hitch-in-time",
+          "title": "A Hitch in Time",
+          "show": "Wartime Shorts",
+          "season": 1,
+          "episode": 32,
+          "aired": null,
+          "durationMs": 455630,
+          "file": "a-hitch-in-time.mp4",
+          "url": "https://archive.org/download/a-hitch-in-time-1955/A%20Hitch%20in%20Time%20(1955).ia.mp4",
+          "bytes": 116345092,
+          "license": {
+            "url": "https://archive.org/details/a-hitch-in-time-1955",
+            "verified": "2026-07-26",
+            "note": "Made by Warner Bros. for the US Army (1955, Chuck Jones). US government work, never copyrighted. Basis: GOV. IA item PD-marked."
           }
         }
       ]
@@ -520,7 +1477,8 @@
             "url": "https://en.wikipedia.org/wiki/Superman_(1940s_animated_film_series)#Copyright_status",
             "verified": "2026-07-26",
             "note": "National Comics failed to renew the shorts (late 1960s) → US public domain. Character/trademark is WB/DC — play the films, never use Superman for dumbTV marketing."
-          }
+          },
+          "contentNote": "Wartime anti-Japanese caricature throughout — presented as history."
         },
         {
           "id": "showdown",
@@ -554,7 +1512,8 @@
             "url": "https://en.wikipedia.org/wiki/Superman_(1940s_animated_film_series)#Copyright_status",
             "verified": "2026-07-26",
             "note": "National Comics failed to renew the shorts (late 1960s) → US public domain. Character/trademark is WB/DC — play the films, never use Superman for dumbTV marketing."
-          }
+          },
+          "contentNote": "Wartime anti-Japanese caricature — presented as history."
         },
         {
           "id": "destruction-inc",
@@ -605,7 +1564,8 @@
             "url": "https://en.wikipedia.org/wiki/Superman_(1940s_animated_film_series)#Copyright_status",
             "verified": "2026-07-26",
             "note": "National Comics failed to renew the shorts (late 1960s) → US public domain. Character/trademark is WB/DC — play the films, never use Superman for dumbTV marketing."
-          }
+          },
+          "contentNote": "Racial caricature (African characters) — presented as history."
         },
         {
           "id": "underground-world",

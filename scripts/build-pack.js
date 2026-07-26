@@ -65,11 +65,21 @@ function derivativeScore(f) {
 }
 
 async function iaMetadata(identifier) {
-  const res = await fetch(IA_META(identifier), { headers: { 'User-Agent': 'dumbTV-pack-builder' } });
-  if (!res.ok) throw new Error(`IA metadata ${identifier}: HTTP ${res.status}`);
-  const json = await res.json();
-  if (!json || !Array.isArray(json.files)) throw new Error(`IA metadata ${identifier}: no files[]`);
-  return json;
+  // Retry before concluding anything: IA rate-limits and hiccups, and a
+  // transient failure must not be mistaken for a takedown (the catalog
+  // excludes "dark" items, so a false dark silently prunes real content).
+  let lastErr;
+  for (let attempt = 0; attempt < 3; attempt++) {
+    if (attempt) await new Promise((r) => setTimeout(r, attempt * 4000));
+    try {
+      const res = await fetch(IA_META(identifier), { headers: { 'User-Agent': 'dumbTV-pack-builder' } });
+      if (!res.ok) throw new Error(`IA metadata ${identifier}: HTTP ${res.status}`);
+      const json = await res.json();
+      if (!json || !Array.isArray(json.files)) throw new Error(`IA metadata ${identifier}: no files[]`);
+      return json;
+    } catch (e) { lastErr = e; }
+  }
+  throw lastErr;
 }
 
 function videoFiles(meta) {
@@ -258,8 +268,10 @@ async function cmdCatalog() {
     const m = loadManifest(id);
     checkProvenance(m); // only ship PD-verified packs in the catalog
     const items = [];
+    const dark = [];
     for (const it of m.items) {
       let url, bytes, durationMs;
+      try {
       if (isDirect(it)) {
         // No metadata service to ask: the size comes from a HEAD, and the
         // duration from the manifest's hint (the built pack.json carries the
@@ -282,11 +294,22 @@ async function cmdCatalog() {
         url,
         bytes,
         license: it.license,
+        ...(it.contentNote ? { contentNote: it.contentNote } : {}),
       });
+      } catch (e) {
+        // A vanished/darkened IA item is excluded and logged, never a crash —
+        // the same rule as a vanished local file. LOUD, not silent (a takedown
+        // means the manifest needs re-sourcing, like plane-crazy-1928 did).
+        dark.push(it.id);
+        console.warn(`\n⚠ ${m.id}/${it.id}: source unreachable (${e.message}) — EXCLUDED from catalog; re-source the manifest`);
+      }
       process.stdout.write('.');
     }
+    if (dark.length) console.warn(`⚠ ${m.id}: ${dark.length} item(s) excluded: ${dark.join(', ')}`);
     packs.push({
       id: m.id, name: m.name, kind: m.kind ?? 'shows', description: m.description ?? '',
+      ...(m.audience ? { audience: m.audience } : {}),
+      ...(m.contentNote ? { contentNote: m.contentNote } : {}),
       channel: m.channel ?? null, itemCount: items.length,
       runtimeMs: items.reduce((n, i) => n + i.durationMs, 0),
       downloadBytes: items.reduce((n, i) => n + (i.bytes ?? 0), 0),
@@ -357,6 +380,10 @@ async function cmdBuild(packId, opts) {
       bytes,
       sha256: hash,
       license: item.license,
+      // Content advisories ride the manifest so the picker can disclose them
+      // (wartime caricature, adult humor). Both engines' Codable/JSON readers
+      // ignore unknown keys, so this is additive.
+      ...(item.contentNote ? { contentNote: item.contentNote } : {}),
     });
     console.log(`  ✓ ${(durationMs / 1000 / 60).toFixed(1)}m, ${(bytes / 1e6).toFixed(1)}MB`);
   }
@@ -368,6 +395,8 @@ async function cmdBuild(packId, opts) {
     version: manifest.version ?? 1,
     kind: manifest.kind ?? 'shows',
     channel: manifest.channel ?? null,
+    ...(manifest.audience ? { audience: manifest.audience } : {}),
+    ...(manifest.contentNote ? { contentNote: manifest.contentNote } : {}),
     items: built,
     bytes: built.reduce((n, b) => n + b.bytes, 0),
     builtAt: new Date().toISOString(),

@@ -19,6 +19,9 @@ public struct PackManifest: Codable, Sendable {
         public var name: String?
         public var ordering: String?
         public var seed: UInt32?
+        /// A pack dumbTV ships and stands behind creates a LOCKED channel (S3) —
+        /// SPACE at 1 is the first. Hideable, not editable.
+        public var system: Bool?
     }
     public struct Item: Codable, Sendable {
         public var id: String
@@ -134,14 +137,15 @@ extension Store {
         let ordering = ch?.ordering ?? "sequential"
         let seed = Int64(ch?.seed ?? stableSeed(packId))
         let now = Millis(Date().timeIntervalSince1970 * 1000)
+        let locked = ch?.system == true
         let id = (try? sql.run("""
             INSERT INTO channels
               (number,name,slot_minutes,ordering_mode,marathon_size,cursor,shuffle_seed,
                dark_start,dark_end,ads_enabled,max_ads_per_break,ad_tags,timing_mode,
-               ads_between,cooldown_days,overrun_policy,enabled,generated_thru,created_at)
-            VALUES(?,?,30,?,3,0,?,NULL,NULL,?,10,'','continuous',4,0,'protect',1,0,?)
+               ads_between,cooldown_days,overrun_policy,enabled,generated_thru,locked,created_at)
+            VALUES(?,?,30,?,3,0,?,NULL,NULL,?,10,'','continuous',4,0,'protect',1,0,?,?)
             """, [.int(number), .text(name), .text(ordering), .int(seed),
-                  .int(adsEnabled ? 1 : 0), .int(now)])) ?? 0
+                  .int(adsEnabled ? 1 : 0), .int(locked ? 1 : 0), .int(now)])) ?? 0
         guard id > 0 else { return nil }
         addSource(Int(id), ratingKey: packRatingKey(packId), sourceType: "pack", title: name)
         return Int(id)

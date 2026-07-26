@@ -125,6 +125,11 @@ public struct ChannelConfig: Identifiable, Hashable, Sendable, PlaylistChannel {
     public var overrunPolicy: OverrunPolicy
     public var enabled: Bool
     public var generatedThru: Millis
+    /// A channel dumbTV ships and stands behind — SPACE at 1 is the first (S3).
+    /// Hideable, not editable: the config API rejects PATCH/DELETE with 403, but
+    /// `enabled` can still be turned off. A channel you can neither remove nor
+    /// hide would be a hostage.
+    public var locked: Bool
 
     public init(id: Int, number: Int, name: String, slotMinutes: Int = 30,
                 orderingMode: OrderingMode = .sequential, marathonSize: Int = 3,
@@ -132,13 +137,14 @@ public struct ChannelConfig: Identifiable, Hashable, Sendable, PlaylistChannel {
                 darkEnd: String? = nil, adsEnabled: Bool = true, maxAdsPerBreak: Int = 10,
                 adTags: String = "", timingMode: TimingMode = .continuous, adsBetween: Int = 4,
                 cooldownDays: Int = 0, overrunPolicy: OverrunPolicy = .protect,
-                enabled: Bool = true, generatedThru: Millis = 0) {
+                enabled: Bool = true, generatedThru: Millis = 0, locked: Bool = false) {
         self.id = id; self.number = number; self.name = name; self.slotMinutes = slotMinutes
         self.orderingMode = orderingMode; self.marathonSize = marathonSize; self.cursor = cursor
         self.shuffleSeed = shuffleSeed; self.darkStart = darkStart; self.darkEnd = darkEnd
         self.adsEnabled = adsEnabled; self.maxAdsPerBreak = maxAdsPerBreak; self.adTags = adTags
         self.timingMode = timingMode; self.adsBetween = adsBetween; self.cooldownDays = cooldownDays
         self.overrunPolicy = overrunPolicy; self.enabled = enabled; self.generatedThru = generatedThru
+        self.locked = locked
     }
 
     public var spec: ChannelSpec {

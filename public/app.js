@@ -580,8 +580,8 @@ function renderChannels() {
             .map(
               (s) => `<span class="chip">${escapeHtml(s.title)}
                 <span class="n">${s.itemCount ?? ''}</span>
-                ${s.sourceType === 'show' ? `<button class="chip-filter" data-filter="${c.id}:${s.id}" title="Choose which episodes air">⛃</button>` : ''}
-                <button data-rm="${c.id}:${s.id}" title="Remove">&times;</button></span>`
+                ${s.sourceType === 'show' && !c.locked ? `<button class="chip-filter" data-filter="${c.id}:${s.id}" title="Choose which episodes air">⛃</button>` : ''}
+                ${c.locked ? '' : `<button data-rm="${c.id}:${s.id}" title="Remove">&times;</button>`}</span>`
             )
             .join('')
         : '<span class="chip empty">Nothing on this channel yet</span>';
@@ -598,11 +598,18 @@ function renderChannels() {
           <div class="chips">${sources}</div>
         </div>
         <div class="chan-actions">
+          ${c.locked ? `
+          <span class="chip lock" title="Built into dumbTV. You can turn it off, but it can't be edited or removed.">🔒 Built in</span>
+          <button class="sm" data-watch="${c.id}">Watch</button>
+          <button class="sm kid ${c.kidSafe ? 'on' : ''}" data-kid="${c.id}" title="Show this channel in Kids Mode">${c.kidSafe ? '🧸 Kid-safe' : '🧸 Mark kid-safe'}</button>
+          <button class="sm" data-hide="${c.id}">${c.enabled ? 'Turn off' : 'Turn on'}</button>
+          ` : `
           <button class="sm primary" data-add="${c.id}">Add content</button>
           <button class="sm" data-edit="${c.id}">Settings</button>
           <button class="sm" data-watch="${c.id}">Watch</button>
           <button class="sm kid ${c.kidSafe ? 'on' : ''}" data-kid="${c.id}" title="Show this channel in Kids Mode">${c.kidSafe ? '🧸 Kid-safe' : '🧸 Mark kid-safe'}</button>
           <button class="sm danger" data-del="${c.id}">Delete</button>
+          `}
         </div>
       </div>`;
     })
@@ -613,6 +620,21 @@ function renderChannels() {
       const c = state.channels.find((x) => x.id === Number(b.dataset.kid));
       try {
         await api(`/api/channels/${c.id}/kid-safe`, { method: 'POST', body: { on: !c.kidSafe } });
+        loadChannels();
+        loadStatus();
+      } catch (err) { toast(err.message, true); }
+    })
+  );
+
+  // S3: hideable, not editable. `enabled` is the one field the API lets through
+  // on a locked channel — a channel you can neither remove nor hide is a hostage.
+  $$('[data-hide]', host).forEach((b) =>
+    b.addEventListener('click', async () => {
+      const c = state.channels.find((x) => x.id === Number(b.dataset.hide));
+      if (!c) return;
+      try {
+        await api(`/api/channels/${c.id}`, { method: 'PATCH', body: { enabled: !c.enabled } });
+        toast(c.enabled ? 'Channel turned off.' : 'Channel turned on.');
         loadChannels();
         loadStatus();
       } catch (err) { toast(err.message, true); }

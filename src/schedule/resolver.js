@@ -204,6 +204,9 @@ export function publicChannel(c) {
     cooldownDays: c.cooldown_days ?? 0,
     overrunPolicy: c.overrun_policy || 'protect',
     enabled: !!c.enabled,
+    // S3: a channel dumbTV ships and stands behind. The web UI swaps its
+    // edit/delete affordances for a lock chip.
+    locked: !!c.locked,
     generatedThru: c.generated_thru,
   };
 }

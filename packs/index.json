@@ -235,6 +235,109 @@
       ]
     },
     {
+      "id": "space",
+      "name": "SPACE",
+      "kind": "shows",
+      "description": "Public-domain NASA mission footage on a permanent loop — Apollo, Saturn V, and the last shuttle launch. Channel 1, always on, never edited.",
+      "channel": {
+        "number": 1,
+        "name": "SPACE",
+        "ordering": "sequential",
+        "seed": 19690720,
+        "system": true
+      },
+      "itemCount": 5,
+      "runtimeMs": 11220000,
+      "downloadBytes": 470461580,
+      "items": [
+        {
+          "id": "saturn-v-film-to-tape",
+          "title": "Apollo, Saturn V, Crawler, VAB and Pad",
+          "show": "SPACE",
+          "season": 1,
+          "episode": 1,
+          "aired": "1969-01-01",
+          "durationMs": 1470000,
+          "file": "saturn-v-film-to-tape.mp4",
+          "url": "https://images-assets.nasa.gov/video/KSC-1960s-MH-NAS01-0001-Apollo_Saturn_V_Crawler%2C_VAB_Pad_Film_To_Tape/KSC-1960s-MH-NAS01-0001-Apollo_Saturn_V_Crawler%2C_VAB_Pad_Film_To_Tape~mobile.mp4",
+          "bytes": 62419153,
+          "license": {
+            "url": "https://images.nasa.gov/details/KSC-1960s-MH-NAS01-0001-Apollo_Saturn_V_Crawler,_VAB_Pad_Film_To_Tape",
+            "verified": "2026-07-26",
+            "note": "1960s Kennedy Space Center film-to-tape transfer of Apollo/Saturn V ground operations. NASA-produced US-government work → not subject to US copyright. Served from NASA's own image library. No insignia/seal use; presented as historical record."
+          }
+        },
+        {
+          "id": "saturn-v-launch",
+          "title": "Saturn V Launch",
+          "show": "SPACE",
+          "season": 1,
+          "episode": 2,
+          "aired": "1969-07-16",
+          "durationMs": 174000,
+          "file": "saturn-v-launch.mp4",
+          "url": "https://images-assets.nasa.gov/video/Ultimate%20Saturn%20V%20Launch%20w%20Enhanced%20Sound/Ultimate%20Saturn%20V%20Launch%20w%20Enhanced%20Sound~mobile.mp4",
+          "bytes": 6812402,
+          "license": {
+            "url": "https://images.nasa.gov/details/Ultimate Saturn V Launch w Enhanced Sound",
+            "verified": "2026-07-26",
+            "note": "NASA-published Saturn V launch footage with restored audio. US-government work → not subject to US copyright. Audio is NASA's own restoration of the launch recording, not licensed music."
+          }
+        },
+        {
+          "id": "apollo-11-restored-moonwalk",
+          "title": "Apollo 11: The Restored Moonwalk",
+          "show": "SPACE",
+          "season": 1,
+          "episode": 3,
+          "aired": "1969-07-20",
+          "durationMs": 3492000,
+          "file": "apollo-11-restored-moonwalk.mp4",
+          "url": "https://images-assets.nasa.gov/video/KSC-20090716-MH-NAS01-0001-Apollo_11_Restored_Moonwalk-HM_795/KSC-20090716-MH-NAS01-0001-Apollo_11_Restored_Moonwalk-HM_795~mobile.mp4",
+          "bytes": 147062198,
+          "license": {
+            "url": "https://images.nasa.gov/details/KSC-20090716-MH-NAS01-0001-Apollo_11_Restored_Moonwalk-HM_795",
+            "verified": "2026-07-26",
+            "note": "NASA's own 2009 restoration of the Apollo 11 EVA broadcast. US-government work → not subject to US copyright. Armstrong and Aldrin are identifiable; used as historical record only, never in advertising."
+          }
+        },
+        {
+          "id": "apollo-11-mission",
+          "title": "The Apollo 11 Mission",
+          "show": "SPACE",
+          "season": 1,
+          "episode": 4,
+          "aired": "1969-07-24",
+          "durationMs": 3138000,
+          "file": "apollo-11-mission.mp4",
+          "url": "https://images-assets.nasa.gov/video/KSC-19990712-MH-NAS01-0001-The_Apollo_11_Mission-B_3351/KSC-19990712-MH-NAS01-0001-The_Apollo_11_Mission-B_3351~mobile.mp4",
+          "bytes": 128957742,
+          "license": {
+            "url": "https://images.nasa.gov/details/KSC-19990712-MH-NAS01-0001-The_Apollo_11_Mission-B_3351",
+            "verified": "2026-07-26",
+            "note": "NASA mission documentary covering Apollo 11 end to end. US-government work → not subject to US copyright. Served from NASA's own image library."
+          }
+        },
+        {
+          "id": "shuttle-final-launch",
+          "title": "The Last Shuttle Launch",
+          "show": "SPACE",
+          "season": 1,
+          "episode": 5,
+          "aired": "2011-07-08",
+          "durationMs": 2946000,
+          "file": "shuttle-final-launch.mp4",
+          "url": "https://images-assets.nasa.gov/video/NHQ_2021_0708_NASA's%20Final%20Space%20Shuttle%20Launch%2010th%20Anniversary%20Replay/NHQ_2021_0708_NASA's%20Final%20Space%20Shuttle%20Launch%2010th%20Anniversary%20Replay~mobile.mp4",
+          "bytes": 125210085,
+          "license": {
+            "url": "https://images.nasa.gov/details/NHQ_2021_0708_NASA's Final Space Shuttle Launch 10th Anniversary Replay",
+            "verified": "2026-07-26",
+            "note": "NASA's replay of the STS-135 launch broadcast (Atlantis, the final shuttle flight). US-government work → not subject to US copyright. NASA-produced commentary only; no third-party music."
+          }
+        }
+      ]
+    },
+    {
       "id": "superman",
       "name": "SUPERMAN",
       "kind": "shows",

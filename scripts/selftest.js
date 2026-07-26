@@ -629,6 +629,54 @@ check('next: NEXT skips the ad pod and names the next show',
   (upNextShow(adCh, 1)[0] || {}).title === 'The Next Show',
   `(got ${(upNextShow(adCh, 1)[0] || {}).title})`);
 
+// ---- system channels: hideable, not editable (S3) --------------------------
+console.log('\nLocked channels');
+const lockPackDir = path.join(os.tmpdir(), `dumbtv-lockpack-${Date.now()}`);
+fs.mkdirSync(lockPackDir, { recursive: true });
+fs.writeFileSync(path.join(lockPackDir, 'pack.json'), JSON.stringify({
+  id: 'spacetest', name: 'SPACE', version: 1, kind: 'shows',
+  // `system: true` is what makes channel 1 a channel dumbTV stands behind.
+  channel: { number: 1, name: 'SPACE', ordering: 'sequential', seed: 19690720, system: true },
+  items: [
+    { id: 'a', file: 'a.mp4', title: 'Saturn V', show: 'SPACE', season: 1, episode: 1, durationMs: 24 * MINUTE, bytes: 1, sha256: 'x' },
+    { id: 'b', file: 'b.mp4', title: 'Moonwalk', show: 'SPACE', season: 1, episode: 2, durationMs: 58 * MINUTE, bytes: 1, sha256: 'x' },
+  ],
+}));
+installPack(lockPackDir, { origin: 'bundled' });
+const { channelId: lockedCh } = createChannelFromPack('spacetest', { adsEnabled: false });
+const lockedRow = () => db.prepare('SELECT * FROM channels WHERE id=?').get(lockedCh);
+check('locked: a system pack creates a locked channel at its number',
+  lockedRow().locked === 1 && lockedRow().number === 1 && lockedRow().ads_enabled === 0,
+  `(locked=${lockedRow().locked} number=${lockedRow().number} ads=${lockedRow().ads_enabled})`);
+const { publicChannel } = await import('../src/schedule/resolver.js');
+check('locked: publicChannel exposes the flag so the UI can show a lock chip',
+  publicChannel(lockedRow()).locked === true);
+// The escape hatch — disable/re-enable round-trips, and doesn't unlock it.
+db.prepare('UPDATE channels SET enabled = 0 WHERE id = ?').run(lockedCh);
+const disabledOk = lockedRow().enabled === 0 && lockedRow().locked === 1;
+db.prepare('UPDATE channels SET enabled = 1 WHERE id = ?').run(lockedCh);
+check('locked: disable round-trips without unlocking',
+  disabledOk && lockedRow().enabled === 1 && lockedRow().locked === 1);
+// Aired programs are never rewritten (invariant #4), even across a regenerate.
+generateChannel(lockedCh, Date.now() + 6 * HOUR);
+const lockedAired = db.prepare('SELECT COUNT(*) n FROM programs WHERE channel_id=? AND end_utc<=?')
+  .get(lockedCh, Date.now()).n;
+regenerateChannel(lockedCh);
+check('locked: regenerate preserves already-aired programs',
+  db.prepare('SELECT COUNT(*) n FROM programs WHERE channel_id=? AND end_utc<=?')
+    .get(lockedCh, Date.now()).n === lockedAired);
+// A pack WITHOUT system:true must stay editable — the flag is opt-in.
+fs.writeFileSync(path.join(lockPackDir, 'pack.json'), JSON.stringify({
+  id: 'normaltest', name: 'NORMAL', version: 1, kind: 'shows',
+  channel: { number: 96, name: 'NORMAL', ordering: 'sequential', seed: 5 },
+  items: [{ id: 'a', file: 'a.mp4', title: 'A', show: 'N', season: 1, episode: 1, durationMs: 10 * MINUTE, bytes: 1, sha256: 'x' }],
+}));
+installPack(lockPackDir, { origin: 'bundled' });
+const { channelId: normalCh } = createChannelFromPack('normaltest', {});
+check('locked: an ordinary pack is NOT locked (opt-in only)',
+  db.prepare('SELECT locked FROM channels WHERE id=?').get(normalCh).locked === 0);
+fs.rmSync(lockPackDir, { recursive: true, force: true });
+
 // ---- channel-number collisions (N2/N3) ------------------------------------
 console.log('\nChannel number collisions');
 const { createChannelFromLocalFolder } = await import('../src/media/localscan.js');

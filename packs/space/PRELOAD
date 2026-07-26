@@ -1,0 +1,11 @@
+Bundle this pack into the app binary (project.yml's "Bundle content packs" step
+picks up any pack dir with this marker AND a built dist/).
+
+SPACE is the channel-1 system channel (S3/S4). Only ONE piece is bundled — the
+24.5-minute 1960s KSC film reel, ~59 MB — so a fresh install has real picture on
+channel 1 with no network and no setup. The other four items are one-tap
+downloads through the pack picker, using the same partial-pack upgrade path as
+SUPERMAN's "download all 17".
+
+Build the bundled piece with:
+  npm run build-pack -- build space --only saturn-v-film-to-tape

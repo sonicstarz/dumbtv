@@ -13,6 +13,8 @@ public final class Store {
         // Migrations for columns added after the schema shipped (ALTER fails
         // harmlessly when the column already exists).
         sql.exec("ALTER TABLE channel_sources ADD COLUMN thumb TEXT;")
+        // S3: system channels (SPACE at 1). Hideable, not editable.
+        sql.exec("ALTER TABLE channels ADD COLUMN locked INTEGER NOT NULL DEFAULT 0;")
         restoreDurableSettings()
     }
 
@@ -78,8 +80,8 @@ public final class Store {
             INSERT INTO channels
               (number,name,slot_minutes,ordering_mode,marathon_size,cursor,shuffle_seed,
                dark_start,dark_end,ads_enabled,max_ads_per_break,ad_tags,timing_mode,
-               ads_between,cooldown_days,overrun_policy,enabled,generated_thru,created_at)
-            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+               ads_between,cooldown_days,overrun_policy,enabled,generated_thru,locked,created_at)
+            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
             """, channelParams(c) + [.int(nowMs())])) ?? 0
         return Int(id)
     }
@@ -90,7 +92,7 @@ public final class Store {
             UPDATE channels SET
               number=?,name=?,slot_minutes=?,ordering_mode=?,marathon_size=?,cursor=?,shuffle_seed=?,
               dark_start=?,dark_end=?,ads_enabled=?,max_ads_per_break=?,ad_tags=?,timing_mode=?,
-              ads_between=?,cooldown_days=?,overrun_policy=?,enabled=?,generated_thru=?
+              ads_between=?,cooldown_days=?,overrun_policy=?,enabled=?,generated_thru=?,locked=?
             WHERE id=?
             """, channelParams(c) + [.int(Int64(c.id))])
     }
@@ -386,7 +388,8 @@ public final class Store {
             timingMode: TimingMode(rawValue: r.text("timing_mode") ?? "") ?? .continuous,
             adsBetween: r.intOr("ads_between", 4), cooldownDays: r.intOr("cooldown_days", 0),
             overrunPolicy: OverrunPolicy(rawValue: r.text("overrun_policy") ?? "") ?? .protect,
-            enabled: r.bool("enabled"), generatedThru: r.int("generated_thru") ?? 0)
+            enabled: r.bool("enabled"), generatedThru: r.int("generated_thru") ?? 0,
+            locked: r.bool("locked"))
     }
 
     static func rule(_ r: Row) -> ScheduleRule {
@@ -424,7 +427,8 @@ public final class Store {
          c.darkStart.map { .text($0) } ?? .null, c.darkEnd.map { .text($0) } ?? .null,
          .int(c.adsEnabled ? 1 : 0), .int(Int64(c.maxAdsPerBreak)), .text(c.adTags),
          .text(c.timingMode.rawValue), .int(Int64(c.adsBetween)), .int(Int64(c.cooldownDays)),
-         .text(c.overrunPolicy.rawValue), .int(c.enabled ? 1 : 0), .int(c.generatedThru)]
+         .text(c.overrunPolicy.rawValue), .int(c.enabled ? 1 : 0), .int(c.generatedThru),
+         .int(c.locked ? 1 : 0)]
     }
 
     private func ruleParams(_ r: ScheduleRule) -> [SQLite.Value] {
@@ -452,7 +456,8 @@ public final class Store {
       ad_tags TEXT NOT NULL DEFAULT '', enabled INTEGER NOT NULL DEFAULT 1,
       generated_thru INTEGER NOT NULL DEFAULT 0, created_at INTEGER NOT NULL,
       cooldown_days INTEGER NOT NULL DEFAULT 0, timing_mode TEXT NOT NULL DEFAULT 'continuous',
-      ads_between INTEGER NOT NULL DEFAULT 4, overrun_policy TEXT NOT NULL DEFAULT 'protect');
+      ads_between INTEGER NOT NULL DEFAULT 4, overrun_policy TEXT NOT NULL DEFAULT 'protect',
+      locked INTEGER NOT NULL DEFAULT 0);
 
     CREATE TABLE IF NOT EXISTS channel_sources (
       id INTEGER PRIMARY KEY AUTOINCREMENT,

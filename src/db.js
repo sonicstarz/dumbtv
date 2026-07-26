@@ -186,6 +186,11 @@ addColumnIfMissing('channels', 'overrun_policy', "TEXT NOT NULL DEFAULT 'protect
 addColumnIfMissing('schedule_rules', 'cadence_compress', 'REAL NOT NULL DEFAULT 1');
 // Loudness: gain (dB) toward the target, measured at import, applied at playback.
 addColumnIfMissing('assets', 'gain_db', 'REAL');
+// System channels (S3): a prebuilt channel dumbTV ships and stands behind — the
+// SPACE channel at 1 is the first. Hideable, not editable: the config API rejects
+// PATCH/DELETE with 403 so nobody can rearrange it, but `enabled` can still be
+// turned off, because a channel you can't remove and can't hide is a hostage.
+addColumnIfMissing('channels', 'locked', 'INTEGER NOT NULL DEFAULT 0');
 
 // channel_excludes originally shipped without the ON DELETE CASCADE foreign key,
 // so deleting a channel orphaned its filter rows. Rebuild the table with the FK

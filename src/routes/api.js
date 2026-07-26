@@ -330,8 +330,20 @@ export default async function api(fastify) {
     return { id: info.lastInsertRowid, number };
   });
 
-  fastify.patch('/api/channels/:id', async (req) => {
+  // S3: a system channel (SPACE at 1) is hideable, not editable. `enabled` is
+  // allowed through — a channel you can neither remove nor hide is a hostage —
+  // but everything else is a clean 403 rather than a silent no-op or a 500.
+  const lockedChannel = (id) =>
+    !!db.prepare('SELECT locked FROM channels WHERE id = ?').get(id)?.locked;
+  const LOCKED_MSG =
+    'This channel is built into dumbTV and cannot be edited or removed. You can turn it off.';
+
+  fastify.patch('/api/channels/:id', async (req, reply) => {
     const b = req.body || {};
+    if (lockedChannel(req.params.id)) {
+      const onlyEnabled = Object.keys(b).every((k) => k === 'enabled');
+      if (!onlyEnabled) return reply.code(403).send({ error: LOCKED_MSG });
+    }
     const map = {
       name: b.name,
       number: b.number,
@@ -365,7 +377,8 @@ export default async function api(fastify) {
     return { ok: true, ...res };
   });
 
-  fastify.delete('/api/channels/:id', async (req) => {
+  fastify.delete('/api/channels/:id', async (req, reply) => {
+    if (lockedChannel(req.params.id)) return reply.code(403).send({ error: LOCKED_MSG });
     db.prepare('DELETE FROM channels WHERE id = ?').run(req.params.id);
     return { ok: true };
   });
@@ -444,7 +457,10 @@ export default async function api(fastify) {
     return { ok: true, results, ...regen };
   });
 
-  fastify.delete('/api/channels/:id/sources/:sourceId', async (req) => {
+  fastify.delete('/api/channels/:id/sources/:sourceId', async (req, reply) => {
+    // A locked channel's content is not the user's to strip — removing its only
+    // source would leave a channel that can't be deleted showing nothing.
+    if (lockedChannel(req.params.id)) return reply.code(403).send({ error: LOCKED_MSG });
     db.prepare('DELETE FROM channel_sources WHERE id = ? AND channel_id = ?').run(
       req.params.sourceId,
       req.params.id

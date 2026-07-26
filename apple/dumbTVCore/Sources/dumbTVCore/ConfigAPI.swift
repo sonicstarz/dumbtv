@@ -344,9 +344,18 @@ public final class ConfigAPI {
         return .ok(["id": id, "number": c.number])
     }
 
+    /// S3: a system channel (SPACE at 1) is hideable, not editable. `enabled` is
+    /// allowed through — a channel you can neither remove nor hide is a hostage —
+    /// but anything else is a clean 403 rather than a silent no-op.
+    static let lockedChannelMessage =
+        "This channel is built into dumbTV and cannot be edited or removed. You can turn it off."
+
     private func patchChannel(_ idStr: String, _ req: Request) -> Response {
         guard let id = Int(idStr), var c = store.channel(id) else { return .notFound("No such channel") }
         let b = req.body ?? [:]
+        if c.locked, !b.keys.allSatisfy({ $0 == "enabled" }) {
+            return Response(403, ["error": Self.lockedChannelMessage])
+        }
         if let v = b.string("name") { c.name = v }
         if let v = b.int("number") { c.number = v }
         if let v = b.int("slotMinutes") { c.slotMinutes = v }
@@ -368,6 +377,9 @@ public final class ConfigAPI {
 
     private func deleteChannel(_ idStr: String) -> Response {
         guard let id = Int(idStr) else { return .bad("bad id") }
+        if store.channel(id)?.locked == true {
+            return Response(403, ["error": Self.lockedChannelMessage])
+        }
         store.deleteChannel(id)
         return .ok()
     }
@@ -467,6 +479,11 @@ public final class ConfigAPI {
 
     private func deleteSource(_ idStr: String, _ sidStr: String) -> Response {
         guard let id = Int(idStr), let sid = Int(sidStr) else { return .bad("bad id") }
+        // A locked channel's content is not the user's to strip — removing its
+        // only source would leave a channel that can't be deleted showing nothing.
+        if store.channel(id)?.locked == true {
+            return Response(403, ["error": Self.lockedChannelMessage])
+        }
         store.deleteSource(sid, channelId: id)
         return .ok()
     }
@@ -992,6 +1009,8 @@ public final class ConfigAPI {
             "timingMode": c.timingMode.rawValue, "adsBetween": c.adsBetween,
             "cooldownDays": c.cooldownDays, "overrunPolicy": c.overrunPolicy.rawValue,
             "enabled": c.enabled, "kidSafe": kidSafeIds().contains(c.id),
+            // S3: the web UI swaps edit/delete for a lock chip on these.
+            "locked": c.locked,
             "sources": store.sources(c.id).map { s -> [String: Any] in
                 ["id": s.id, "ratingKey": s.ratingKey, "sourceType": s.sourceType,
                  "title": s.title ?? NSNull(), "thumb": s.thumb ?? NSNull(),

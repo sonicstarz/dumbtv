@@ -147,12 +147,15 @@ export const createChannelFromPack = db.transaction((packId, overrides = {}) => 
   const info = db.prepare(
     `INSERT INTO channels
        (number, name, slot_minutes, ordering_mode, marathon_size, shuffle_seed,
-        dark_start, dark_end, ads_enabled, max_ads_per_break, ad_tags, enabled, created_at)
-     VALUES (?,?,30,?,3,?,NULL,NULL,?,10,'',1,?)`
+        dark_start, dark_end, ads_enabled, max_ads_per_break, ad_tags, enabled, locked, created_at)
+     VALUES (?,?,30,?,3,?,NULL,NULL,?,10,'',1,?,?)`
   ).run(
     number, ch.name, ch.ordering,
     ch.seed ?? Math.floor(Math.random() * 2 ** 31),
     overrides.adsEnabled === false ? 0 : 1,
+    // S3: a pack whose manifest declares `channel.system` creates a LOCKED
+    // channel — SPACE at 1 is the first. Hideable, not editable.
+    ch.system ? 1 : 0,
     Date.now(),
   );
   db.prepare('INSERT OR IGNORE INTO channel_sources (channel_id, rating_key, source_type, title) VALUES (?,?,?,?)')

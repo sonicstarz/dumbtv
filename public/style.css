@@ -330,6 +330,14 @@ button:disabled { opacity: 0.45; cursor: not-allowed; }
 .chip .chip-filter { font-size: 13px; }
 .chip .chip-filter:hover { color: var(--amber); }
 .chip.empty { border-style: dashed; color: var(--dim); padding: 4px 12px; }
+/* A channel dumbTV ships and stands behind (S3) — the chip replaces its
+   Settings/Delete buttons, so the affordances match what the API allows. */
+.chip.lock {
+  padding: 4px 12px;
+  color: var(--amber);
+  border-color: color-mix(in srgb, var(--amber) 40%, transparent);
+  cursor: default;
+}
 
 /* episode filter modal */
 .ep-list { border: 1px solid var(--line); border-radius: 6px; }

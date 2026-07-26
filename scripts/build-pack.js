@@ -3,9 +3,17 @@
 //
 // A "pack" is a curated, versioned folder of public-domain media + a runtime
 // manifest. This tool turns a hand-authored SOURCE manifest (packs/<id>/
-// manifest.json — Internet Archive identifiers + per-item PD provenance) into a
-// built pack: uniform 480p h.264/AAC MP4s + packs/<id>/dist/pack.json carrying
-// durations, sizes, and checksums. The built dist/ is a git-ignored artifact.
+// manifest.json — a source per item + per-item PD provenance) into a built pack:
+// uniform 480p h.264/AAC MP4s + packs/<id>/dist/pack.json carrying durations,
+// sizes, and checksums. The built dist/ is a git-ignored artifact.
+//
+// An item's source is either an Internet Archive identifier or a direct URL:
+//   "source": { "iaIdentifier": "bb_minnie_the_moocher" }
+//   "source": { "url": "https://images-assets.nasa.gov/…mp4", "durationMs": 1470000 }
+// The direct form (S1a) is what lets the SPACE pack pull from images.nasa.gov,
+// which has no API key and no IA identifiers. An optional `downloadUrl` lets the
+// CATALOG advertise a smaller derivative than the master we re-encode from — a
+// 3-hour pack of NASA originals is 9 GB, and nobody one-taps that.
 //
 // Re-encoding PD content is fine: invariant #2 (never transcode) is about
 // RUNTIME playback, not mastering. We normalise once, offline, so every device
@@ -102,6 +110,45 @@ function resolveSourceFile(meta, item) {
   return [...vids].sort((a, b) => derivativeScore(a) - derivativeScore(b))[0];
 }
 
+// ── direct URL sources (S1a) ─────────────────────────────────────────────────
+//
+// The builder was Internet-Archive-only. NASA publishes its own video library at
+// images.nasa.gov (no API key, and NASA material is generally not subject to US
+// copyright), and that is the primary source for the SPACE channel — so an item
+// may name a plain URL instead of an IA identifier:
+//
+//   "source": { "url": "https://images-assets.nasa.gov/video/…~orig.mp4",
+//               "durationMs": 1470000 }
+//
+// Everything downstream is unchanged: it still downloads, re-encodes to uniform
+// 480p, ffprobes the real duration, and hashes the result. `durationMs` is only
+// a hint for `catalog`, which reports sizes without encoding anything.
+const isDirect = (item) => !!item.source?.url;
+
+/** Content-Length for a URL, or null. Used by `catalog` — no body is fetched. */
+async function remoteBytes(url) {
+  try {
+    const res = await fetch(url, { method: 'HEAD', headers: { 'User-Agent': 'dumbTV-pack-builder' } });
+    const n = parseInt(res.headers.get('content-length') || '', 10);
+    return Number.isFinite(n) ? n : null;
+  } catch { return null; }
+}
+
+/**
+ * What the download catalog should point at. Building re-encodes from the best
+ * master we can get (`url`), but an on-device one-tap install pulls the source
+ * file as-is (D4) — so a pack may name a smaller derivative for that. NASA's
+ * `~mobile` renditions are ~1/30th the size of `~orig` and already look like the
+ * 480p we'd have made anyway.
+ */
+const catalogURL = (item) => item.source.downloadUrl ?? item.source.url;
+
+/** A filesystem-safe local name for a direct-URL download. */
+function directSrcName(item) {
+  const tail = decodeURIComponent(item.source.url.split('/').pop() || `${item.id}.mp4`);
+  return `${item.id}--${tail}`.replace(/[^\w.-]/g, '_');
+}
+
 // ── media helpers ────────────────────────────────────────────────────────────
 
 async function downloadTo(url, dest) {
@@ -156,6 +203,13 @@ function loadManifest(packId) {
   const m = JSON.parse(fs.readFileSync(file, 'utf8'));
   if (m.id !== packId) throw new Error(`manifest id "${m.id}" != folder "${packId}"`);
   if (!Array.isArray(m.items) || !m.items.length) throw new Error(`pack ${packId}: no items`);
+  const sourceless = m.items.filter((i) => !i.source?.iaIdentifier && !i.source?.url);
+  if (sourceless.length) {
+    throw new Error(
+      `pack ${packId}: ${sourceless.length} item(s) have no source.iaIdentifier and no source.url:\n` +
+      sourceless.map((i) => `  - ${i.id}`).join('\n'),
+    );
+  }
   return m;
 }
 
@@ -205,15 +259,28 @@ async function cmdCatalog() {
     checkProvenance(m); // only ship PD-verified packs in the catalog
     const items = [];
     for (const it of m.items) {
-      const meta = await iaMetadata(it.source.iaIdentifier);
-      const f = downloadFile(meta, it);
+      let url, bytes, durationMs;
+      if (isDirect(it)) {
+        // No metadata service to ask: the size comes from a HEAD, and the
+        // duration from the manifest's hint (the built pack.json carries the
+        // real probed value — this catalog is only for sizing a download).
+        url = catalogURL(it);
+        bytes = await remoteBytes(url);
+        durationMs = it.source.durationMs ?? 0;
+      } else {
+        const meta = await iaMetadata(it.source.iaIdentifier);
+        const f = downloadFile(meta, it);
+        url = IA_DOWNLOAD(it.source.iaIdentifier, f.name);
+        bytes = f.bytes ?? null;
+        durationMs = Math.round((f.lengthSec ?? 0) * 1000);
+      }
       items.push({
         id: it.id, title: it.title, show: it.show ?? null, season: it.season ?? null,
         episode: it.episode ?? null, aired: it.aired ?? null,
-        durationMs: Math.round((f.lengthSec ?? 0) * 1000),
+        durationMs,
         file: `${it.id}.mp4`,
-        url: IA_DOWNLOAD(it.source.iaIdentifier, f.name),
-        bytes: f.bytes ?? null,
+        url,
+        bytes,
         license: it.license,
       });
       process.stdout.write('.');
@@ -257,13 +324,20 @@ async function cmdBuild(packId, opts) {
     if (!opts.force && fs.existsSync(outFile) && !opts.sample) {
       console.log('  ↳ exists, skipping (use --force to rebuild)');
     } else {
-      const meta = await iaMetadata(item.source.iaIdentifier);
-      const src = resolveSourceFile(meta, item);
-      const srcPath = path.join(tmpDir, src.name.replace(/[^\w.-]/g, '_'));
-      console.log(`  ↓ ${src.format} — ${src.name}`);
-      if (opts.force || !fs.existsSync(srcPath)) {
-        await downloadTo(IA_DOWNLOAD(item.source.iaIdentifier, src.name), srcPath);
+      let srcPath, srcURL, label;
+      if (isDirect(item)) {
+        srcPath = path.join(tmpDir, directSrcName(item));
+        srcURL = item.source.url;
+        label = `direct — ${decodeURIComponent(srcURL.split('/').pop() || '')}`;
+      } else {
+        const meta = await iaMetadata(item.source.iaIdentifier);
+        const src = resolveSourceFile(meta, item);
+        srcPath = path.join(tmpDir, src.name.replace(/[^\w.-]/g, '_'));
+        srcURL = IA_DOWNLOAD(item.source.iaIdentifier, src.name);
+        label = `${src.format} — ${src.name}`;
       }
+      console.log(`  ↓ ${label}`);
+      if (opts.force || !fs.existsSync(srcPath)) await downloadTo(srcURL, srcPath);
       console.log(`  ⚙ encoding → ${outName}${opts.sample ? ` (first ${opts.sample}s)` : ''}`);
       await encode(srcPath, outFile, manifest.encode, opts.sample);
     }

@@ -104,6 +104,9 @@ final class EmbeddedServer {
             return (200, "text/html; charset=utf-8", Data(Self.licensesHTML.utf8), nil)
         }
         let (s, t, d) = staticAsset(req.path)
+        // N7: the config PAGE being served to a browser is what retires the on-TV
+        // setup card — not a hit on /api/status, which anything on the LAN can make.
+        if s == 200, t.hasPrefix("text/html") { await api.markConfigPageOpened() }
         return (s, t, d, nil)
     }
 

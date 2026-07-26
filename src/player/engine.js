@@ -2,7 +2,7 @@ import { EventEmitter } from 'node:events';
 import { db, getSetting, setSetting } from '../db.js';
 import { config } from '../config.js';
 import { MpvPlayer } from './mpv.js';
-import { nowOn, upNext, guide, publicChannel } from '../schedule/resolver.js';
+import { nowOn, upNextShow, guide, publicChannel } from '../schedule/resolver.js';
 import { MINUTE, HOUR, floorToSlot } from '../util/time.js';
 import {
   channelBanner,
@@ -494,7 +494,7 @@ export class Engine extends EventEmitter {
       lastError: this.lastError,
       channel: this.channel,
       now: this.channelId ? nowOn(this.channelId, at) : null,
-      next: this.channelId ? upNext(this.channelId, 1, at)[0] || null : null,
+      next: this.channelId ? upNextShow(this.channelId, 1, at)[0] || null : null,
       bannerVisible: at < this.bannerUntil,
       digits: this.digits,
     };

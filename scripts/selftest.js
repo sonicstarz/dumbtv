@@ -576,6 +576,59 @@ for (const v of vectors) {
   check(`parse: ${v.file}`, ok, JSON.stringify(r));
 }
 
+// ---- preload channels ship without ads (build 13, reverses D2) -------------
+console.log('\nPreload ads');
+const { migratePreloadAdsOff } = await import('../src/packs/install.js');
+const { upNextShow } = await import('../src/schedule/resolver.js');
+
+const adsPackDir = path.join(os.tmpdir(), `dumbtv-adspack-${Date.now()}`);
+fs.mkdirSync(adsPackDir, { recursive: true });
+fs.writeFileSync(path.join(adsPackDir, 'pack.json'), JSON.stringify({
+  id: 'adstest', name: 'ADS TEST', version: 1, kind: 'shows',
+  channel: { number: 91, name: 'ADS TEST', ordering: 'sequential', seed: 5 },
+  items: [
+    { id: 'a', file: 'a.mp4', title: 'Ep A', show: 'T', season: 1, episode: 1, durationMs: 10 * MINUTE, bytes: 1, sha256: 'x' },
+    { id: 'b', file: 'b.mp4', title: 'Ep B', show: 'T', season: 1, episode: 2, durationMs: 10 * MINUTE, bytes: 1, sha256: 'x' },
+  ],
+}));
+installPack(adsPackDir, { origin: 'bundled' });
+
+// The new default.
+const { channelId: noAdsCh } = createChannelFromPack('adstest', { adsEnabled: false });
+check('preload: a pack channel is created with commercials off',
+  db.prepare('SELECT ads_enabled FROM channels WHERE id=?').get(noAdsCh).ads_enabled === 0);
+
+// The one-time repair for devices seeded by builds 11/12 (ads were ON).
+db.prepare('UPDATE channels SET ads_enabled = 1 WHERE id = ?').run(noAdsCh);
+const userCh = makeChannel(93, 'Mine', 'sequential', 30);
+db.prepare("INSERT INTO channel_sources (channel_id, rating_key, source_type, title) VALUES (?,?,?,?)")
+  .run(userCh, 'show-1', 'show', 'Their Show');
+const migrated = migratePreloadAdsOff();
+check('preload: the migration turns ads off on pack-only channels',
+  migrated.includes(noAdsCh)
+  && db.prepare('SELECT ads_enabled FROM channels WHERE id=?').get(noAdsCh).ads_enabled === 0);
+check('preload: the migration leaves a user-built channel alone',
+  !migrated.includes(userCh)
+  && db.prepare('SELECT ads_enabled FROM channels WHERE id=?').get(userCh).ads_enabled === 1);
+db.prepare('UPDATE channels SET ads_enabled = 1 WHERE id = ?').run(noAdsCh);
+check('preload: the migration runs once, never stomping a later choice',
+  migratePreloadAdsOff().length === 0
+  && db.prepare('SELECT ads_enabled FROM channels WHERE id=?').get(noAdsCh).ads_enabled === 1);
+fs.rmSync(adsPackDir, { recursive: true, force: true });
+
+// POLISH-1: "NEXT" names the next SHOW, never the commercial in between.
+const adCh = makeChannel(94, 'With Ads', 'sequential', 30);
+const insProg = db.prepare(`INSERT INTO programs
+    (channel_id, slot_start, start_utc, end_utc, duration_ms, kind, title, rating_key, asset_id)
+  VALUES (?,?,?,?,?,?,?,?,?)`);
+const adT0 = Date.now();
+insProg.run(adCh, adT0, adT0 - MINUTE, adT0 + MINUTE, 2 * MINUTE, 'episode', 'On Now', 'k1', null);
+insProg.run(adCh, adT0, adT0 + MINUTE, adT0 + 2 * MINUTE, MINUTE, 'ad', 'Wonderful New World of Fords', null, null);
+insProg.run(adCh, adT0, adT0 + 2 * MINUTE, adT0 + 12 * MINUTE, 10 * MINUTE, 'episode', 'The Next Show', 'k2', null);
+check('next: NEXT skips the ad pod and names the next show',
+  (upNextShow(adCh, 1)[0] || {}).title === 'The Next Show',
+  `(got ${(upNextShow(adCh, 1)[0] || {}).title})`);
+
 // ---- channel-number collisions (N2/N3) ------------------------------------
 console.log('\nChannel number collisions');
 const { createChannelFromLocalFolder } = await import('../src/media/localscan.js');

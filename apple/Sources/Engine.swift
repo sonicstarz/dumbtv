@@ -192,11 +192,12 @@ final class Engine: ObservableObject {
     var channelNumber: Int { channels.indices.contains(currentIndex) ? channels[currentIndex].spec.number : 0 }
     var wallClock: Millis { nowMs() }
 
-    /// The program that follows what's currently airing on this channel — the
-    /// banner's "NEXT" line.
+    /// The next SHOW on this channel — the banner's "NEXT" line. Ad pods and
+    /// bumpers are skipped: announcing "NEXT: Wonderful New World of Fords" is
+    /// not what a listing does, and it read as a bug on the device (POLISH-1).
     var nextUp: Program? {
         guard channels.indices.contains(currentIndex) else { return nil }
-        return Resolver.upNext(channels[currentIndex].programs, at: nowMs(), count: 1).first
+        return Resolver.upNextShow(channels[currentIndex].programs, at: nowMs(), count: 1).first
     }
 
     private func nowMs() -> Millis { Millis(Date().timeIntervalSince1970 * 1000) }
@@ -286,8 +287,14 @@ final class Engine: ObservableObject {
                 showsPacks.append(installed.id)
             }
         }
+        // Preload channels play back-to-back, no commercials. Nobody evaluating
+        // the product should land in an ad break on a channel they didn't build.
+        // (This REVERSES Notion decision D2, which shipped preloads with ads ON.)
+        // The AD BREAK pack still installs, so ads stay available to channels the
+        // user makes themselves.
+        store.migratePreloadAdsOff(now: nowMs())
         guard store.getSetting("preload_seeded") == nil else { return }
-        for pid in showsPacks.sorted() { store.createChannelFromPack(pid, adsEnabled: true) }  // D2: ads ON
+        for pid in showsPacks.sorted() { store.createChannelFromPack(pid, adsEnabled: false) }
         store.setSetting("preload_seeded", "1")
         lastChangeCounter = store.sql.totalChanges()   // our own writes — no reload storm
     }

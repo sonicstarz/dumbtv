@@ -15,6 +15,16 @@ const qNext = db.prepare(`
   ORDER BY start_utc ASC LIMIT ?
 `);
 
+// What a viewer means by "next": the next SHOW. A printed listing never
+// announced the commercial standing between you and it, so anything that says
+// "NEXT" on screen skips ad pods and bumpers. Same kinds the guide grid shows.
+const qNextShow = db.prepare(`
+  SELECT * FROM programs
+  WHERE channel_id = ? AND start_utc > ?
+    AND kind IN ('episode','movie','offair')
+  ORDER BY start_utc ASC LIMIT ?
+`);
+
 const qMedia = db.prepare('SELECT * FROM media WHERE rating_key = ?');
 const qAsset = db.prepare('SELECT * FROM assets WHERE id = ?');
 
@@ -31,6 +41,11 @@ export function nowOn(channelId, at = Date.now()) {
 
 export function upNext(channelId, count = 1, at = Date.now()) {
   return qNext.all(channelId, at, count).map((r) => decorate(r, at));
+}
+
+/** As `upNext`, but skipping ad pods and bumpers — what "NEXT" means on screen. */
+export function upNextShow(channelId, count = 1, at = Date.now()) {
+  return qNextShow.all(channelId, at, count).map((r) => decorate(r, at));
 }
 
 function decorate(row, at) {
@@ -121,7 +136,7 @@ export function nowOnAll(at = Date.now()) {
   return channels.map((c) => ({
     channel: publicChannel(c),
     now: nowOn(c.id, at),
-    next: upNext(c.id, 1, at)[0] || null,
+    next: upNextShow(c.id, 1, at)[0] || null,
   }));
 }
 

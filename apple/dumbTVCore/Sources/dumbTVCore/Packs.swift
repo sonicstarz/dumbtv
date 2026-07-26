@@ -147,6 +147,32 @@ extension Store {
         return Int(id)
     }
 
+    /// One-time repair for devices seeded by builds 11/12, where the preloaded
+    /// pack channels were created with commercials ON: turn ads off on every
+    /// channel whose ONLY source is a pack, then rebuild its future. A channel
+    /// the user built — or a preload channel they added their own sources to —
+    /// is left alone, because those are theirs to decide about.
+    ///
+    /// Safe against invariant #4: `Scheduler.regenerate` deletes only
+    /// `start_utc >= now`, so whatever is airing right now finishes as scheduled.
+    /// Returns the channel ids it changed.
+    @discardableResult
+    public func migratePreloadAdsOff(now: Millis) -> [Int] {
+        guard getSetting("preload_ads_off") == nil else { return [] }
+        setSetting("preload_ads_off", "1")
+        var changed: [Int] = []
+        for c in allChannels() where c.adsEnabled {
+            let srcs = sources(c.id)
+            guard !srcs.isEmpty, srcs.allSatisfy({ $0.sourceType == "pack" }) else { continue }
+            var updated = c
+            updated.adsEnabled = false
+            saveChannel(updated)
+            Scheduler.regenerate(store: self, channelId: c.id, now: now)
+            changed.append(c.id)
+        }
+        return changed
+    }
+
     /// Remove a pack's media/assets and its row. Aired programs are left alone.
     public func uninstallPack(_ packId: String) {
         _ = try? sql.run("DELETE FROM media WHERE parent_key=?", [.text(packRatingKey(packId))])

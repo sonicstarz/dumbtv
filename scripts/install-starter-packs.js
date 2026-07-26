@@ -20,7 +20,10 @@ for (const id of want) {
   do { await new Promise((r) => setTimeout(r, 1000)); p = getInstallProgress(id); } while (p && p.state === 'downloading');
   if (p?.state === 'installed') {
     console.log('done');
-    if (entry.kind !== 'ads') createChannelFromPack(id, {});
+    // Starter channels play back-to-back, no commercials — nobody should land
+    // in an ad break on a channel they didn't build. The AD BREAK pack still
+    // installs, so ads are there for channels the user makes.
+    if (entry.kind !== 'ads') createChannelFromPack(id, { adsEnabled: false });
   } else {
     console.log(`FAILED (${p?.error || 'unknown'})`);
   }

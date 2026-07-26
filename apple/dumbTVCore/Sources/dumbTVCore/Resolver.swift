@@ -30,4 +30,17 @@ public enum Resolver {
     public static func upNext(_ programs: [Program], at: Millis, count: Int = 1) -> [Program] {
         programs.filter { $0.startUtc > at }.prefix(count).map { $0 }
     }
+
+    /// What a viewer means by "next": the next SHOW. A printed listing never
+    /// announced the commercial that happens to be between you and it, so the
+    /// banner's NEXT line skips ad pods and bumpers and names the next episode,
+    /// movie, or off-air card.
+    public static func upNextShow(_ programs: [Program], at: Millis, count: Int = 1) -> [Program] {
+        programs.filter { $0.startUtc > at && isShow($0) }.prefix(count).map { $0 }
+    }
+
+    /// The kinds a viewer thinks of as programming, as opposed to filler.
+    public static func isShow(_ p: Program) -> Bool {
+        p.kind == .episode || p.kind == .movie || p.kind == .offair
+    }
 }

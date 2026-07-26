@@ -7,6 +7,7 @@ import api from './routes/api.js';
 import { ensureSchedule } from './schedule/generator.js';
 import { engine } from './player/engine.js';
 import { initFromEnv } from './auth.js';
+import { migratePreloadAdsOff } from './packs/install.js';
 import { HOUR } from './util/time.js';
 
 const app = Fastify({ logger: false });
@@ -36,6 +37,10 @@ async function main() {
   const tz = getSetting('timezone', null);
   if (tz) process.env.TZ = tz;
   initFromEnv();
+  // Build 13: pack channels ship without commercials. Repair anything seeded
+  // by an earlier build before the schedule is topped up.
+  const adsOff = migratePreloadAdsOff();
+  if (adsOff.length) console.log(`  Turned commercials off on ${adsOff.length} pack channel(s).`);
   ensureSchedule();
 
   // Keep the rolling window topped up. Append-only, so nothing already

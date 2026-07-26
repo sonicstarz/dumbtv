@@ -45,7 +45,7 @@ import { scanLocalFolder, previewLocalFolder, createChannelFromLocalFolder } fro
 import {
   isConfigured, setPin, verifyPin, clearPin, tokenValid, cookieToken, sessionCookieHeader,
 } from '../auth.js';
-import { guide, nowOnAll, nowOn, upNext, publicChannel } from '../schedule/resolver.js';
+import { guide, nowOnAll, nowOn, upNextShow, publicChannel } from '../schedule/resolver.js';
 import { ORDERING_MODES } from '../schedule/ordering.js';
 import { scanAssets } from '../assets.js';
 import { buildSchedulePdf } from '../print.js';
@@ -740,9 +740,11 @@ export default async function api(fastify) {
 
   fastify.get('/api/onair', async () => ({ at: Date.now(), channels: nowOnAll() }));
 
+  // "next" means the next SHOW everywhere it is spoken on screen — ad pods and
+  // bumpers are skipped (POLISH-1).
   fastify.get('/api/channels/:id/upnext', async (req) => ({
     now: nowOn(Number(req.params.id)),
-    next: upNext(Number(req.params.id), Number(req.query.count || 5)),
+    next: upNextShow(Number(req.params.id), Number(req.query.count || 5)),
   }));
 
   // ---- Player ------------------------------------------------------------

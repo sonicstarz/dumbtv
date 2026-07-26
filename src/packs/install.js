@@ -15,8 +15,9 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { Readable } from 'node:stream';
 import { pipeline } from 'node:stream/promises';
-import { db } from '../db.js';
+import { db, getSetting, setSetting } from '../db.js';
 import { config } from '../config.js';
+import { regenerateChannel } from '../schedule/generator.js';
 
 const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 // The download catalog (dumbtv.app/packs/index.json is the live copy; this
@@ -151,13 +152,38 @@ export const createChannelFromPack = db.transaction((packId, overrides = {}) => 
   ).run(
     number, ch.name, ch.ordering,
     ch.seed ?? Math.floor(Math.random() * 2 ** 31),
-    overrides.adsEnabled === false ? 0 : 1, // preload channels: ads ON (D2)
+    overrides.adsEnabled === false ? 0 : 1,
     Date.now(),
   );
   db.prepare('INSERT OR IGNORE INTO channel_sources (channel_id, rating_key, source_type, title) VALUES (?,?,?,?)')
     .run(info.lastInsertRowid, packRatingKey(packId), 'pack', pack.name);
   return { channelId: info.lastInsertRowid };
 });
+
+/**
+ * One-time repair for installs seeded before build 13, when pack channels were
+ * created with ads ON: turn ads off on every channel whose ONLY source is a
+ * pack, then rebuild its future. A channel the user added their own sources to
+ * is left alone.
+ *
+ * Safe against invariant #4 — `regenerateChannel` deletes only
+ * `start_utc >= now`, so whatever is airing right now finishes as scheduled.
+ * Returns the channel ids it changed.
+ */
+export function migratePreloadAdsOff() {
+  if (getSetting('preload_ads_off', null)) return [];
+  setSetting('preload_ads_off', '1');
+  const changed = [];
+  const channels = db.prepare('SELECT id FROM channels WHERE ads_enabled = 1').all();
+  for (const { id } of channels) {
+    const srcs = db.prepare('SELECT source_type FROM channel_sources WHERE channel_id = ?').all(id);
+    if (!srcs.length || !srcs.every((s) => s.source_type === 'pack')) continue;
+    db.prepare('UPDATE channels SET ads_enabled = 0 WHERE id = ?').run(id);
+    regenerateChannel(id);
+    changed.push(id);
+  }
+  return changed;
+}
 
 function channelHints(rootPath) {
   try {

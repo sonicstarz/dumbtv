@@ -220,10 +220,17 @@ public final class ConfigAPI {
 
     // MARK: - status
 
-    private func status() -> Response {
-        // D3: the web config UI was opened (it polls /api/status) — retire the
-        // on-TV setup card. Set once; the player watches this flag each tick.
+    /// D3: the on-TV setup card retires once the web config UI has actually been
+    /// opened. This used to fire from `/api/status`, which ANY caller can hit —
+    /// a port scan, a health check, or the app's own probe could silently retire
+    /// the card before a human ever saw the page (N7). The signal is now the
+    /// config page itself being served to a browser; the embedded server calls
+    /// this from its static-asset handler.
+    public func markConfigPageOpened() {
         if store.getSetting("setup_seen") == nil { store.setSetting("setup_seen", "1") }
+    }
+
+    private func status() -> Response {
         // The web UI reads `server` to advance past server-pick to library browse
         // (and to show the unlink button). Mirror the Node shape.
         var server: Any = NSNull()

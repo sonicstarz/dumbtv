@@ -221,6 +221,22 @@ budget. If it runs hot, raise CRF to 28 on the heavy items.
   (note: catalog durations for popeye/disney come from IA metadata).
 - Remember N3 (number-hint collisions) applies to the new hints 6/8/9.
 
+### JELLYFIN (P7) — status + unblock path (owner asked 2026-07-26)
+State: **Node = fully written, never verified live** (src/jellyfin/, 295 lines,
+web-UI forms exist) · **Apple = stub only** (ConfigAPI.swift:175 hardcodes
+configured:false; Engine.streamURL has no `jf:` branch).
+- **P7a (unblocked the moment the owner stands up a Jellyfin server** — free
+  installer on the Windows Plex box, pointed at the same folders): verify +
+  fix the Node client live (AuthenticateByName, /Shows/:id/Episodes,
+  ?static=true direct-play), mark verified in CLAUDE.md. `[S–M]`
+- **P7b: Swift JellyfinClient** mirroring PlexClient (simpler: user/pass auth,
+  no PIN flow, no discovery; static stream URLs) + replace ConfigAPI stubs +
+  `jf:` branch in Engine.streamURL + tests. Media rows are already
+  backend-agnostic, so mixed Plex+Jellyfin+pack channels need zero scheduler
+  work. `[M]` — schedule after P7a proves the API shapes.
+- Until P7b lands: build-12 item C5 (hide/"coming soon" the Jellyfin toggle on
+  the embedded/native server; key off `native:true` in /api/status).
+
 ### Don't do (scope guards)
 - No scheduler/`schedule/` changes — nothing here needs them (invariants #4–#6).
 - No Jellyfin implementation on Swift (separate decision, P7b).

@@ -51,6 +51,10 @@ struct dumbTVApp: App {
             configURL = nil
             diag.storeError = "\(error)"
         }
+        // F7: record WHERE the database ended up and how old it is. The
+        // "every new build resets the app" report needs evidence, not a guess —
+        // in particular whether the silent temporary-directory fallback fired.
+        diag.captureStorage(store: store)
     }
 
     var body: some Scene {

@@ -391,6 +391,11 @@ struct TVView: View {
                 // single TestFlight photo says exactly what failed (build 11).
                 if let url = configURL, diag.storeOpened {
                     SetupCard(url: url)
+                    // F7: the storage provenance shows even when everything is
+                    // WORKING. A tmp-directory reset leaves the store open and the
+                    // server up, so the diagnostics block below would never
+                    // appear — and that is exactly the case we need evidence for.
+                    storageProvenance(s: s)
                 } else {
                     diagnosticsBlock(s: s)
                 }
@@ -408,6 +413,28 @@ struct TVView: View {
             }
             .padding(30 * s)
         }
+    }
+
+    /// Where the database lives and how old it is (F7). Deliberately quiet when
+    /// everything is normal — one small line — and loud when the temporary-
+    /// directory fallback fired, because that is the one condition that would
+    /// silently lose the user's channels on every launch.
+    private func storageProvenance(s: CGFloat) -> some View {
+        VStack(alignment: .leading, spacing: 5 * s) {
+            if let fallback = diag.storageFallback {
+                Text("⚠ TEMPORARY STORAGE")
+                    .font(Palette.mono(12 * s, .bold)).foregroundStyle(Palette.tally).tracking(2)
+                Text(fallback)
+                    .font(Palette.mono(11 * s)).foregroundStyle(Palette.tally)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            Text("storage  \(diag.dbAgeDescription)")
+                .font(Palette.mono(11 * s))
+                .foregroundStyle(diag.dbExists ? Palette.dim : Palette.tally)
+            Text("data     \(diag.dbRowSummary)")
+                .font(Palette.mono(11 * s)).foregroundStyle(Palette.dim)
+        }
+        .frame(maxWidth: 520 * s, alignment: .leading)
     }
 
     // On-screen evidence when the config server isn't reachable — replaces the
@@ -430,7 +457,16 @@ struct TVView: View {
             } else {
                 row("store", "FAILED — \(diag.storeError ?? "unknown")", bad: true)
             }
+            // F7 evidence for the "every new build resets the app" report. The
+            // storage warning is the leading hypothesis and used to be invisible;
+            // the file age says whether the DB was actually recreated, and the row
+            // counts separate "recreated empty" from "no database at all".
+            if let fallback = diag.storageFallback {
+                row("storage", "TEMPORARY — \(fallback)", bad: true)
+            }
             row("db path", diag.storePath)
+            row("db file", diag.dbAgeDescription, bad: !diag.dbExists)
+            row("db rows", diag.dbRowSummary)
             row("server", diag.serverState + (diag.serverPort > 0 ? " :\(diag.serverPort)" : ""),
                 bad: !diag.serverState.hasPrefix("listening"))
             row("config url", diag.configURL ?? "—", bad: diag.configURL == nil)

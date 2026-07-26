@@ -271,7 +271,13 @@ final class Engine: ObservableObject {
         }
         if let store, loadFromStore(store) {
             bootStage = "on air — \(channels.count) channel(s)"
-            if ProcessInfo.processInfo.environment["DUMBTV_START_GUIDE"] == "1" { guideOpen = true }
+            // Dev/screenshot hooks. These used to apply only to the demo lineup,
+            // which stopped being the boot path once preload packs shipped — so
+            // channel 00 (now the device-diagnostics screen) couldn't be captured
+            // from the command line at all.
+            let env = ProcessInfo.processInfo.environment
+            if env["DUMBTV_START_GUIDE"] == "1" { guideOpen = true }
+            if env["DUMBTV_START_SETUP"] == "1" { onSetupChannel = true }
             return
         }
         bootStage = "no configured channels — falling back"

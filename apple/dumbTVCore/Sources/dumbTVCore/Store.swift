@@ -331,6 +331,16 @@ public final class Store {
             """, [.text(ratingKey), .text(ratingKey)])) ?? []).first?.int("n") ?? 0)
     }
 
+    /// Row counts for the channel-00 diagnostics block (F7). These distinguish
+    /// "the database was recreated empty" from "there is no database", which is
+    /// the question the reset report actually turns on.
+    private func rowCount(_ table: String) -> Int {
+        Int(((try? sql.query("SELECT COUNT(*) n FROM \(table)")) ?? []).first?.int("n") ?? 0)
+    }
+    public func mediaRowCount() -> Int { rowCount("media") }
+    public func programRowCount() -> Int { rowCount("programs") }
+    public func settingsRowCount() -> Int { rowCount("settings") }
+
     // MARK: - airings
 
     public func airing(_ channelId: Int, _ ratingKey: String) -> AiringState {

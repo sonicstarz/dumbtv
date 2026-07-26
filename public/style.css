@@ -728,3 +728,8 @@ button.sm.kid.on { border-color: var(--phosphor); color: var(--phosphor); }
 .pack-state { font-size: 13px; font-family: var(--mono); color: var(--dim); }
 .pack-state.ok { color: var(--phosphor); }
 .pack-state.bad { color: var(--tally); }
+
+/* loading spinner — green ring signals the server is connected + working (A4/C6) */
+.loading-row { display:flex; align-items:center; gap:10px; color:var(--dim); padding:20px; font-family:var(--mono); font-size:13px; }
+.spin { width:16px; height:16px; border:2px solid var(--line); border-top-color:var(--phosphor); border-radius:50%; animation:spin .8s linear infinite; flex:0 0 auto; }
+@keyframes spin { to { transform:rotate(360deg); } }

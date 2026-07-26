@@ -53,6 +53,21 @@ final class PackAPITests: XCTestCase {
         let bad = await a.handle(.init(method: "POST", path: "/api/packs/nope/install"))
         XCTAssertEqual(bad.status, 404)
     }
+
+    func testAddPackAsChannelSource() async throws {
+        // C3: an installed pack can be added to an EXISTING channel via the
+        // picker (sourceType "pack") — no Plex fetch, media already registered.
+        let store = try Store(path: NSTemporaryDirectory() + "papi-src-\(UUID().uuidString).db")
+        let a = ConfigAPI(store: store)
+        try installTestPack(store, id: "tp")
+
+        let made = await a.handle(.init(method: "POST", path: "/api/channels", body: ["name": "Mix"]))
+        let chId = obj(made)["id"] as! Int
+        let add = await a.handle(.init(method: "POST", path: "/api/channels/\(chId)/sources",
+            body: ["items": [["ratingKey": "pack:tp", "sourceType": "pack", "title": "TP"]]]))
+        XCTAssertEqual(add.status, 200)
+        XCTAssertEqual(store.library(forChannel: chId).mediaByKey.count, 2, "channel plays the pack's 2 items")
+    }
 }
 
 // Small shim so the test reads cleanly (installPack(fromDir:) throws).

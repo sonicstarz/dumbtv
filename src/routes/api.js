@@ -422,6 +422,13 @@ export default async function api(fastify) {
     const results = [];
     for (const it of items) {
       insert.run(channelId, String(it.ratingKey), it.sourceType, it.title);
+      // Pack + local sources already have their media registered — nothing to
+      // fetch from Plex (C3: content packs are addable to any channel).
+      if (it.sourceType === 'pack' || it.sourceType === 'local') {
+        const n = db.prepare('SELECT COUNT(*) n FROM media WHERE parent_key=?').get(String(it.ratingKey)).n;
+        results.push({ title: it.title, cached: n });
+        continue;
+      }
       try {
         const r = await cacheSource(String(it.ratingKey), it.sourceType);
         results.push({ title: it.title, ...r });

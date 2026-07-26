@@ -44,6 +44,23 @@ function mins(ms) {
   return Math.round(ms / 60000);
 }
 
+// A spinning "server connected, loading" indicator (green ring = connected).
+const loadingHTML = (msg) => `<div class="loading-row"><span class="spin"></span>${escapeHtml(msg)}</div>`;
+
+// C4: a download line with bytes, speed, and ETA when the backend reports them.
+function downloadStatus(prog) {
+  const mb = (n) => (n / 1e6).toFixed(0);
+  if (prog.bytesTotal > 0 && prog.startedAt) {
+    const elapsed = Math.max(0.5, (Date.now() - prog.startedAt) / 1000);
+    const speed = prog.bytesDone / elapsed; // bytes/s
+    const eta = speed > 0 ? Math.max(0, Math.round((prog.bytesTotal - prog.bytesDone) / speed)) : null;
+    const speedStr = `${(speed / 1e6).toFixed(1)} MB/s`;
+    const etaStr = eta != null ? ` · ${eta > 90 ? `${Math.round(eta / 60)}m` : `${eta}s`} left` : '';
+    return `↓ ${mb(prog.bytesDone)}/${mb(prog.bytesTotal)} MB · ${speedStr}${etaStr}`;
+  }
+  return `Downloading ${prog.done}/${prog.total}…`;
+}
+
 // ---------------------------------------------------------------- nav
 
 $$('.navlink[data-view]').forEach((btn) =>
@@ -749,7 +766,7 @@ $('#addChannel').addEventListener('click', async () => {
   const { id } = await api('/api/channels', { method: 'POST', body: { name: 'New Channel' } });
   await loadChannels();
   loadStatus();
-  if (id) openSettings(id);
+  if (id) openSettings(id, { isNew: true });   // A3: draft — cancel deletes it
 });
 
 // ---- AI: suggest a channel ----
@@ -865,12 +882,12 @@ $('#kidsToggle').addEventListener('click', async () => {
 
 // ---------------------------------------------------------------- modal
 
-function modal(html) {
+function modal(html, onDismiss) {
   const back = document.createElement('div');
   back.className = 'modal-back';
   back.innerHTML = `<div class="modal">${html}</div>`;
   back.addEventListener('click', (e) => {
-    if (e.target === back) back.remove();
+    if (e.target === back) { back.remove(); onDismiss && onDismiss(); }
   });
   document.addEventListener(
     'keydown',
@@ -878,6 +895,7 @@ function modal(html) {
       if (e.key === 'Escape') {
         back.remove();
         document.removeEventListener('keydown', esc);
+        onDismiss && onDismiss();
       }
     }
   );
@@ -909,9 +927,20 @@ function confirmModal(message, { danger = false, ok = 'Delete', cancel = 'Cancel
 
 // ---------------------------------------------------------------- settings
 
-function openSettings(channelId) {
+function openSettings(channelId, opts = {}) {
   const c = state.channels.find((x) => x.id === channelId);
   if (!c) return;
+
+  // A3: a channel opened straight from "Add channel" is a draft — if the editor
+  // is closed WITHOUT saving (Cancel, backdrop, Esc), delete it so a cancel
+  // doesn't leave a blank phantom channel.
+  let saved = false;
+  const discardIfNew = () => {
+    if (opts.isNew && !saved) {
+      api(`/api/channels/${channelId}`, { method: 'DELETE' })
+        .then(() => { loadChannels(); loadStatus(); }).catch(() => {});
+    }
+  };
 
   const modes = state.orderingModes
     .map(
@@ -995,7 +1024,7 @@ function openSettings(channelId) {
       <button class="ghost" id="fRefresh">Re-read from Plex</button>
       <button class="primary" id="fSave">Save changes</button>
     </div>
-  `);
+  `, discardIfNew);
 
   const blurb = () => {
     const m = state.orderingModes.find((x) => x.id === $('#fMode', back).value);
@@ -1023,7 +1052,7 @@ function openSettings(channelId) {
   $('#fDarkEnd', back).addEventListener('input', syncBed);
   syncBed();
 
-  $('#fCancel', back).addEventListener('click', () => back.remove());
+  $('#fCancel', back).addEventListener('click', () => { back.remove(); discardIfNew(); });
 
   $('#fRefresh', back).addEventListener('click', async () => {
     const b = $('#fRefresh', back);
@@ -1046,6 +1075,7 @@ function openSettings(channelId) {
     b.disabled = true;
     b.textContent = 'Saving…';
     try {
+      saved = true;   // A3: committed — the draft is now kept, not discarded
       await api(`/api/channels/${c.id}`, {
         method: 'PATCH',
         body: {
@@ -1093,7 +1123,7 @@ async function openPicker(channelId) {
         <input id="pFilter" placeholder="Search shows and movies" style="width:100%">
       </div>
     </div>
-    <div class="picker-grid" id="pGrid"><div style="color:var(--dim);padding:20px">Loading…</div></div>
+    <div class="picker-grid" id="pGrid">${loadingHTML('Connected — loading library…')}</div>
     <div class="row" style="margin-top:20px;justify-content:space-between;align-items:center">
       <span class="hint" id="pCount" style="margin:0">Nothing selected</span>
       <span>
@@ -1113,20 +1143,12 @@ async function openPicker(channelId) {
       const s = await api('/api/library/sections');
       state.sections = s.sections.filter((x) => x.type === 'show' || x.type === 'movie');
     }
-  } catch (err) {
-    $('#pGrid', back).innerHTML = `<div style="color:var(--tally);padding:20px">${escapeHtml(err.message)}</div>`;
-    return;
-  }
+  } catch { /* Plex not linked / unreachable — content packs still work below */ }
 
-  if (state.sections.length === 0) {
-    $('#pGrid', back).innerHTML =
-      '<div style="color:var(--dim);padding:20px">No show or movie libraries found on that server.</div>';
-    return;
-  }
-
-  $('#pSection', back).innerHTML = state.sections
-    .map((s) => `<option value="${s.key}|${s.type}">${escapeHtml(s.title)}</option>`)
-    .join('');
+  // Always offer content packs (no Plex needed), plus any Plex libraries (C3).
+  $('#pSection', back).innerHTML =
+    state.sections.map((s) => `<option value="${s.key}|${s.type}">${escapeHtml(s.title)}</option>`).join('')
+    + '<option value="__packs__|pack">📦 Content packs</option>';
 
   const draw = () => {
     const q = $('#pFilter', back).value.toLowerCase();
@@ -1162,9 +1184,51 @@ async function openPicker(channelId) {
     );
   };
 
+  // C3: the "Content packs" pseudo-library — installed packs are selectable
+  // sources; not-installed ones are greyed with a Download button right here.
+  const drawPacks = async () => {
+    let data;
+    try { data = await api('/api/packs'); }
+    catch (err) { $('#pGrid', back).innerHTML = `<div style="color:var(--tally);padding:20px">${escapeHtml(err.message)}</div>`; return; }
+    const packs = data.packs.filter((p) => p.kind !== 'ads');
+    items = packs.filter((p) => p.installed).map((p) => ({
+      ratingKey: `pack:${p.id}`, title: p.name, sourceType: 'pack',
+    }));
+    $('#pGrid', back).innerHTML = packs.map((p) => {
+      const key = `pack:${p.id}`;
+      const sub = `${p.installedItemCount ?? p.itemCount} items · ${Math.round((p.runtimeMs || 0) / 60000)} min`;
+      if (!p.installed) {
+        const dl = p.progress && p.progress.state === 'downloading'
+          ? `<span class="pack-state" style="font-size:11px">${downloadStatus(p.progress)}</span>`
+          : `<button class="ghost" data-pack-dl="${p.id}" style="font-size:11px;padding:4px 8px">Download</button>`;
+        return `<div class="pick off" style="opacity:.55;cursor:default">
+          <div class="ph">not installed</div>
+          <span class="cap">${escapeHtml(p.name)}<br><small>${sub}</small><br>${dl}</span></div>`;
+      }
+      const on = selected.has(key);
+      return `<button class="pick ${on ? 'on' : ''}" data-k="${key}">
+        <div class="ph">📦</div>
+        <span class="cap">${escapeHtml(p.name)}<br><small>${sub}</small></span></button>`;
+    }).join('') || '<div style="color:var(--dim);padding:20px">No content packs yet.</div>';
+
+    $$('.pick[data-k]', back).forEach((b) => b.addEventListener('click', () => {
+      const k = b.dataset.k;
+      if (selected.has(k)) selected.delete(k);
+      else selected.set(k, items.find((i) => i.ratingKey === k));
+      b.classList.toggle('on');
+      $('#pCount', back).textContent = selected.size ? `${selected.size} selected` : 'Nothing selected';
+      $('#pAdd', back).disabled = selected.size === 0;
+    }));
+    $$('[data-pack-dl]', back).forEach((b) => b.addEventListener('click', async () => {
+      try { await api(`/api/packs/${b.dataset.packDl}/install`, { method: 'POST' }); toast('Downloading pack…'); }
+      catch (e) { toast(e.message, true); }
+    }));
+  };
+
   const loadSection = async () => {
     const [key, type] = $('#pSection', back).value.split('|');
-    $('#pGrid', back).innerHTML = '<div style="color:var(--dim);padding:20px">Loading…</div>';
+    $('#pGrid', back).innerHTML = loadingHTML('Connected — loading content…');
+    if (key === '__packs__') { await drawPacks(); return; }
     try {
       const r = await api(`/api/library/sections/${key}/items?type=${type}`);
       items = r.items;
@@ -1181,7 +1245,7 @@ async function openPicker(channelId) {
   $('#pAdd', back).addEventListener('click', async () => {
     const b = $('#pAdd', back);
     b.disabled = true;
-    b.textContent = 'Reading from Plex…';
+    b.textContent = 'Adding…';
     const [, type] = $('#pSection', back).value.split('|');
     try {
       const r = await api(`/api/channels/${channelId}/sources`, {
@@ -1189,7 +1253,7 @@ async function openPicker(channelId) {
         body: {
           items: [...selected.values()].map((i) => ({
             ratingKey: i.ratingKey,
-            sourceType: type === 'movie' ? 'movie' : 'show',
+            sourceType: i.sourceType || (type === 'movie' ? 'movie' : 'show'),
             title: i.title,
             thumb: i.thumb || null,   // doubles as the channel's artwork
           })),
@@ -1348,7 +1412,7 @@ function packCard(p) {
   const prog = p.progress;
   let actions;
   if (prog && prog.state === 'downloading') {
-    actions = `<span class="pack-state">Downloading ${prog.done}/${prog.total}…</span>`;
+    actions = `<span class="pack-state">${downloadStatus(prog)}</span>`;
   } else if (prog && prog.state === 'error') {
     actions = `<span class="pack-state bad">Failed</span> <button class="ghost" data-pack-install="${p.id}">Retry</button>`;
   } else if (!p.installed) {
@@ -1527,6 +1591,15 @@ async function loadSetup() {
 
   applyBackendPanel(s.backend || 'plex');
   loadJellyfin();
+
+  // C5: Jellyfin isn't implemented on the native embedded server yet (Node has
+  // it). Rather than a toggle that silently does nothing, mark it coming-soon.
+  const jelly = $('#beJelly');
+  if (jelly && s.native) {
+    jelly.disabled = true;
+    jelly.title = 'Coming soon on the Apple app — available on the Pi/desktop version';
+    jelly.textContent = 'Jellyfin (soon)';
+  }
 
   if (s.linked) {
     $('#linkBody').innerHTML = `<p style="color:var(--phosphor);margin:0">Linked to Plex.</p>`;

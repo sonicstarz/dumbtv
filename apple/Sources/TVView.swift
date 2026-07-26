@@ -205,9 +205,13 @@ struct TVView: View {
                     // reveals the control row (Guide/Mute/CC) over the banner; on
                     // tvOS the whole picture is the guide button (press select).
                 }
-                if engine.setupCardVisible, let url = configURL {
-                    HStack { SetupCard(url: url, showChannelHint: true); Spacer() }
-                        .padding(.top, 10)
+                if engine.setupCardVisible, !engine.setupCardDismissed, let url = configURL {
+                    HStack {
+                        SetupCard(url: url, showChannelHint: true,
+                                  onDismiss: { engine.setupCardDismissed = true })
+                        Spacer()
+                    }
+                    .padding(.top, 10)
                 }
                 Spacer()
                 // One-time coach mark — the guide is invisible until you know

@@ -24,7 +24,10 @@ struct PackCatalog: Decodable {
 }
 
 /// In-flight install state for the progress the web UI polls.
-struct PackProgress: Sendable { var state: String; var done: Int; var total: Int; var error: String? }
+struct PackProgress: Sendable {
+    var state: String; var done: Int; var total: Int; var error: String?
+    var bytesDone: Int = 0; var bytesTotal: Int = 0; var startedAt: Double = 0   // C4
+}
 
 /// Thread-safe progress store — a background download Task writes while the
 /// request thread reads (ConfigAPI is a plain class, not an actor).
@@ -73,7 +76,9 @@ extension ConfigAPI {
                 "origin": installed[id]?.origin ?? NSNull(),
             ]
             o["progress"] = prog.map { ["state": $0.state, "done": $0.done, "total": $0.total,
-                                        "error": $0.error.map { $0 as Any } ?? NSNull()] } ?? NSNull()
+                                        "error": $0.error.map { $0 as Any } ?? NSNull(),
+                                        "bytesDone": $0.bytesDone, "bytesTotal": $0.bytesTotal,
+                                        "startedAt": $0.startedAt] } ?? NSNull()
             return o
         }
 
@@ -126,23 +131,34 @@ extension ConfigAPI {
         if packProgress.get(id)?.state == "downloading" {
             return .ok(["ok": true, "progress": ["state": "downloading"]])
         }
-        packProgress.set(id, PackProgress(state: "downloading", done: 0, total: entry.items.count, error: nil))
+        let total = entry.items.count
+        let bytesTotal = entry.downloadBytes ?? 0
+        let startedAt = Date().timeIntervalSince1970 * 1000   // ms epoch (matches Node)
+        packProgress.set(id, PackProgress(state: "downloading", done: 0, total: total, error: nil,
+                                          bytesDone: 0, bytesTotal: bytesTotal, startedAt: startedAt))
         let store = self.store
         let progress = self.packProgress
         Task.detached {
             let dir = ConfigAPI.downloadedPacksDir().appendingPathComponent(id, isDirectory: true)
             try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
             do {
+                var bytesDone = 0
                 for (i, it) in entry.items.enumerated() {
                     let dest = dir.appendingPathComponent(it.file)
-                    if !FileManager.default.fileExists(atPath: dest.path) {
+                    // N1: accept an existing file only if it looks complete (size
+                    // matches); URLSession.download already lands atomically.
+                    let existing = (try? FileManager.default.attributesOfItem(atPath: dest.path)[.size] as? Int) ?? nil
+                    let complete = existing != nil && (it.bytes == nil || abs((existing ?? 0) - (it.bytes ?? 0)) < 65536)
+                    if !complete {
                         guard let src = URL(string: it.url) else { throw PackError.badURL }
                         let (tmp, resp) = try await URLSession.shared.download(from: src)
                         if let http = resp as? HTTPURLResponse, http.statusCode >= 400 { throw PackError.http(http.statusCode) }
                         try? FileManager.default.removeItem(at: dest)
                         try FileManager.default.moveItem(at: tmp, to: dest)
                     }
-                    progress.set(id, PackProgress(state: "downloading", done: i + 1, total: entry.items.count, error: nil))
+                    bytesDone += it.bytes ?? ((try? FileManager.default.attributesOfItem(atPath: dest.path)[.size] as? Int) ?? 0) ?? 0
+                    progress.set(id, PackProgress(state: "downloading", done: i + 1, total: total, error: nil,
+                                                  bytesDone: bytesDone, bytesTotal: bytesTotal, startedAt: startedAt))
                 }
                 // Write the runtime manifest, then register.
                 let manifest = PackManifest(
@@ -154,9 +170,11 @@ extension ConfigAPI {
                 let data = try JSONEncoder().encode(manifest)
                 try data.write(to: dir.appendingPathComponent("pack.json"))
                 store.installPack(manifest, rootPath: dir.path, origin: "downloaded")
-                progress.set(id, PackProgress(state: "installed", done: entry.items.count, total: entry.items.count, error: nil))
+                progress.set(id, PackProgress(state: "installed", done: total, total: total, error: nil,
+                                              bytesDone: bytesTotal, bytesTotal: bytesTotal, startedAt: startedAt))
             } catch {
-                progress.set(id, PackProgress(state: "error", done: 0, total: entry.items.count, error: "\(error)"))
+                progress.set(id, PackProgress(state: "error", done: 0, total: total, error: "\(error)",
+                                              bytesTotal: bytesTotal, startedAt: startedAt))
             }
         }
         return .ok(["ok": true, "progress": ["state": "downloading", "done": 0, "total": entry.items.count]])

@@ -9,6 +9,7 @@ public final class ConfigAPI {
     let store: Store
     let plex: PlexClient
     let packProgress = PackProgressBox()   // Track I pack-install progress (thread-safe)
+    let imageCache = ImageCache()          // A4: poster cache so the picker isn't glacial
     public init(store: Store, plex: PlexClient = PlexClient()) {
         self.store = store
         self.plex = plex
@@ -184,9 +185,17 @@ public final class ConfigAPI {
     /// Proxy a Plex image (poster) for the web UI. Returns bytes + content type,
     /// or nil. The server serves this at `/api/image?path=…` so the browser
     /// never handles the Plex token.
+    /// Poster proxy (A4). Fetched OFF the PlexClient actor — read the credentials
+    /// straight from the Store and hit Plex with URLSession directly, so N
+    /// posters load in PARALLEL and don't queue behind the library browse. Cached
+    /// so a re-render is free.
     public func fetchImage(path: String) async -> (Data, String)? {
-        await ensurePlexConfigured()
-        guard let data = (try? await plex.imageData(path: path)) ?? nil else { return nil }
+        if let cached = imageCache.get(path) { return (cached, "image/jpeg") }
+        guard let uri = store.getSetting("plex_server_uri"),
+              let token = store.getSetting("plex_access_token"),
+              let url = URL(string: "\(uri)\(path)?X-Plex-Token=\(token)") else { return nil }
+        guard let (data, _) = try? await URLSession.shared.data(from: url), !data.isEmpty else { return nil }
+        imageCache.set(path, data)
         return (data, "image/jpeg")
     }
 
@@ -313,7 +322,12 @@ public final class ConfigAPI {
             let title = it.string("title")
             store.addSource(id, ratingKey: rk, sourceType: type, title: title,
                             thumb: it.string("thumb"))
-            results.append(await cacheSource(rk, type: type, title: title))
+            // Pack + local sources already have their media — nothing to fetch (C3).
+            if type == "pack" || type == "local" {
+                results.append(["title": title ?? "", "cached": store.media(forSource: rk).count])
+            } else {
+                results.append(await cacheSource(rk, type: type, title: title))
+            }
         }
         // The web UI does r.results.reduce(...) — must be an array of {title,cached,error?}.
         return .ok(["ok": true, "results": results])

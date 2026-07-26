@@ -188,10 +188,12 @@ export function loadCatalog() {
 const installProgress = new Map();
 export const getInstallProgress = (id) => installProgress.get(id) ?? null;
 
-async function downloadTo(url, dest) {
+async function downloadTo(url, dest, onBytes) {
   const res = await fetch(url, { headers: { 'User-Agent': 'dumbTV' } });
   if (!res.ok || !res.body) throw new Error(`download failed: HTTP ${res.status}`);
-  await pipeline(Readable.fromWeb(res.body), fs.createWriteStream(dest));
+  const rs = Readable.fromWeb(res.body);
+  if (onBytes) rs.on('data', (chunk) => onBytes(chunk.length));   // C4: byte progress
+  await pipeline(rs, fs.createWriteStream(dest));
 }
 
 /** The web-UI pack picker's view: every catalogued pack + its install/channel state. */
@@ -214,7 +216,10 @@ export function packsOverview() {
       installedItemCount,
       origin: installed.get(p.id)?.origin ?? null,
       hasChannel: packChannels.has(packRatingKey(p.id)),
-      progress: prog ? { state: prog.state, done: prog.done, total: prog.total, error: prog.error } : null,
+      progress: prog ? {
+        state: prog.state, done: prog.done, total: prog.total, error: prog.error,
+        bytesDone: prog.bytesDone ?? 0, bytesTotal: prog.bytesTotal ?? 0, startedAt: prog.startedAt ?? 0,
+      } : null,
     };
   });
 }
@@ -232,14 +237,29 @@ export function startInstall(packId) {
 
   const dir = path.join(downloadedPacksDir(), packId);
   fs.mkdirSync(dir, { recursive: true });
-  const prog = { state: 'downloading', done: 0, total: entry.items.length, error: null };
+  const prog = {
+    state: 'downloading', done: 0, total: entry.items.length, error: null,
+    bytesDone: 0, bytesTotal: entry.downloadBytes ?? 0, startedAt: Date.now(),   // C4
+  };
   installProgress.set(packId, prog);
 
   (async () => {
     try {
       for (const it of entry.items) {
         const dest = path.join(dir, it.file);
-        if (!fs.existsSync(dest)) await downloadTo(it.url, dest);
+        // N1: accept an existing file ONLY if it's the expected size — a
+        // truncated/partial download must be re-fetched, not treated as done.
+        const complete = fs.existsSync(dest)
+          && (!it.bytes || Math.abs(fs.statSync(dest).size - it.bytes) < 65536);
+        if (complete) {
+          prog.bytesDone += fs.statSync(dest).size;
+        } else {
+          // Download to a .part file and rename on success, so an interrupted
+          // download never leaves a poisoned "complete" file (N1).
+          const part = `${dest}.part`;
+          await downloadTo(it.url, part, (n) => { prog.bytesDone += n; });
+          fs.renameSync(part, dest);
+        }
         prog.done++;
       }
       // Write the runtime manifest, then register — same shape build-pack emits.

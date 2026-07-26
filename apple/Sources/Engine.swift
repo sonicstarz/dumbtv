@@ -100,6 +100,9 @@ final class Engine: ObservableObject {
     /// The last-reached boot phase — shown on the channel-00 diagnostics screen
     /// so a hang on real tvOS is localizable (build 11, N6).
     @Published var bootStage = "starting"
+    /// The user tapped ✕ on the setup card — hide it for this launch WITHOUT
+    /// marking setup seen (channel 0 still brings it back). (C1)
+    @Published var setupCardDismissed = false
     /// While tuning to a NEW channel from the guide, this is that channel's index:
     /// the guide stays open (showing the press was acknowledged) until the new
     /// channel's picture is actually up, then it dismisses. Nil the rest of the time.

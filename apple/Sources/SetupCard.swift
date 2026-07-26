@@ -9,6 +9,9 @@ struct SetupCard: View {
     /// When shown over live channels (not on channel 0 itself), advertise the
     /// permanent way back to this screen. (D3)
     var showChannelHint: Bool = false
+    /// If set, shows a dismiss ✕ (C1). Hides the card until next launch WITHOUT
+    /// marking setup as seen — channel 0 remains the way back.
+    var onDismiss: (() -> Void)? = nil
 
     var body: some View {
         HStack(alignment: .center, spacing: 16) {
@@ -60,6 +63,21 @@ struct SetupCard: View {
         .padding(18)
         .background(.black.opacity(0.74))
         .clipShape(RoundedRectangle(cornerRadius: 8))
+        #if !os(tvOS)
+        // Tap-to-dismiss ✕ (C1) — the user asked for a way to hide the banner.
+        // Hides until next launch; does NOT set setup_seen (channel 0 brings it
+        // back). Not on tvOS, where it would fight the focus engine.
+        .overlay(alignment: .topTrailing) {
+            if let onDismiss {
+                Button(action: onDismiss) {
+                    Image(systemName: "xmark.circle.fill")
+                        .font(.system(size: 20)).foregroundStyle(Palette.dim)
+                        .padding(6)
+                }
+                .buttonStyle(.plain)
+            }
+        }
+        #endif
         .accessibilityElement(children: .ignore)
         .accessibilityLabel("Set up dumbTV. Open \(url) in a browser on your phone or laptop.")
     }

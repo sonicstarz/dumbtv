@@ -195,6 +195,31 @@ function channelHints(rootPath) {
   } catch { return {}; }
 }
 
+/**
+ * Drop registrations for packs whose files are gone — the vanished-file rule,
+ * applied to packs.
+ *
+ * The case this exists for: a pack that shipped bundled in one release and is
+ * removed from the next (POPEYE went preload → download-only when its rights
+ * basis needed re-checking). Its row survives pointing at a path that no longer
+ * exists, so the picker reports it "installed" with no Download button —
+ * unrecoverable — while its channel resolves every part key to a missing file.
+ *
+ * Dropping the registration keeps the channel: it stands by with the existing
+ * "No content selected" card (invariant #7), the picker offers the download
+ * again, and re-installing restores it EXACTLY — same pack id, same rating
+ * keys, same deterministic schedule (invariant #5). Returns the ids dropped.
+ */
+export function reconcileMissingPacks() {
+  const dropped = [];
+  for (const p of listPacks()) {
+    if (fs.existsSync(path.join(p.root_path, 'pack.json'))) continue;
+    uninstallPack(p.id);
+    dropped.push(p.id);
+  }
+  return dropped;
+}
+
 /** Remove a pack's media/assets and its row. Aired programs are left alone. */
 export const uninstallPack = db.transaction((packId) => {
   db.prepare('DELETE FROM media WHERE parent_key = ?').run(packRatingKey(packId));

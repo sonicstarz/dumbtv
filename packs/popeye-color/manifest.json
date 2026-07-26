@@ -3,7 +3,7 @@
   "name": "POPEYE IN COLOR",
   "version": 1,
   "kind": "shows",
-  "description": "The three Technicolor Popeye two-reelers (1936\u201339) \u2014 the only Popeye films in the public domain.",
+  "description": "The three Technicolor Popeye two-reelers (1936–39) — the only Popeye films in the public domain.",
   "channel": {
     "number": 8,
     "name": "POPEYE",
@@ -31,7 +31,7 @@
       "license": {
         "url": "https://creativecommons.org/publicdomain/mark/1.0/",
         "verified": "2026-07-26",
-        "note": "1936 Technicolor two-reeler; copyright not renewed \u2192 US public domain. IA item carries a PD mark. Regular B&W Popeye shorts are NOT PD \u2014 only these three color specials."
+        "note": "1936 Technicolor two-reeler; copyright not renewed → US public domain. IA item carries a PD mark. Regular B&W Popeye shorts are NOT PD — only these three color specials."
       }
     },
     {
@@ -48,7 +48,7 @@
       "license": {
         "url": "https://creativecommons.org/publicdomain/mark/1.0/",
         "verified": "2026-07-26",
-        "note": "1937 Technicolor two-reeler; not renewed \u2192 US PD. IA item PD-marked. NOTE: source is a 1.25 GB HD scan \u2014 fine for the build pipeline (re-encodes to 480p), too heavy for direct-download; prefer built-pack delivery."
+        "note": "1937 Technicolor two-reeler; not renewed → US PD. IA item PD-marked. NOTE: source is a 1.25 GB HD scan — fine for the build pipeline (re-encodes to 480p), too heavy for direct-download; prefer built-pack delivery."
       }
     },
     {
@@ -65,8 +65,9 @@
       "license": {
         "url": "http://creativecommons.org/publicdomain/mark/1.0/",
         "verified": "2026-07-26",
-        "note": "1939 Technicolor two-reeler; not renewed \u2192 US PD. IA item PD-marked. Source is HD (~1.6 GB) \u2014 built-pack delivery preferred."
+        "note": "1939 Technicolor two-reeler; not renewed → US PD. IA item PD-marked. Source is HD (~1.6 GB) — built-pack delivery preferred."
       }
     }
-  ]
+  ],
+  "rightsReview": "DOWNLOAD-ONLY pending a Catalog of Copyright Entries check — see packs/popeye-color/RIGHTS-REVIEW. The July 2026 field guide calls the Technicolor two-reelers a 'murkier claim'; the manifest basis below (IA PD marks + non-renewal) predates that. No takedown and no dispute on record — the gap is documentary. Not bundled in the App Store binary until the renewal volumes are read."
 }

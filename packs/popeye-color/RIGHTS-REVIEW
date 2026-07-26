@@ -1,0 +1,39 @@
+POPEYE IN COLOR — download-only pending a Catalog of Copyright Entries check.
+Owner decision, 2026-07-26.
+
+WHY THIS PACK IS NOT PRELOADED
+------------------------------
+The PD-cartoons field guide (July 2026) describes the Technicolor two-reelers as
+circulating on PD compilations "with a murkier claim — verify before commercial
+use," and the starter-pack shortlist lists them under do-not-include PENDING
+VERIFICATION. This pack's manifest basis (IA public-domain marks + documented
+non-renewal) predates that research.
+
+Nothing here says the pack is NOT public domain. All three source items are live
+on the Internet Archive with PD marks — there is no takedown and no dispute on
+record. The gap is documentary: NR (non-renewal) is a lead, not a clearance,
+until someone reads the renewal volumes.
+
+So the pack stays curated, stays in the catalog, and stays one tap away — it
+just does not ride inside the App Store binary, where our name is on it most
+directly and the exposure is least reversible. Removing it also brought the
+preload bundle to ~348 MB, inside the D1 target, so the rights question and the
+size dial pointed the same way.
+
+TO CLEAR IT (≈1 hour of real work)
+----------------------------------
+Search the Catalog of Copyright Entries renewal volumes for 1963-1967 (28 years
+after 1936/1937/1939 release) for:
+  - Popeye the Sailor Meets Sindbad the Sailor (1936)
+  - Popeye the Sailor Meets Ali Baba's Forty Thieves (1937)
+  - Aladdin and His Wonderful Lamp (1939)
+Watch for renewals filed under a RETITLED reissue, which is the standard trap.
+The volumes are scanned and searchable on the Internet Archive and Google Books.
+Cross-check Hurst's "Film Superlist".
+
+If it clears: restore the PRELOAD marker and delete this file.
+If it does not: remove the pack from packs/index.json and the repo.
+
+Note the character/trademark position is separate and unchanged: the 1929
+Thimble Theatre Popeye is public domain, King Features holds the trademark, and
+the pack is never used in dumbTV marketing.

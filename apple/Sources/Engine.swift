@@ -292,6 +292,18 @@ final class Engine: ObservableObject {
     /// they're real, editable Store channels like any other. This is what makes
     /// a fresh install a working television with no Plex and no setup.
     private func seedPreloadPacks(_ store: Store) {
+        defer {
+            // AFTER re-registering whatever this build bundles: any pack still
+            // pointing at files that don't exist was dropped from the bundle
+            // between releases. Treat it as uninstalled so the picker offers the
+            // download again — otherwise it reads as "installed" forever and its
+            // channel resolves to missing files with no way back.
+            let dropped = store.reconcileMissingPacks()
+            if !dropped.isEmpty {
+                print("dumbTV: pack(s) no longer bundled, now downloadable: \(dropped.joined(separator: ", "))")
+                lastChangeCounter = store.sql.totalChanges()
+            }
+        }
         guard let packsRoot = Bundle.main.resourceURL?.appendingPathComponent("packs"),
               let dirs = try? FileManager.default.contentsOfDirectory(
                 at: packsRoot, includingPropertiesForKeys: [.isDirectoryKey]) else { return }

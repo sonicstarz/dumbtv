@@ -177,6 +177,34 @@ extension Store {
         return changed
     }
 
+    /// Drop registrations for packs whose files are gone.
+    ///
+    /// The case this exists for: a pack that shipped bundled in one release and
+    /// is removed from the next (POPEYE went preload → download-only when its
+    /// rights basis needed re-checking). Its `packs` row survives pointing into
+    /// the OLD app bundle, so the picker reported it "installed" with no Download
+    /// button — unrecoverable — while its channel resolved every part key to a
+    /// file that no longer exists.
+    ///
+    /// Treating it as uninstalled is the same rule as a vanished local file:
+    /// drop the registration, keep the channel. The channel stands by with the
+    /// existing "No content selected" card (invariant #7), the picker offers the
+    /// download again, and re-installing restores it EXACTLY — same pack id, same
+    /// rating keys, same deterministic schedule (invariant #5).
+    ///
+    /// Returns the ids it dropped, for the boot log.
+    @discardableResult
+    public func reconcileMissingPacks() -> [String] {
+        var dropped: [String] = []
+        for p in packs() {
+            let manifest = URL(fileURLWithPath: p.rootPath).appendingPathComponent("pack.json")
+            if FileManager.default.fileExists(atPath: manifest.path) { continue }
+            uninstallPack(p.id)
+            dropped.append(p.id)
+        }
+        return dropped
+    }
+
     /// Remove a pack's media/assets and its row. Aired programs are left alone.
     public func uninstallPack(_ packId: String) {
         _ = try? sql.run("DELETE FROM media WHERE parent_key=?", [.text(packRatingKey(packId))])

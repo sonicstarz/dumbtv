@@ -27,6 +27,53 @@ final class PackTests: XCTestCase {
         return dir
     }
 
+    /// A pack that shipped bundled in one release and is dropped from the next
+    /// (POPEYE: preload → download-only) must become RE-DOWNLOADABLE, not a
+    /// permanently "installed" row pointing at files that no longer exist.
+    func testMissingPackFilesAreReconciledSoItCanBeDownloadedAgain() throws {
+        let store = try makeStore()
+        let dir = try writePack("gone")
+        _ = try store.installPack(fromDir: dir, origin: "bundled")
+        let ch = try XCTUnwrap(store.createChannelFromPack("gone"))
+        XCTAssertEqual(store.media(forSource: packRatingKey("gone")).count, 3)
+
+        // While the files are present, reconciliation must do nothing.
+        XCTAssertEqual(store.reconcileMissingPacks(), [])
+        XCTAssertEqual(store.packs().count, 1)
+
+        // The app updates and no longer bundles it — the directory is gone.
+        try FileManager.default.removeItem(at: dir)
+        XCTAssertEqual(store.reconcileMissingPacks(), ["gone"])
+        XCTAssertTrue(store.packs().isEmpty, "the stale registration should be dropped")
+        XCTAssertEqual(store.media(forSource: packRatingKey("gone")).count, 0)
+
+        // The CHANNEL survives, still pointing at the pack, so re-installing
+        // restores it rather than the user having to rebuild it.
+        let channel = try XCTUnwrap(store.channel(ch))
+        XCTAssertEqual(channel.name, "TEST")
+        XCTAssertEqual(store.sources(ch).first?.ratingKey, packRatingKey("gone"))
+    }
+
+    /// …and re-installing genuinely restores it: same ids, same rating keys, so
+    /// the deterministic schedule resumes instead of reshuffling (invariant #5).
+    func testReinstallAfterReconcileRestoresTheSameKeys() throws {
+        let store = try makeStore()
+        let dir = try writePack("gone")
+        _ = try store.installPack(fromDir: dir, origin: "bundled")
+        _ = store.createChannelFromPack("gone")
+        let before = store.media(forSource: packRatingKey("gone")).map(\.ratingKey).sorted()
+
+        try FileManager.default.removeItem(at: dir)
+        _ = store.reconcileMissingPacks()
+
+        // The user taps Download; it lands in a different directory this time.
+        let redownloaded = try writePack("gone")
+        _ = try store.installPack(fromDir: redownloaded, origin: "downloaded")
+        let after = store.media(forSource: packRatingKey("gone")).map(\.ratingKey).sorted()
+        XCTAssertEqual(before, after, "re-install must restore identical rating keys")
+        XCTAssertEqual(store.packs().first?.origin, "downloaded")
+    }
+
     func testInstallResolveScheduleUninstall() throws {
         let store = try makeStore()
         let dir = try writePack("testpack")

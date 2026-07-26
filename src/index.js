@@ -7,7 +7,7 @@ import api from './routes/api.js';
 import { ensureSchedule } from './schedule/generator.js';
 import { engine } from './player/engine.js';
 import { initFromEnv } from './auth.js';
-import { migratePreloadAdsOff } from './packs/install.js';
+import { migratePreloadAdsOff, reconcileMissingPacks } from './packs/install.js';
 import { HOUR } from './util/time.js';
 
 const app = Fastify({ logger: false });
@@ -41,6 +41,10 @@ async function main() {
   // by an earlier build before the schedule is topped up.
   const adsOff = migratePreloadAdsOff();
   if (adsOff.length) console.log(`  Turned commercials off on ${adsOff.length} pack channel(s).`);
+  // A pack whose files went away (uninstalled by hand, or dropped from a release)
+  // becomes downloadable again rather than a channel that silently plays nothing.
+  const gone = reconcileMissingPacks();
+  if (gone.length) console.log(`  Pack files missing, now re-downloadable: ${gone.join(', ')}`);
   ensureSchedule();
 
   // Keep the rolling window topped up. Append-only, so nothing already

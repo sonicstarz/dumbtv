@@ -677,6 +677,56 @@ check('locked: an ordinary pack is NOT locked (opt-in only)',
   db.prepare('SELECT locked FROM channels WHERE id=?').get(normalCh).locked === 0);
 fs.rmSync(lockPackDir, { recursive: true, force: true });
 
+// ---- a pack whose files vanish becomes re-downloadable ---------------------
+console.log('\nMissing pack files');
+const { reconcileMissingPacks } = await import('../src/packs/install.js');
+const gonePackDir = path.join(os.tmpdir(), `dumbtv-gonepack-${Date.now()}`);
+fs.mkdirSync(gonePackDir, { recursive: true });
+fs.writeFileSync(path.join(gonePackDir, 'pack.json'), JSON.stringify({
+  id: 'gonetest', name: 'GONE', version: 1, kind: 'shows',
+  channel: { number: 97, name: 'GONE', ordering: 'sequential', seed: 3 },
+  items: [
+    { id: 'a', file: 'a.mp4', title: 'A', show: 'G', season: 1, episode: 1, durationMs: 10 * MINUTE, bytes: 1, sha256: 'x' },
+    { id: 'b', file: 'b.mp4', title: 'B', show: 'G', season: 1, episode: 2, durationMs: 10 * MINUTE, bytes: 1, sha256: 'x' },
+  ],
+}));
+installPack(gonePackDir, { origin: 'bundled' });
+const { channelId: goneCh } = createChannelFromPack('gonetest', { adsEnabled: false });
+const goneKeysBefore = db.prepare("SELECT rating_key FROM media WHERE parent_key='pack:gonetest' ORDER BY rating_key")
+  .all().map((r) => r.rating_key);
+// Scoped to THIS pack: earlier sections leave their own temp packs behind, and
+// reconcile correctly reports those too.
+check('missing-pack: a pack whose files are present is left alone',
+  !reconcileMissingPacks().includes('gonetest')
+  && db.prepare("SELECT COUNT(*) n FROM packs WHERE id='gonetest'").get().n === 1);
+
+// The release stops bundling it — the directory goes away.
+fs.rmSync(gonePackDir, { recursive: true, force: true });
+check('missing-pack: a vanished pack is dropped so it can be downloaded again',
+  reconcileMissingPacks().includes('gonetest')
+  && db.prepare("SELECT COUNT(*) n FROM packs WHERE id='gonetest'").get().n === 0
+  && db.prepare("SELECT COUNT(*) n FROM media WHERE parent_key='pack:gonetest'").get().n === 0);
+check('missing-pack: the channel survives, still pointing at the pack',
+  db.prepare('SELECT COUNT(*) n FROM channels WHERE id=?').get(goneCh).n === 1
+  && db.prepare("SELECT rating_key FROM channel_sources WHERE channel_id=?").get(goneCh).rating_key === 'pack:gonetest');
+
+// Re-download restores it with identical keys → the deterministic schedule resumes.
+fs.mkdirSync(gonePackDir, { recursive: true });
+fs.writeFileSync(path.join(gonePackDir, 'pack.json'), JSON.stringify({
+  id: 'gonetest', name: 'GONE', version: 1, kind: 'shows',
+  channel: { number: 97, name: 'GONE', ordering: 'sequential', seed: 3 },
+  items: [
+    { id: 'a', file: 'a.mp4', title: 'A', show: 'G', season: 1, episode: 1, durationMs: 10 * MINUTE, bytes: 1, sha256: 'x' },
+    { id: 'b', file: 'b.mp4', title: 'B', show: 'G', season: 1, episode: 2, durationMs: 10 * MINUTE, bytes: 1, sha256: 'x' },
+  ],
+}));
+installPack(gonePackDir, { origin: 'downloaded' });
+const goneKeysAfter = db.prepare("SELECT rating_key FROM media WHERE parent_key='pack:gonetest' ORDER BY rating_key")
+  .all().map((r) => r.rating_key);
+check('missing-pack: re-install restores identical rating keys (schedule resumes)',
+  JSON.stringify(goneKeysBefore) === JSON.stringify(goneKeysAfter), JSON.stringify(goneKeysAfter));
+fs.rmSync(gonePackDir, { recursive: true, force: true });
+
 // ---- channel-number collisions (N2/N3) ------------------------------------
 console.log('\nChannel number collisions');
 const { createChannelFromLocalFolder } = await import('../src/media/localscan.js');

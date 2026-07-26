@@ -27,7 +27,7 @@ public final class Store {
     private static let durableKeys: Set<String> = [
         "plex_server_uri", "plex_access_token", "plex_server_name", "plex_token",
         "setup_seen", "preload_seeded", "media_backend",
-        "jellyfin_url", "jellyfin_user", "jellyfin_token",
+        "jellyfin_url", "jellyfin_user", "jellyfin_token", "jellyfin_name",
     ]
     private let durableMirror = UserDefaults.standard
     private func mirrorKey(_ k: String) -> String { "dumbtv.durable.\(k)" }

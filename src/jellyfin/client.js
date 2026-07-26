@@ -2,7 +2,10 @@ import { db, getSetting } from '../db.js';
 import { getJfServer, JF_AUTH_HEADER } from './auth.js';
 import { measureGain } from '../assets.js';
 
-// Written from the Jellyfin API shape and docs — see CLAUDE.md "Known unverified".
+// VERIFIED LIVE against Jellyfin 10.11.11 (build 13): AuthenticateByName,
+// /Users/:id/Views, /Users/:id/Items, /Shows/:id/Episodes, the movie lookup,
+// cacheSource, /Items/:id/Images/Primary, and the ?static=true stream URL — which
+// serves real bytes and honours Range requests, so join-in-progress seeks work.
 // Never transcoded: every stream URL uses ?static=true so Jellyfin direct-plays.
 
 function requireServer() {
@@ -24,6 +27,12 @@ async function jfGet(path) {
 
 const ticksToMs = (t) => (t ? Math.round(t / 10000) : 0);
 const airedOf = (iso) => (iso ? String(iso).slice(0, 10) : null);
+
+// Verified live (10.11.11): an item with no artwork 404s on
+// /Items/:id/Images/Primary, and `ImageTags.Primary` is how you know in advance.
+// This used to return the item id unconditionally, so every artless item claimed
+// a poster and the picker asked for an image that could not exist.
+const thumbOf = (m) => (m.ImageTags && m.ImageTags.Primary ? m.Id : null);
 
 export async function ping() {
   const s = requireServer();
@@ -56,7 +65,7 @@ export async function getSectionItems(sectionKey, type) {
     title: m.Name,
     year: m.ProductionYear,
     type: type === 'movie' ? 'movie' : 'show',
-    thumb: m.Id, // imageUrl() builds from the item id
+    thumb: thumbOf(m), // imageUrl() builds from the item id; null = no artwork
     leafCount: m.RecursiveItemCount ?? m.ChildCount,
     duration: ticksToMs(m.RunTimeTicks),
   }));
@@ -79,7 +88,7 @@ export async function getAllEpisodes(seriesId) {
     aired: airedOf(m.PremiereDate),
     durationMs: ticksToMs(m.RunTimeTicks),
     partKey: `jf:${m.Id}`,
-    thumb: m.Id,
+    thumb: thumbOf(m),
   }));
 }
 
@@ -98,7 +107,7 @@ export async function getMovie(movieId) {
     aired: airedOf(m.PremiereDate),
     durationMs: ticksToMs(m.RunTimeTicks),
     partKey: `jf:${m.Id}`,
-    thumb: m.Id,
+    thumb: thumbOf(m),
   };
 }
 

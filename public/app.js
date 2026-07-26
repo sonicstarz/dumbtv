@@ -1592,16 +1592,12 @@ async function loadSetup() {
   applyBackendPanel(s.backend || 'plex');
   loadJellyfin();
 
-  // C5: Jellyfin isn't implemented on the native embedded server yet (Node has
-  // it). Rather than a toggle that silently does nothing, mark it coming-soon.
-  const jelly = $('#beJelly');
-  if (jelly && s.native) {
-    jelly.disabled = true;
-    jelly.title = 'Coming soon on the Apple app — available on the Pi/desktop version';
-    jelly.textContent = 'Jellyfin (soon)';
-  }
+  // (Build 12 disabled this toggle on the native app as honest signposting —
+  // Jellyfin only worked on Node. Build 13's J1 closed that gap: the embedded
+  // Swift server implements the same endpoints, so the switch is live again on
+  // every platform.)
 
-  if (s.linked) {
+  if (s.linked && s.backend !== 'jellyfin') {
     $('#linkBody').innerHTML = `<p style="color:var(--phosphor);margin:0">Linked to Plex.</p>`;
     $('#serverCard').style.display = '';
     try {
@@ -1632,19 +1628,23 @@ async function loadSetup() {
       $('#serverList').innerHTML = `<p style="color:var(--tally)">${escapeHtml(err.message)}</p>`;
     }
 
-    if (s.server) {
-      $('#libCard').style.display = '';
-      try {
-        const { sections } = await api('/api/library/sections');
-        $('#libList').innerHTML = sections
-          .map(
-            (x) =>
-              `<span class="chip">${escapeHtml(x.title)} <span class="n">${x.type}</span></span>`
-          )
-          .join(' ');
-      } catch (err) {
-        $('#libList').innerHTML = `<p style="color:var(--tally)">${escapeHtml(err.message)}</p>`;
-      }
+  }
+
+  // The library list is backend-agnostic (/api/library/sections dispatches
+  // server-side), so it renders for whichever server is connected — Plex or
+  // Jellyfin. It used to live inside the Plex-only branch above.
+  if (s.server) {
+    $('#libCard').style.display = '';
+    try {
+      const { sections } = await api('/api/library/sections');
+      $('#libList').innerHTML = sections
+        .map(
+          (x) =>
+            `<span class="chip">${escapeHtml(x.title)} <span class="n">${x.type}</span></span>`
+        )
+        .join(' ');
+    } catch (err) {
+      $('#libList').innerHTML = `<p style="color:var(--tally)">${escapeHtml(err.message)}</p>`;
     }
   }
 }

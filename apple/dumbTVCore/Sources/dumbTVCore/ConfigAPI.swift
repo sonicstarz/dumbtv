@@ -8,12 +8,20 @@ import Foundation
 public final class ConfigAPI {
     let store: Store
     let plex: PlexClient
+    let jellyfin: JellyfinClient
     let packProgress = PackProgressBox()   // Track I pack-install progress (thread-safe)
     let imageCache = ImageCache()          // A4: poster cache so the picker isn't glacial
-    public init(store: Store, plex: PlexClient = PlexClient()) {
+    public init(store: Store, plex: PlexClient = PlexClient(),
+                jellyfin: JellyfinClient = JellyfinClient()) {
         self.store = store
         self.plex = plex
+        self.jellyfin = jellyfin
     }
+
+    /// Which media backend the library endpoints talk to. One at a time, chosen by
+    /// the `media_backend` setting — mirrors `src/media/backend.js`.
+    var backend: String { store.mediaBackend }
+    var usingJellyfin: Bool { backend == "jellyfin" }
 
     public struct Request {
         public let method: String                 // GET / POST / PATCH / DELETE
@@ -171,9 +179,14 @@ public final class ConfigAPI {
         case ("POST", 2) where s[0] == "assets" && s[1] == "import-plex":  return await importPlexAds(req)
         case ("POST", 2) where s[0] == "assets" && s[1] == "refresh-plex": return await refreshPlexAds()
 
-        // --- stubs so the shared web UI degrades gracefully (features not on
-        //     Apple: Jellyfin backend, LLM suggestions) ---
-        case ("GET", 2) where s[0] == "jellyfin" && s[1] == "status": return .ok(["configured": false, "active": false, "server": NSNull()])
+        // --- Jellyfin link (J1) — a real backend now, not a stub ---
+        case ("POST", 2) where s[0] == "media" && s[1] == "backend":   return await setMediaBackend(req)
+        case ("GET", 2) where s[0] == "jellyfin" && s[1] == "status":  return jellyfinStatus()
+        case ("POST", 2) where s[0] == "jellyfin" && s[1] == "connect": return await jellyfinConnect(req)
+        case ("POST", 2) where s[0] == "jellyfin" && s[1] == "apikey":  return await jellyfinApiKey(req)
+        case ("POST", 2) where s[0] == "jellyfin" && s[1] == "logout":  return await jellyfinLogout()
+
+        // --- stubs so the shared web UI degrades gracefully (LLM suggestions) ---
         case ("GET", 2) where s[0] == "llm" && s[1] == "status":      return .ok(["configured": false, "model": NSNull()])
         case ("GET", 1) where s[0] == "onair":                        return onair()
         case ("GET", 1) where s[0] == "guide":                        return guide(req)
@@ -191,9 +204,20 @@ public final class ConfigAPI {
     /// so a re-render is free.
     public func fetchImage(path: String) async -> (Data, String)? {
         if let cached = imageCache.get(path) { return (cached, "image/jpeg") }
-        guard let uri = store.getSetting("plex_server_uri"),
-              let token = store.getSetting("plex_access_token"),
-              let url = URL(string: "\(uri)\(path)?X-Plex-Token=\(token)") else { return nil }
+        let url: URL?
+        if usingJellyfin {
+            // Jellyfin "thumbs" are item ids, not paths, and the token rides as a
+            // query param. Same off-actor treatment as Plex so N posters load in
+            // parallel instead of queueing behind the library browse (A4).
+            guard let s = store.jellyfinServer() else { return nil }
+            url = URL(string: "\(s.url)/Items/\(path)/Images/Primary"
+                      + "?fillWidth=300&fillHeight=450&api_key=\(s.token)")
+        } else {
+            guard let uri = store.getSetting("plex_server_uri"),
+                  let token = store.getSetting("plex_access_token") else { return nil }
+            url = URL(string: "\(uri)\(path)?X-Plex-Token=\(token)")
+        }
+        guard let url else { return nil }
         guard let (data, _) = try? await URLSession.shared.data(from: url), !data.isEmpty else { return nil }
         imageCache.set(path, data)
         return (data, "image/jpeg")
@@ -232,11 +256,24 @@ public final class ConfigAPI {
 
     private func status() -> Response {
         // The web UI reads `server` to advance past server-pick to library browse
-        // (and to show the unlink button). Mirror the Node shape.
+        // (and to show the unlink button), and `backend`/`linked` to render the
+        // Plex ⇄ Jellyfin switch. Both reflect whichever backend is ACTIVE —
+        // mirrors the Node shape in src/routes/api.js.
         var server: Any = NSNull()
-        let hasServer = store.getSetting("plex_server_uri") != nil
-        if let uri = store.getSetting("plex_server_uri") {
-            server = ["name": store.getSetting("plex_server_name") ?? "Plex", "uri": uri, "local": false]
+        var hasServer = false
+        var linked = false
+        if usingJellyfin {
+            if let s = store.jellyfinServer() {
+                server = ["name": s.name, "uri": s.url, "local": false]
+                hasServer = true
+                linked = true
+            }
+        } else {
+            if let uri = store.getSetting("plex_server_uri") {
+                server = ["name": store.getSetting("plex_server_name") ?? "Plex", "uri": uri, "local": false]
+                hasServer = true
+            }
+            linked = store.getSetting("plex_token") != nil
         }
         var player: Any = NSNull()
         if let idStr = store.getSetting("player_channel_id"), let id = Int(idStr), let c = store.channel(id) {
@@ -245,10 +282,10 @@ public final class ConfigAPI {
             player = ["driver": "native", "channel": NSNull()]
         }
         return .ok([
-            "backend": "plex",
+            "backend": backend,
             "native": true,          // this is a native app; the TV is the app window, not /tv
             "player": player,
-            "linked": store.getSetting("plex_token") != nil,
+            "linked": linked,
             "kidsMode": kidsModeOn,
             "kidSafeCount": kidSafeIds().count,
             "server": server,
@@ -357,7 +394,9 @@ public final class ConfigAPI {
         var errorMsg: String?
         if type == "show" {
             do {
-                let eps = try await plex.episodes(showKey: ratingKey)
+                let eps = usingJellyfin
+                    ? try await jellyfin.episodes(showKey: ratingKey)
+                    : try await plex.episodes(showKey: ratingKey)
                 store.upsertMedia(eps)
                 cached = eps.count
             } catch { errorMsg = error.localizedDescription }
@@ -366,7 +405,10 @@ public final class ConfigAPI {
             // this, movie sources silently cached 0 and the channel sat at
             // "no programming" with no error — the worst kind of quiet.
             do {
-                if let m = try await plex.movie(ratingKey: ratingKey) {
+                let m = usingJellyfin
+                    ? try await jellyfin.movie(ratingKey: ratingKey)
+                    : try await plex.movie(ratingKey: ratingKey)
+                if let m {
                     store.upsertMedia([m])
                     cached = 1
                 } else {
@@ -376,9 +418,10 @@ public final class ConfigAPI {
         }
         // Backfill channel art for sources that predate the thumb column —
         // one metadata fetch, only when the source has no thumb yet.
-        if let thumb = (try? await plex.thumbPath(ratingKey: ratingKey)) ?? nil {
-            store.fillSourceThumb(ratingKey, thumb: thumb)
-        }
+        let thumb = usingJellyfin
+            ? (try? await jellyfin.thumbPath(ratingKey: ratingKey)) ?? nil
+            : (try? await plex.thumbPath(ratingKey: ratingKey)) ?? nil
+        if let thumb { store.fillSourceThumb(ratingKey, thumb: thumb) }
         var r: [String: Any] = ["title": title ?? ratingKey, "cached": cached]
         if let errorMsg { r["error"] = errorMsg }
         return r
@@ -706,6 +749,73 @@ public final class ConfigAPI {
         return .ok(["sections": sections, "results": results])
     }
 
+    // MARK: - Jellyfin link (J1)
+
+    /// Push the persisted server into the actor before a library call.
+    private func ensureJellyfinConfigured() async {
+        await jellyfin.configure(store.jellyfinServer())
+    }
+
+    /// Switch which media backend the library endpoints talk to.
+    private func setMediaBackend(_ req: Request) async -> Response {
+        let want = (req.body?.string("backend") == "jellyfin") ? "jellyfin" : "plex"
+        store.setSetting("media_backend", want)
+        return .ok(["ok": true, "backend": want, "reachable": await backendReachable()])
+    }
+
+    private func jellyfinStatus() -> Response {
+        guard let s = store.jellyfinServer() else {
+            return .ok(["configured": false, "active": usingJellyfin, "server": NSNull()])
+        }
+        return .ok(["configured": true, "active": usingJellyfin,
+                    "server": ["url": s.url, "name": s.name, "userId": s.userId]])
+    }
+
+    /// Connect with a username + password (Jellyfin issues an access token).
+    private func jellyfinConnect(_ req: Request) async -> Response {
+        let b = req.body ?? [:]
+        guard let url = b.string("url"), !url.isEmpty else {
+            return .bad("Enter your Jellyfin server address.")
+        }
+        do {
+            let s = try await jellyfin.authenticate(url: url,
+                                                    username: b.string("username") ?? "",
+                                                    password: b.string("password") ?? "")
+            store.saveJellyfinServer(s)
+            store.setSetting("media_backend", "jellyfin")
+            return .ok(["ok": true, "server": ["url": s.url, "name": s.name, "userId": s.userId]])
+        } catch { return .bad(error.localizedDescription) }
+    }
+
+    /// Or connect with a server URL + user id + a dashboard API key.
+    private func jellyfinApiKey(_ req: Request) async -> Response {
+        let b = req.body ?? [:]
+        guard let url = b.string("url"), let user = b.string("userId"), let key = b.string("apiKey"),
+              !url.isEmpty, !user.isEmpty, !key.isEmpty else {
+            return .bad("Need server URL, user id, and API key.")
+        }
+        let s = await jellyfin.useApiKey(url: url, userId: user, apiKey: key)
+        store.saveJellyfinServer(s)
+        store.setSetting("media_backend", "jellyfin")
+        return .ok(["ok": true, "reachable": await jellyfin.ping()])
+    }
+
+    private func jellyfinLogout() async -> Response {
+        store.clearJellyfinServer()
+        store.setSetting("media_backend", "plex")
+        await jellyfin.configure(nil as JellyfinServer?)
+        return .ok()
+    }
+
+    /// Does the ACTIVE backend answer? Used by /api/status and the backend switch.
+    private func backendReachable() async -> Bool {
+        if usingJellyfin {
+            await ensureJellyfinConfigured()
+            return await jellyfin.ping()
+        }
+        return store.getSetting("plex_server_uri") != nil
+    }
+
     // MARK: - Plex link (async)
 
     /// Push the persisted token/server into the actor before a library call.
@@ -788,37 +898,52 @@ public final class ConfigAPI {
 
     // MARK: - library browse (async)
 
+    /// "Couldn't reach your <backend>" — the web UI shows this verbatim, so it has
+    /// to name the server the user actually configured.
+    private var serverLabel: String { usingJellyfin ? "Jellyfin" : "Plex" }
+
+    /// Push whichever backend is active into its actor before a library call.
+    private func ensureBackendConfigured() async {
+        if usingJellyfin { await ensureJellyfinConfigured() } else { await ensurePlexConfigured() }
+    }
+
     private func librarySections() async -> Response {
-        await ensurePlexConfigured()
+        await ensureBackendConfigured()
         do {
-            let secs = try await plex.sections()
+            let secs = usingJellyfin ? try await jellyfin.sections() : try await plex.sections()
             return .ok(["sections": secs.map { ["key": $0.key, "title": $0.title, "type": $0.type] }])
-        } catch { return Response(502, ["error": "Couldn't reach your Plex server: \(error.localizedDescription)"]) }
+        } catch { return Response(502, ["error": "Couldn't reach your \(serverLabel) server: \(error.localizedDescription)"]) }
     }
 
     private func librarySectionItems(_ key: String, _ req: Request) async -> Response {
-        await ensurePlexConfigured()
+        await ensureBackendConfigured()
         let type = req.query["type"] ?? "show"
         do {
-            let items = try await plex.sectionItems(key: key, type: type)
+            let items = usingJellyfin
+                ? try await jellyfin.sectionItems(key: key, type: type)
+                : try await plex.sectionItems(key: key, type: type)
             return .ok(["items": items.map { i -> [String: Any] in
                 var o: [String: Any] = ["ratingKey": i.ratingKey, "title": i.title,
                                         "type": i.type, "thumb": i.thumb ?? NSNull()]
-                // A browser-loadable poster URL, proxied so no Plex token leaks.
+                // A browser-loadable poster URL, proxied so no server token leaks.
+                // Plex thumbs are paths; Jellyfin thumbs are item ids. Both ride the
+                // same query param — fetchImage() dispatches on the active backend.
                 if let t = i.thumb, let enc = t.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) {
                     o["image"] = "/api/image?path=\(enc)"
                 }
                 return o
             }])
-        } catch { return Response(502, ["error": "Couldn't reach your Plex server: \(error.localizedDescription)"]) }
+        } catch { return Response(502, ["error": "Couldn't reach your \(serverLabel) server: \(error.localizedDescription)"]) }
     }
 
     private func libraryEpisodes(_ showKey: String, _ req: Request) async -> Response {
-        await ensurePlexConfigured()
+        await ensureBackendConfigured()
         do {
             var rows = store.media(forSource: showKey).filter { $0.durationMs > 0 }
-            if rows.isEmpty {   // first look — pull from Plex once and cache
-                let eps = try await plex.episodes(showKey: showKey)
+            if rows.isEmpty {   // first look — pull from the server once and cache
+                let eps = usingJellyfin
+                    ? try await jellyfin.episodes(showKey: showKey)
+                    : try await plex.episodes(showKey: showKey)
                 store.upsertMedia(eps)
                 rows = eps
             }
@@ -830,7 +955,7 @@ public final class ConfigAPI {
                  "aired": m.aired ?? NSNull(), "durationMs": m.durationMs,
                  "excluded": excluded.contains(m.ratingKey)]
             }])
-        } catch { return Response(502, ["error": "Couldn't reach your Plex server: \(error.localizedDescription)"]) }
+        } catch { return Response(502, ["error": "Couldn't reach your \(serverLabel) server: \(error.localizedDescription)"]) }
     }
 
     private func serverJSON(_ s: PlexServer) -> [String: Any] {

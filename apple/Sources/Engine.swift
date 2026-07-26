@@ -211,6 +211,17 @@ final class Engine: ObservableObject {
             guard let path = store?.resolvePackPath(partKey) else { return nil }
             return URL(fileURLWithPath: path)
         }
+        // Local folders (P6) play straight off disk.
+        if partKey.hasPrefix("local:") {
+            return URL(fileURLWithPath: String(partKey.dropFirst("local:".count)))
+        }
+        // Jellyfin (J1). Dispatch on the KEY, not on which backend is active, so a
+        // schedule cached under Jellyfin still plays after switching to Plex and
+        // a channel can mix both. ?static=true = never transcode (invariant #2).
+        if partKey.hasPrefix(jellyfinPrefix) {
+            guard let s = store?.jellyfinServer() else { return nil }
+            return URL(string: JellyfinClient.streamURLString(partKey: partKey, server: s))
+        }
         // Everything else is a Plex part.
         return URL(string: "\(serverURI)\(partKey)?X-Plex-Token=\(accessToken)")
     }

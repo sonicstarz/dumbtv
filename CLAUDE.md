@@ -118,12 +118,8 @@ because none of it can run headless.
 Written from API shape and docs, never executed against the real thing:
 
 - **`plex/auth.js` and `plex/client.js`** — the PIN flow and `/allLeaves` have
-  never seen a live response.
-- **`jellyfin/auth.js` and `jellyfin/client.js`** — written from the Jellyfin
-  API shape. AuthenticateByName, `/Shows/:id/Episodes`, and the `?static=true`
-  direct-play stream URL have never seen a live Jellyfin server. The active
-  backend is chosen by the `media_backend` setting; `media/backend.js` is the
-  facade and dispatches stream URLs by part-key prefix (`jf:` → Jellyfin).
+  never seen a live response. (The *Swift* `PlexClient` has: the PIN link was
+  verified against real plex.tv.)
 - **`player/mpv.js`** — mpv was not installed in the build environment. The
   `loadfile` option syntax moved between mpv releases, so `play()` tries three
   forms and falls back to a corrective seek after `file-loaded`. Plausible,
@@ -132,6 +128,29 @@ Written from API shape and docs, never executed against the real thing:
   Sizing and positioning are guesses.
 
 When any of these gets verified, say so in the commit message.
+
+### Verified (was on the list above)
+
+- **Jellyfin, both implementations** — verified against a real Jellyfin
+  **10.11.11** server in build 13. Node (`jellyfin/auth.js` + `client.js`) and
+  Swift (`JellyfinClient.swift`) both: AuthenticateByName with the
+  `X-Emby-Authorization` shape, `/Users/:id/Views`, `/Users/:id/Items`,
+  `/Shows/:id/Episodes`, the movie lookup, `/Items/:id/Images/Primary`, and the
+  `?static=true` stream URL — which serves real bytes and honours `Range`, so
+  join-in-progress seeks work. End-to-end on the iOS simulator: link → browse →
+  build a channel → it plays, joined mid-episode.
+  - Re-run it: `node scripts/verify-jellyfin.mjs <url> <user> <pass>` (that
+    file's header explains how to stand a throwaway server up), and
+    `DUMBTV_JF_URL=… DUMBTV_JF_USER=… DUMBTV_JF_PASS=… swift test --filter
+    JellyfinLiveTests`. Both skip cleanly with no server.
+  - Two things reality corrected: an item with **no artwork 404s** on
+    `/Images/Primary`, so a thumb is only claimed when `ImageTags.Primary`
+    exists; and re-authenticating with the **same `DeviceId` invalidates the
+    previous token**, so persist the token rather than re-authenticating.
+  - The active backend is the `media_backend` setting. `media/backend.js` (Node)
+    and `ConfigAPI.usingJellyfin` (Swift) are the facades. **Stream URLs dispatch
+    on the part-key prefix, not the active backend** (`jf:` → Jellyfin), so a
+    schedule cached under one backend still plays after switching.
 
 ---
 

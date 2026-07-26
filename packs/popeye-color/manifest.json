@@ -1,0 +1,35 @@
+{
+  "id": "popeye-color",
+  "name": "POPEYE IN COLOR",
+  "version": 1,
+  "kind": "shows",
+  "description": "The three Technicolor Popeye two-reelers (1936–39) — the only Popeye films in the public domain.",
+  "channel": { "number": 8, "name": "POPEYE", "ordering": "release_order", "seed": 18008 },
+  "encode": { "height": 480, "crf": 26, "preset": "fast", "abitrate": "96k" },
+  "items": [
+    {
+      "id": "sindbad-the-sailor",
+      "title": "Popeye the Sailor Meets Sindbad the Sailor",
+      "show": "Popeye in Color", "season": 1, "episode": 1, "aired": "1936-11-27",
+      "source": { "iaIdentifier": "PopeyeTheSailorMeetsSindbadTheSailor", "iaFile": "Popeye_meetsSinbadtheSailor_512kb.mp4" },
+      "license": { "url": "https://creativecommons.org/publicdomain/mark/1.0/", "verified": "2026-07-26",
+        "note": "1936 Technicolor two-reeler; copyright not renewed → US public domain. IA item carries a PD mark. Regular B&W Popeye shorts are NOT PD — only these three color specials." }
+    },
+    {
+      "id": "ali-babas-forty-thieves",
+      "title": "Popeye the Sailor Meets Ali Baba's Forty Thieves",
+      "show": "Popeye in Color", "season": 1, "episode": 2, "aired": "1937-11-26",
+      "source": { "iaIdentifier": "1761_20230717", "iaFile": "1761.ia.mp4" },
+      "license": { "url": "https://creativecommons.org/publicdomain/mark/1.0/", "verified": "2026-07-26",
+        "note": "1937 Technicolor two-reeler; not renewed → US PD. IA item PD-marked. NOTE: source is a 1.25 GB HD scan — fine for the build pipeline (re-encodes to 480p), too heavy for direct-download; prefer built-pack delivery." }
+    },
+    {
+      "id": "aladdin-wonderful-lamp",
+      "title": "Aladdin and His Wonderful Lamp",
+      "show": "Popeye in Color", "season": 1, "episode": 3, "aired": "1939-04-07",
+      "source": { "iaIdentifier": "popeye-meets-aladdin", "iaFile": "Aladdin and his Wonderful .ia.mp4" },
+      "license": { "url": "http://creativecommons.org/publicdomain/mark/1.0/", "verified": "2026-07-26",
+        "note": "1939 Technicolor two-reeler; not renewed → US PD. IA item PD-marked. Source is HD (~1.6 GB) — built-pack delivery preferred." }
+    }
+  ]
+}

@@ -176,6 +176,51 @@ prefetch, not just a real config-page visit. Minor: move the flag to a hit on
     covers server-down; QR card covers server-up).
 17. Cut **build 12** (→ CURRENT_PROJECT_VERSION 12).
 
+### CONTENT — owner-directed additions (2026-07-26) · *build alongside BUILD 11*
+
+The owner wants the preload lineup expanded. Manifests are **already authored
+and PD-verified** (`build-pack.js verify` passes on all five packs) — your job
+is building/bundling, not curation:
+
+**C-1 · SUPERMAN preload channel with ONE bundled episode** (testing aid)
+- `packs/superman/PRELOAD` marker is already set. Build the partial dist:
+  `node scripts/build-pack.js build superman --only the-mad-scientist`
+  (downloads a 208 MB HD source from IA, re-encodes to 480p — expect ~40–60 MB
+  bundled). The project.yml bundling step picks it up automatically.
+- First run then seeds a SUPERMAN channel (manifest hint: number 6) looping
+  *The Mad Scientist* — join-in-progress on a real episode, ideal for testing.
+- **Partial-pack upgrade (spec):** the picker must detect installed-item-count
+  < catalog-item-count and offer **"Download all 17 episodes"** — installing
+  the full pack repoints `root_path` to the downloaded copy and upserts all 17
+  media rows (the model already handles this; the UI affordance is what's
+  missing). Add a test: partial install (1 item) → full install → 17 items,
+  channel schedule extends, no duplicates.
+
+**C-2 · POPEYE IN COLOR pack** — `packs/popeye-color/manifest.json` authored:
+the three Technicolor two-reelers (Sindbad '36 / Ali Baba '37 / Aladdin '39),
+all PD-verified with IA PD marks, channel hint number 8, release_order.
+⚠️ Ali Baba + Aladdin sources are HD (~1.2–1.6 GB each) — **built-pack delivery
+only** (the 480p re-encode shrinks them); do NOT let the picker download these
+raw (the catalog's `downloadBytes` will make that obvious — respect it, or
+regenerate the catalog after deciding delivery).
+
+**C-3 · EARLY DISNEY pack** — `packs/early-disney/manifest.json` authored:
+*Plane Crazy* (1928) · *Steamboat Willie* (1928) · *The Skeleton Dance* (1929),
+all PD-verified with IA PD marks, channel hint number 9, release_order.
+⚠️ Trademark note is IN the manifests: films are PD, Mickey is a Disney
+trademark — never use Disney characters in dumbTV marketing/screenshots.
+
+**C-4 · Preload set for build 11** (owner: "I want all of that built out"):
+build + PRELOAD-mark **popeye-color** and **early-disney** too
+(`build-pack.js build <id>` + `touch packs/<id>/PRELOAD`). Expected preload:
+SATURDAY MORNING (7) · SUPERMAN (6, one ep) · POPEYE (8) · EARLY DISNEY (9) +
+AD BREAK assets. Rough bundled size: ~219 MB existing + ~50 MB Superman ep +
+~90 MB Popeye (480p) + ~25 MB Disney ≈ **~380 MB** — inside the D1 starter
+budget. If it runs hot, raise CRF to 28 on the heavy items.
+- After building packs, regenerate the catalog: `node scripts/build-pack.js catalog`
+  (note: catalog durations for popeye/disney come from IA metadata).
+- Remember N3 (number-hint collisions) applies to the new hints 6/8/9.
+
 ### Don't do (scope guards)
 - No scheduler/`schedule/` changes — nothing here needs them (invariants #4–#6).
 - No Jellyfin implementation on Swift (separate decision, P7b).

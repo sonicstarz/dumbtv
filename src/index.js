@@ -1,6 +1,7 @@
 import Fastify from 'fastify';
 import fastifyStatic from '@fastify/static';
 import os from 'node:os';
+import fs from 'node:fs';
 import { config } from './config.js';
 import { db, getSetting } from './db.js';
 import api from './routes/api.js';
@@ -29,6 +30,20 @@ function lanAddress() {
     }
   }
   return 'localhost';
+}
+
+/**
+ * The address to PRINT on startup. Inside a container the only non-internal
+ * interface is the docker bridge (172.x), which is useless to the person
+ * reading the log — they reach us through a published port on the host, and we
+ * have no way to know the host's address or which port it mapped. So say
+ * localhost, which is right for the common case, and let anyone running on a
+ * remote box override it.
+ */
+function publicBaseUrl() {
+  if (process.env.DUMBTV_PUBLIC_URL) return process.env.DUMBTV_PUBLIC_URL.replace(/\/+$/, '');
+  const containerised = fs.existsSync('/.dockerenv') || process.env.DUMBTV_IN_CONTAINER === '1';
+  return `http://${containerised ? 'localhost' : lanAddress()}:${config.port}`;
 }
 
 async function main() {
@@ -65,7 +80,7 @@ async function main() {
   engine.on('error', (err) => console.error(`  [player] ${err.message}`));
   await engine.start();
 
-  const url = `http://${lanAddress()}:${config.port}`;
+  const url = publicBaseUrl();
   const channels = db.prepare('SELECT COUNT(*) n FROM channels').get().n;
 
   console.log('');

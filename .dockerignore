@@ -1,0 +1,21 @@
+# Keep the build context small and the image free of local state.
+.git
+node_modules
+apple
+windows
+pi
+site
+marketing
+docs
+data
+media
+# Built pack media is hundreds of MB and is downloaded on demand instead — but
+# index.json is the download CATALOG the picker reads, so it has to survive.
+# An excluded directory can't be COPY'd out of, hence the negation.
+packs/*
+!packs/index.json
+build
+*.db
+*.db-wal
+*.db-shm
+.DS_Store

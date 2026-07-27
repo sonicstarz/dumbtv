@@ -1,0 +1,70 @@
+# dumbTV — headless self-host.
+#
+#   docker compose up -d
+#     setup page   http://localhost:8080
+#     television   http://localhost:8080/tv
+#
+# Point it at a Jellyfin or Plex server you already run (Server page in the
+# setup UI). If your server is on the same machine as Docker, its address from
+# in here is  http://host.docker.internal:8096  — NOT localhost, which means
+# "this container" once you're inside one.
+#
+# No server yet? Bring one up alongside dumbTV:
+#   docker compose --profile demo up -d
+# …which starts Jellyfin at http://localhost:8096 for you to point dumbTV at.
+
+services:
+  dumbtv:
+    build: .
+    image: dumbtv:local
+    container_name: dumbtv
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    volumes:
+      # The database and any downloaded content packs. Named volume so it isn't
+      # subject to host file ownership; `docker compose down -v` wipes it.
+      - dumbtv-data:/data
+      # Optional: your own video files, to build channels from local folders.
+      # Uncomment and point at a real directory, then add /media in the setup UI.
+      # - /path/to/your/videos:/media:ro
+    extra_hosts:
+      # Lets the container reach a Jellyfin/Plex running on the Docker host.
+      # Automatic on Docker Desktop and colima; required on plain Linux.
+      - "host.docker.internal:host-gateway"
+    environment:
+      # Headless: the config server plus the browser television. No mpv — see
+      # the Dockerfile for why.
+      DUMBTV_PLAYER: "none"
+      TZ: "${TZ:-America/Denver}"
+      # What the startup banner tells you to open. Change the host part if you
+      # run this on a box you reach by name or IP rather than locally.
+      DUMBTV_PUBLIC_URL: "${DUMBTV_PUBLIC_URL:-http://localhost:8080}"
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:8080/api/status').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      start_period: 20s
+      retries: 3
+
+  # Optional companion, only with `--profile demo`. A stock Jellyfin so someone
+  # with no media server can still see dumbTV work end to end. Drop a few video
+  # files into ./demo-media and add it as a library in Jellyfin's setup wizard.
+  jellyfin:
+    image: jellyfin/jellyfin:latest
+    container_name: dumbtv-jellyfin
+    profiles: ["demo"]
+    restart: unless-stopped
+    ports:
+      - "8096:8096"
+    volumes:
+      - jellyfin-config:/config
+      - jellyfin-cache:/cache
+      - ./demo-media:/media:ro
+    environment:
+      TZ: "${TZ:-America/Denver}"
+
+volumes:
+  dumbtv-data:
+  jellyfin-config:
+  jellyfin-cache:

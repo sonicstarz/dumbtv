@@ -21,7 +21,26 @@ from any phone or laptop browser on your network. Grab a build from
 | **iPhone · iPad · Apple TV · Mac** | Native app — App Store *(coming soon)*, or the **`dumbTV.dmg`** for Mac |
 | **Windows** | **`dumbTV-Setup.exe`** installer (bundles Node + mpv) |
 | **Raspberry Pi** | `curl -fsSL https://raw.githubusercontent.com/sonicstarz/dumbtv/main/pi/install.sh \| bash` |
+| **Docker** | `docker compose up -d` — headless, TV in the browser. See [docs/docker.md](docs/docker.md) |
 | **Any machine (from source)** | Node 20+ — below |
+
+### Docker
+
+The quickest way to try dumbTV on a machine you don't want to install anything
+on — including with **Jellyfin**:
+
+```bash
+git clone https://github.com/sonicstarz/dumbtv.git && cd dumbtv
+docker compose up -d
+# setup    http://localhost:8080
+# watch    http://localhost:8080/tv
+```
+
+No display needed: the container runs the config server plus the browser
+television, so it's the whole product in two tabs. There's one gotcha worth
+knowing before you start — **enter your Jellyfin/Plex address as your machine's
+LAN IP, not `localhost`** — and [docs/docker.md](docs/docker.md) explains why in
+one paragraph.
 
 ### Run from source
 

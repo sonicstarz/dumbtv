@@ -3,11 +3,24 @@
 The headless self-host path: the config page **and** a working television, both in
 your browser. No Plex required, no display required, nothing installed but Docker.
 
+**Don't want to clone anything?** One command:
+
+```bash
+docker run -d --name dumbtv -p 8080:8080 -v dumbtv-data:/data \
+  --add-host host.docker.internal:host-gateway \
+  ghcr.io/sonicstarz/dumbtv
+```
+
+**Or with the repo**, which also gets you the optional Jellyfin companion:
+
 ```bash
 git clone https://github.com/sonicstarz/dumbtv.git
 cd dumbtv
 docker compose up -d
 ```
+
+The published image is multi-arch (Intel and Apple Silicon / ARM), so you get a
+native build either way. `:latest` tracks releases; `:edge` tracks `main`.
 
 | | |
 |---|---|

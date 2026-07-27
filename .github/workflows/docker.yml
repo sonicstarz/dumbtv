@@ -1,0 +1,129 @@
+name: Docker image
+
+# Publishes the headless self-host image to GHCR so nobody has to clone the repo
+# just to try dumbTV:
+#
+#   docker run -d -p 8080:8080 -v dumbtv:/data ghcr.io/sonicstarz/dumbtv
+#
+# Tag a version (`git tag v1.3.0 && git push --tags`) for a released image, or
+# run this manually from the Actions tab to refresh :edge from main.
+on:
+  push:
+    tags: ["v*"]
+    branches: ["main"]
+    # Only rebuild when something that lands IN the image changes. Docs, the
+    # Apple app and the site don't belong in this trigger.
+    paths:
+      - "Dockerfile"
+      - "docker-entrypoint.sh"
+      - ".dockerignore"
+      - "package.json"
+      - "package-lock.json"
+      - "src/**"
+      - "public/**"
+      - "scripts/**"
+      - "packs/index.json"
+      - ".github/workflows/docker.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+concurrency:
+  group: docker-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  publish:
+    name: Build + push to GHCR
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # amd64 AND arm64: the people most likely to run this are on an Apple
+      # Silicon laptop or a spare Intel box, and getting the wrong arch means
+      # QEMU emulation and a container that crawls.
+      - uses: docker/setup-qemu-action@v3
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # Lowercase the owner — GHCR rejects capitals in image paths, and repo
+      # owners can legitimately have them.
+      - name: Compute image name
+        id: img
+        run: echo "name=ghcr.io/${GITHUB_REPOSITORY_OWNER,,}/dumbtv" >> "$GITHUB_OUTPUT"
+
+      - name: Tags and labels
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ steps.img.outputs.name }}
+          tags: |
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=raw,value=latest,enable=${{ startsWith(github.ref, 'refs/tags/v') }}
+            type=raw,value=edge,enable=${{ github.ref == 'refs/heads/main' }}
+          labels: |
+            org.opencontainers.image.title=dumbTV
+            org.opencontainers.image.description=Turn a Plex or Jellyfin library into a 1990s cable box.
+            org.opencontainers.image.licenses=MIT
+
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      # Prove the thing we just published actually boots and serves. A registry
+      # full of images nobody smoke-tested is how a friend's evening gets eaten.
+      - name: Smoke test the published image
+        run: |
+          IMAGE="${{ steps.img.outputs.name }}:${{ github.ref_type == 'tag' && github.ref_name || 'edge' }}"
+          echo "testing $IMAGE"
+          docker run -d --name smoke -p 8080:8080 -v smoke-data:/data "$IMAGE"
+          for i in $(seq 1 30); do
+            if curl -fsS -o /dev/null http://127.0.0.1:8080/api/status; then ok=1; break; fi
+            sleep 2
+          done
+          if [ "${ok:-0}" != "1" ]; then
+            echo "::error::container never became healthy"; docker logs smoke; exit 1
+          fi
+          for path in / /tv /api/status /api/packs; do
+            code=$(curl -s -o /dev/null -w '%{http_code}' "http://127.0.0.1:8080$path")
+            echo "  $path -> $code"
+            [ "$code" = "200" ] || { echo "::error::$path returned $code"; docker logs smoke; exit 1; }
+          done
+          # Non-root and ffprobe present are both load-bearing; assert them.
+          docker exec smoke id -u | grep -qx 1000 || { echo "::error::not running as uid 1000"; exit 1; }
+          docker exec smoke ffprobe -version >/dev/null || { echo "::error::ffprobe missing"; exit 1; }
+          docker rm -f smoke >/dev/null
+
+      - name: Summary
+        run: |
+          {
+            echo "### Image published"
+            echo
+            echo '```'
+            echo "${{ steps.meta.outputs.tags }}"
+            echo '```'
+            echo
+            echo "Run it:"
+            echo '```bash'
+            echo "docker run -d --name dumbtv -p 8080:8080 -v dumbtv-data:/data \\"
+            echo "  --add-host host.docker.internal:host-gateway ${{ steps.img.outputs.name }}"
+            echo '```'
+            echo
+            echo "Setup <http://localhost:8080> · TV <http://localhost:8080/tv>"
+          } >> "$GITHUB_STEP_SUMMARY"

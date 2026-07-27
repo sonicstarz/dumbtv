@@ -21,7 +21,7 @@ from any phone or laptop browser on your network. Grab a build from
 | **iPhone · iPad · Apple TV · Mac** | Native app — App Store *(coming soon)*, or the **`dumbTV.dmg`** for Mac |
 | **Windows** | **`dumbTV-Setup.exe`** installer (bundles Node + mpv) |
 | **Raspberry Pi** | `curl -fsSL https://raw.githubusercontent.com/sonicstarz/dumbtv/main/pi/install.sh \| bash` |
-| **Docker** | `docker compose up -d` — headless, TV in the browser. See [docs/docker.md](docs/docker.md) |
+| **Docker** | `docker run -p 8080:8080 -v dumbtv-data:/data ghcr.io/sonicstarz/dumbtv` — see [docs/docker.md](docs/docker.md) |
 | **Any machine (from source)** | Node 20+ — below |
 
 ### Docker
@@ -30,11 +30,14 @@ The quickest way to try dumbTV on a machine you don't want to install anything
 on — including with **Jellyfin**:
 
 ```bash
-git clone https://github.com/sonicstarz/dumbtv.git && cd dumbtv
-docker compose up -d
+docker run -d --name dumbtv -p 8080:8080 -v dumbtv-data:/data \
+  --add-host host.docker.internal:host-gateway ghcr.io/sonicstarz/dumbtv
 # setup    http://localhost:8080
 # watch    http://localhost:8080/tv
 ```
+
+Or clone and `docker compose up -d`, which also offers an optional Jellyfin
+companion for anyone with no media server yet.
 
 No display needed: the container runs the config server plus the browser
 television, so it's the whole product in two tabs. There's one gotcha worth

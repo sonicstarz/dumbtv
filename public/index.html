@@ -237,11 +237,38 @@
           </div>
           <div class="field"><label>NAME</label><input id="rName" placeholder="Saturday Morning Cartoons"></div>
           <div id="rRecurring">
+            <div class="field">
+              <label>BLOCK</label>
+              <select id="rBlockPreset" aria-label="Common block shapes">
+                <option value="">Custom…</option>
+                <option value="6|08:00|240">Saturday morning cartoons (Sat 8am–noon)</option>
+                <option value="0,1,2,3,4,5,6|06:00|360">Every morning (6am–noon)</option>
+                <option value="1|20:00|180">Monday night movie (8–11pm)</option>
+                <option value="0,1,2,3,4,5,6|23:00|180">Late night (11pm–2am)</option>
+                <option value="5,6|20:00|240">Weekend primetime (8pm–midnight)</option>
+              </select>
+            </div>
             <div class="field"><label>DAYS (0=Sun … 6=Sat, comma separated)</label><input id="rDays" placeholder="6"></div>
             <div class="field" style="display:flex;gap:10px">
               <div><label>START (HH:MM)</label><input id="rStart" placeholder="08:00" style="width:120px"></div>
               <div><label>DURATION (min)</label><input id="rDur" type="number" placeholder="180" style="width:140px"></div>
             </div>
+            <div class="field">
+              <label>PLAY ONLY THINGS TAGGED (OPTIONAL)</label>
+              <input id="rTags" placeholder="cartoon, 1940s" list="tagList">
+              <datalist id="tagList"></datalist>
+            </div>
+            <div class="field" style="display:flex;gap:10px;align-items:center">
+              <label class="check" style="margin:0">
+                <input type="checkbox" id="rTagAll"> Must have ALL of those tags, not just one
+              </label>
+            </div>
+            <p class="hint">
+              Leave the tags empty and this block plays the channel's usual rotation.
+              Fill it in and you have a <b>daypart</b> — cartoons in the morning,
+              films at night, on one channel. Each block keeps its own place, so
+              tomorrow morning carries on where this morning stopped.
+            </p>
           </div>
           <div id="rAirdate" style="display:none">
             <div class="field"><label>SHOW</label><select id="rAirSource"></select></div>

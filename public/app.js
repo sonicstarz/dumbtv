@@ -207,6 +207,17 @@ $('#rMode').addEventListener('change', (e) => {
   $('#rCadenceWrap').style.display = e.target.value === 'original_cadence' ? 'block' : 'none';
 });
 $('#rPinSource').addEventListener('change', loadPinEpisodes);
+// R5: block presets are just the common shapes of a recurring rule. "Saturday
+// morning cartoons" is days=6, start=08:00, 240 minutes — the scheduler already
+// did this; nobody should have to work out the numbers.
+$('#rBlockPreset')?.addEventListener('change', (e) => {
+  if (!e.target.value) return;
+  const [days, start, dur] = e.target.value.split('|');
+  $('#rDays').value = days;
+  $('#rStart').value = start;
+  $('#rDur').value = dur;
+});
+
 // R2: picking a season fills the dates and turns on annual repeat, because a
 // holiday window that only fires once is almost never what someone meant.
 $('#rSeasonPreset')?.addEventListener('change', (e) => {
@@ -232,6 +243,13 @@ $('#rAdd').addEventListener('click', async () => {
     body.daysOfWeek = $('#rDays').value.trim();
     body.startTime = $('#rStart').value.trim();
     body.durationMin = Number($('#rDur').value) || 0;
+    // R1: tags turn a plain recurring block into a DAYPART — it draws from a
+    // subset instead of the channel's whole rotation.
+    const tags = $('#rTags').value.split(',').map((t) => t.trim()).filter(Boolean);
+    if (tags.length && kind === 'recurring') {
+      body.selectTags = tags;
+      body.selectMode = $('#rTagAll').checked ? 'all' : 'any';
+    }
   } else if (kind === 'airdate') {
     body.ratingKey = $('#rAirSource').value;
     body.sourceType = 'show';
@@ -402,6 +420,13 @@ async function loadSettings() {
   $('#dispCaptions').checked = !!cfg.captions;
   // L-V1: presets come from the server so the two sides cannot drift apart.
   state.vibePresets = cfg.vibePresets || {};
+  // Offer the tag vocabulary that actually exists, most-used first — a daypart
+  // picker that suggests nothing is a text box with extra steps.
+  try {
+    const { tags } = await api('/api/tags');
+    const dl = $('#tagList');
+    if (dl) dl.innerHTML = tags.map((t) => `<option value="${escapeHtml(t.tag)}">${t.n}</option>`).join('');
+  } catch {}
   state.vibeDefault = cfg.vibeDefault || null;
   const dv = $('#dispVibe');
   if (dv) dv.value = vibeNameOf(cfg.vibeDefault) || 'off';

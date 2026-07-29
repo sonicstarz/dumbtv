@@ -55,6 +55,7 @@ import { guide, nowOnAll, nowOn, upNextShow, publicChannel } from '../schedule/r
 import { ORDERING_MODES } from '../schedule/ordering.js';
 import { hashString } from '../util/rng.js';
 import { normalizeVibe, parseVibe, VIBE_PRESETS } from '../vibe.js';
+import { allTags, setTags, tagsFor, refreshDerivedTags } from '../media/tags.js';
 import { scanAssets } from '../assets.js';
 import { buildSchedulePdf } from '../print.js';
 import { buildXmltv } from '../xmltv.js';
@@ -636,6 +637,20 @@ export default async function api(fastify) {
     reply.header('Content-Disposition', 'inline; filename="dumbtv-guide.pdf"');
     return reply.send(buildSchedulePdf({ from, days, channelIds }));
   });
+
+  // ---- Tags (R8) ---------------------------------------------------------
+
+  /** The vocabulary in use, most-used first — what the daypart picker offers. */
+  fastify.get('/api/tags', async () => ({ tags: allTags() }));
+
+  /** Replace a media item's USER tags. Pack and derived tags are untouched. */
+  fastify.put('/api/media/:ratingKey/tags', async (req) => {
+    setTags(req.params.ratingKey, req.body?.tags || [], 'user');
+    return { ok: true, tags: tagsFor(req.params.ratingKey) };
+  });
+
+  /** Recompute the tags we can infer (decade, short/feature) across the library. */
+  fastify.post('/api/tags/refresh', async () => ({ ok: true, updated: refreshDerivedTags() }));
 
   // ---- Schedule rules ----------------------------------------------------
 

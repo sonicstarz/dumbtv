@@ -287,6 +287,18 @@ Remaining:
 
 iOS is wave 2. **tvOS is never** — no user filesystem; that's a documented product decision, not a gap.
 
+### F findings — 2026-07-29 · **not implemented: it needs a schema decision this handoff does not make**
+
+Stopped here rather than inventing, per this document's own scope guard (*"If a fix appears to need a schema migration not listed here, stop and flag it"*). Two things are genuinely undecided:
+
+**1 · Where do the bookmark blobs live?** `bm:` is named as the part-key prefix, but a security-scoped bookmark is ~1 KB of opaque `Data` per granted folder, and nothing in the schema holds it. `LocalFolders.swift` has `registerLocalFolder`/`createChannelFromLocalFolder` and stable `folder:` keys, but no bookmark storage at all — I checked. The options are a new `granted_folders` table, a blob column on an existing one, or `UserDefaults` (which is what the build-11 work used for durable settings that must survive a tvOS Caches purge). That is a model decision, and `db.js` is described as the single source of truth for the model.
+
+**2 · It cannot be verified here.** `NSOpenPanel` requires a human to click a real panel in a real desktop session, and security-scoped bookmarks have failure modes that only appear in the sandbox — stale bookmarks after a move, `startAccessingSecurityScopedResource` balance, and the App Sandbox behaving differently from a dev build. Shipping that unexercised would put it straight onto CLAUDE.md's "Known unverified" list beside `mpv.js` and `overlay.js`, which is exactly the category this project has been working to shrink.
+
+**What is already done** (build 13, tested): the whole model — shared filename parser, stable `folder:` keys, `local:` playback, vanished-file drop, and Swift tests covering register/rescan/vanish/schedule.
+
+**What remains, once the storage question is answered:** the `NSOpenPanel` grant, bookmark persist/resolve with `startAccessing` at play time, `ConfigAPI` routes (Apple has **no** local-folder routes at all today — also verified), and a "granted folders" list in the web UI. Sizing is unchanged at `[M]`; it wants a session with the Mac app actually running.
+
 ---
 
 # Chunk G · G1 investigation (repo-side only)
@@ -302,6 +314,27 @@ Also check and report:
 - Whether the tester installed from the **macOS** TestFlight app (Mac builds don't appear in the iOS one).
 
 Write findings into `docs/build-15-handoff.md` under a "G1 findings" heading rather than guessing at a code fix. **Do not change the deployment target speculatively** — lowering it has real consequences and needs the tester's OS version first.
+
+### G1 findings — 2026-07-29 · **architecture is ruled out; the deployment target is the answer**
+
+Read from `xcodebuild -showBuildSettings` on the **Release** configuration, which is what `build-release.sh` archives and therefore what build 14 actually shipped:
+
+```
+ARCHS             = arm64 x86_64      ← universal
+ONLY_ACTIVE_ARCH  = NO
+MACOSX_DEPLOYMENT_TARGET = 14.0       ← requires macOS 14 Sonoma
+```
+
+**Architecture is not the cause.** A release archive is universal, and VLCKit ships both slices (`lipo -archs` on the framework: `x86_64 arm64`), so an Intel Mac is fully supported. (The *Debug* binary is arm64-only, but only because Debug defaults `ONLY_ACTIVE_ARCH=YES` — that never reaches TestFlight, and it is the trap to avoid when checking this by hand.)
+
+**`MACOSX_DEPLOYMENT_TARGET = 14.0` is the answer that fits the symptom exactly.** A Mac running macOS 13 Ventura or earlier cannot install the build, and TestFlight's wording for that is precisely "not compatible."
+
+**The one question for the tester: what does ☰ → About This Mac say?**
+
+- **macOS 13 or earlier** → confirmed. Then it is a product decision, not a bug: macOS 14 was released September 2023, so the current floor excludes Intel Macs that stopped at Monterey/Ventura. Lowering to 12.0 or 13.0 widens reach; whether the SwiftUI in use survives that is the thing to test, and it should be a deliberate change with its own verification, not a speculative edit. **Nothing was changed here.**
+- **macOS 14 or later** → the deployment target is exonerated and the remaining candidates, in order: the macOS build is not assigned to the tester's TestFlight group in App Store Connect; or the tester is looking in the **iOS** TestFlight app, where Mac builds never appear.
+
+For reference, the other floors are iOS 16.0 and tvOS 17.0, both unchanged.
 
 ---
 

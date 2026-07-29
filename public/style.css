@@ -563,6 +563,33 @@ button:disabled { opacity: 0.45; cursor: not-allowed; }
   * { animation: none !important; transition: none !important; }
 }
 
+/* U-6 · the two modal-heavy screens on a phone.
+   The rail already collapses at 860px, but the CHANNEL EDITOR and the LIBRARY
+   PICKER are where the real work happens and both are dialogs — a dialog with
+   24px of padding, a fixed 880px target and side-by-side fields is a desktop
+   dialog wearing a phone's clothes. Below 640px it becomes a sheet: full
+   width, full height, fields stacked, and controls big enough for a thumb. */
+@media (max-width: 640px) {
+  .modal-back { align-items: flex-end; padding: 0; }
+  .modal {
+    width: 100%;
+    max-height: 92vh;
+    border-radius: 12px 12px 0 0;
+    padding: 20px 16px calc(20px + env(safe-area-inset-bottom));
+  }
+  /* Side-by-side fields are unusable at this width — one per line. */
+  .modal .row { flex-direction: column; align-items: stretch; gap: 12px; }
+  .modal .field { width: 100%; }
+  .modal .field input,
+  .modal .field select { width: 100% !important; }
+  /* 44px is the smallest thing most people can hit reliably with a thumb. */
+  .modal button { min-height: 44px; }
+  /* Action rows go full width and reverse, so the primary action sits under
+     the thumb rather than at the far end of a row. */
+  .modal .row[style*="flex-end"] { flex-direction: column-reverse; }
+  .modal .row[style*="flex-end"] button { width: 100%; }
+}
+
 @media (max-width: 860px) {
   /* Phone layout — the QR code sends people HERE, so this is the first thing
      most users see. The rail becomes one horizontal scrollable tab strip

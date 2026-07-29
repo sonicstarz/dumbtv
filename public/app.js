@@ -29,6 +29,8 @@ async function api(path, opts = {}) {
 function toast(message, bad = false) {
   const el = document.createElement('div');
   el.className = 'toast' + (bad ? ' bad' : '');
+  // An error should interrupt; a confirmation should wait its turn.
+  el.setAttribute('role', bad ? 'alert' : 'status');
   el.textContent = message;
   $('#toastHost').append(el);
   setTimeout(() => el.remove(), 4200);
@@ -613,8 +615,8 @@ function renderChannels() {
             .map(
               (s) => `<span class="chip">${escapeHtml(s.title)}
                 <span class="n">${s.itemCount ?? ''}</span>
-                ${s.sourceType === 'show' && !c.locked ? `<button class="chip-filter" data-filter="${c.id}:${s.id}" title="Choose which episodes air">⛃</button>` : ''}
-                ${c.locked ? '' : `<button data-rm="${c.id}:${s.id}" title="Remove">&times;</button>`}</span>`
+                ${s.sourceType === 'show' && !c.locked ? `<button class="chip-filter" data-filter="${c.id}:${s.id}" title="Choose which episodes air" aria-label="Choose which episodes of ${escapeHtml(s.title || 'this source')} air">⛃</button>` : ''}
+                ${c.locked ? '' : `<button data-rm="${c.id}:${s.id}" title="Remove" aria-label="Remove ${escapeHtml(s.title || 'this source')} from ${escapeHtml(c.name)}">&times;</button>`}</span>`
             )
             .join('')
         : '<span class="chip empty">Nothing on this channel yet</span>';
@@ -740,7 +742,7 @@ async function openEpisodeFilter(channelId, source) {
     </div>
   `);
 
-  $('#epCancel', back).addEventListener('click', () => back.remove());
+  $('#epCancel', back).addEventListener('click', () => back._close());
 
   let episodes = [];
   let otherExcludes = [];
@@ -803,7 +805,7 @@ async function openEpisodeFilter(channelId, source) {
         method: 'PUT',
         body: { ratingKeys: [...otherExcludes, ...excludedNow] },
       });
-      back.remove();
+      back._close();
       toast(`Filtered. ${excludedNow.length} episode${excludedNow.length === 1 ? '' : 's'} off this channel.`);
       loadChannels();
     } catch (err) {
@@ -849,7 +851,7 @@ function openSuggestChannel() {
       <button class="primary" id="scGo">Suggest</button>
     </div>
   `);
-  $('#scCancel', back).addEventListener('click', () => back.remove());
+  $('#scCancel', back).addEventListener('click', () => back._close());
   $('#scBrief', back).focus();
 
   $('#scGo', back).addEventListener('click', async () => {
@@ -900,7 +902,7 @@ function renderProposal(back, p) {
         method: 'POST',
         body: { items: sources.map((s) => ({ ratingKey: s.ratingKey, sourceType: s.sourceType, title: s.title, thumb: s.thumb || null })) },
       });
-      back.remove();
+      back._close();
       toast('Channel created from the suggestion.');
       loadChannels();
       loadStatus();
@@ -940,21 +942,46 @@ $('#kidsToggle').addEventListener('click', async () => {
 function modal(html, onDismiss) {
   const back = document.createElement('div');
   back.className = 'modal-back';
-  back.innerHTML = `<div class="modal">${html}</div>`;
-  back.addEventListener('click', (e) => {
-    if (e.target === back) { back.remove(); onDismiss && onDismiss(); }
-  });
-  document.addEventListener(
-    'keydown',
-    function esc(e) {
-      if (e.key === 'Escape') {
-        back.remove();
-        document.removeEventListener('keydown', esc);
-        onDismiss && onDismiss();
-      }
-    }
-  );
+  // Remember who opened this so focus can go home on close — losing focus to
+  // the top of the document is disorienting and is the usual bug here.
+  const opener = document.activeElement;
+  back.innerHTML = `<div class="modal" role="dialog" aria-modal="true" tabindex="-1">${html}</div>`;
+  back._opener = opener;
+
+  // Closing is the same operation however it is triggered, so it happens in one
+  // place: unhook the key handler, drop the node, and give focus back.
+  const close = () => {
+    document.removeEventListener('keydown', onKey);
+    back.remove();
+    if (opener && document.contains(opener)) opener.focus();
+    onDismiss && onDismiss();
+  };
+  back._close = close;
+
+  const FOCUSABLE =
+    'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+
+  function onKey(e) {
+    if (e.key === 'Escape') { close(); return; }
+    if (e.key !== 'Tab') return;
+    // Trap: Tab used to walk straight out of the dialog and into the page
+    // behind it, which is both confusing and lets you operate controls that
+    // are visually covered.
+    const items = [...back.querySelectorAll(FOCUSABLE)].filter((el) => el.offsetParent !== null);
+    if (items.length === 0) return;
+    const first = items[0];
+    const last = items[items.length - 1];
+    if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+    else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+    else if (!back.contains(document.activeElement)) { e.preventDefault(); first.focus(); }
+  }
+
+  back.addEventListener('click', (e) => { if (e.target === back) close(); });
+  document.addEventListener('keydown', onKey);
   $('#modalHost').append(back);
+  // Land focus inside the dialog. Callers that focus a specific field override
+  // this immediately afterwards, which is the behaviour we want.
+  (back.querySelector(FOCUSABLE) || back.firstElementChild)?.focus();
   return back;
 }
 
@@ -963,6 +990,11 @@ function modal(html, onDismiss) {
 // which makes destructive actions look broken. This never gets suppressed.
 function confirmModal(message, { danger = false, ok = 'Delete', cancel = 'Cancel' } = {}) {
   return new Promise((resolve) => {
+    let done = false;
+    const settle = (v) => { if (done) return; done = true; resolve(v); };
+    // Dismissing by Escape or a backdrop click means "no". Without this the
+    // promise never settled and the caller waited forever — a real hazard now
+    // that Escape is a first-class way to leave a dialog.
     const back = modal(`
       <h3>Are you sure?</h3>
       <p class="sub" style="margin:8px 0 20px">${escapeHtml(message)}</p>
@@ -970,13 +1002,14 @@ function confirmModal(message, { danger = false, ok = 'Delete', cancel = 'Cancel
         <button class="ghost" id="cmCancel">${escapeHtml(cancel)}</button>
         <button class="${danger ? 'danger' : 'primary'}" id="cmOk">${escapeHtml(ok)}</button>
       </div>
-    `);
-    let done = false;
-    const finish = (v) => { if (done) return; done = true; back.remove(); resolve(v); };
+    `, () => settle(false));
+
+    const finish = (v) => { if (done) return; back._close(); settle(v); };
     $('#cmOk', back).addEventListener('click', () => finish(true));
     $('#cmCancel', back).addEventListener('click', () => finish(false));
-    back.addEventListener('click', (e) => { if (e.target === back) finish(false); });
-    $('#cmOk', back).focus();
+    // The destructive choice is NOT focused by default — Enter should not
+    // delete a channel because someone was still typing.
+    $('#cmCancel', back).focus();
   });
 }
 
@@ -1133,7 +1166,7 @@ function openSettings(channelId, opts = {}) {
   $('#fDarkEnd', back).addEventListener('input', syncBed);
   syncBed();
 
-  $('#fCancel', back).addEventListener('click', () => { back.remove(); discardIfNew(); });
+  $('#fCancel', back).addEventListener('click', () => { back._close(); discardIfNew(); });
 
   $('#fRefresh', back).addEventListener('click', async () => {
     const b = $('#fRefresh', back);
@@ -1180,7 +1213,7 @@ function openSettings(channelId, opts = {}) {
           darkEnd: $('#fDarkEnd', back).value,
         },
       });
-      back.remove();
+      back._close();
       toast('Saved. Schedule rebuilt.');
       loadChannels();
     } catch (err) {
@@ -1222,7 +1255,7 @@ async function openPicker(channelId) {
   const selected = new Map();
   let items = [];
 
-  $('#pCancel', back).addEventListener('click', () => back.remove());
+  $('#pCancel', back).addEventListener('click', () => back._close());
 
   try {
     if (state.sections.length === 0) {
@@ -1347,7 +1380,7 @@ async function openPicker(channelId) {
       });
       const total = r.results.reduce((n, x) => n + (x.cached || 0), 0);
       const bad = r.results.filter((x) => x.error);
-      back.remove();
+      back._close();
       toast(
         `Added ${total} items.` + (bad.length ? ` ${bad.length} source(s) had trouble.` : '')
       );
@@ -1828,13 +1861,24 @@ async function boot() {
     if (b) b.click();
   }
 
-  setInterval(refreshOnAir, 5000);
-  setInterval(loadStatus, 5000);   // heartbeat — greys the page fast if the app quits
-  setInterval(() => {
+  // U-4: nothing polls while the tab is hidden — this page is often left open
+  // in a background tab all day, and a config screen nobody is looking at has
+  // no reason to talk to the server five times a minute.
+  const whenVisible = (fn, ms) => setInterval(() => { if (!document.hidden) fn(); }, ms);
+
+  whenVisible(refreshOnAir, 5000);
+  whenVisible(loadStatus, 5000);   // heartbeat — greys the page fast if the app quits
+  whenVisible(() => {
     if ($('#view-guide').classList.contains('active')) {
       $('#guideClock').textContent = clock(Date.now());
     }
   }, 1000);
+
+  // Coming back to the tab should show current state immediately, not up to
+  // five seconds of stale.
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) { refreshOnAir(); loadStatus(); }
+  });
 }
 
 boot();

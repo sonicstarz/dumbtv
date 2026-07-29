@@ -61,6 +61,12 @@ struct TVView: View {
     @State private var firstRunPage =
         Int(ProcessInfo.processInfo.environment["DUMBTV_FIRSTRUN_PAGE"] ?? "") ?? 0
 
+    /// Is the Setup overlay up? Every root input handler checks this and stands
+    /// down. Without it the overlay drew on screen while the remote carried on
+    /// driving the channels behind it — the root view is focusable and consumes
+    /// arrows and SELECT before SwiftUI can move focus between Setup's buttons.
+    private var setupShowing: Bool { (setupOpen || engine.setupRequested) && setup != nil }
+
     var body: some View {
         ZStack {
             Color.black.ignoresSafeArea()
@@ -141,8 +147,16 @@ struct TVView: View {
         // gesture below). Keeping these off iOS lets the iOS deployment target
         // drop below 17 — .focusable()/.onKeyPress are iOS 17+.
         #if os(tvOS) || os(macOS)
-        .focusable()
+        // NOT focusable while Setup is open. This root view is what stops the
+        // overlay's buttons from ever getting focus: on tvOS the focus engine
+        // hands focus to a focusable ancestor, and `.onMoveCommand` here then
+        // swallows every arrow before SwiftUI can move between the buttons —
+        // so the Setup screen appeared but the remote kept driving the channels
+        // behind it. Standing down here is what lets the overlay take focus.
+        .focusable(!setupShowing)
         .onMoveCommand { direction in
+            // Setup owns the remote while it is up.
+            if setupShowing { return }
             // The first-run card owns the screen until it's paged through — don't
             // surf channels or scroll a guide the user can't see.
             if engine.showFirstRun { return }
@@ -163,7 +177,9 @@ struct TVView: View {
                 }
             }
         }
-        .onExitCommand { if engine.guideOpen { engine.guideOpen = false } }   // Esc / Menu closes the guide
+        // Esc / Menu closes the guide. While Setup is open, SetupView's own
+        // .onExitCommand closes Setup instead — don't also act on it here.
+        .onExitCommand { if !setupShowing, engine.guideOpen { engine.guideOpen = false } }
         #endif
         #if os(tvOS)
         // B3 — the owner's remote spec (simpler than the old two-step):
@@ -171,6 +187,8 @@ struct TVView: View {
         //   SELECT  = open the guide directly; in the guide, tune the highlighted row
         //   back/menu = dismiss the guide (onExitCommand above)
         .onTapGesture {
+            // Setup owns SELECT while it is up — its buttons handle their own.
+            if setupShowing { return }
             // SELECT pages the first-run card before it does anything else.
             if firstRunAdvance() { return }
             if engine.guideOpen { engine.guideSelect() } else { engine.toggleGuide() }
@@ -178,6 +196,9 @@ struct TVView: View {
         #endif
         #if os(tvOS) || os(macOS)
         .onKeyPress { press in
+            // Setup owns the keyboard while it is up: let every key through to
+            // it (text fields, focus movement) instead of dialing channels.
+            if setupShowing { return .ignored }
             // Return/space/enter pages the first-run card; everything else is
             // swallowed so no key leaks through to the TV behind it.
             if engine.showFirstRun {

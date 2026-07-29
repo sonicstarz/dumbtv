@@ -23,15 +23,18 @@ import dumbTVCore
 /// video surface (F3) with it. An overlay keeps the player mounted underneath —
 /// so opening Setup never interrupts what is on.
 ///
-/// See `SetupButtonStyle` below for why nothing here uses a stock button style.
+/// Button styling splits by platform — see `body`. tvOS uses the stock style
+/// because focus IS the interface there; this custom style is for everywhere else.
 
-/// Buttons, styled by hand on every platform.
+/// Buttons on iOS/macOS, where focus is not how you navigate.
 ///
-/// tvOS will not leave a button alone: its default style fills the shape with
-/// the accent colour, so an amber tint gave amber-on-amber — DONE and LINK PLEX
-/// rendered as solid blank pills with the label invisible inside them. Unusable,
-/// and invisible in exactly the place a reviewer starts. `.plain` gives the
-/// background back to us, and focus is drawn explicitly instead.
+/// NOT used on tvOS. Two attempts got this wrong there and both are worth
+/// remembering: tvOS's default style fills the shape with the accent colour, so
+/// `.tint(amber)` gave amber-on-amber and DONE/LINK PLEX became solid BLANK
+/// pills; then `.plain` plus `@Environment(\.isFocused)` took the background
+/// back but drew no focus state at all, so the screen came up with nothing
+/// highlighted and the remote had nothing to move between. tvOS now uses the
+/// system style and the system focus ring.
 private struct SetupButtonStyle: ButtonStyle {
     var prominent = false
     var scale: CGFloat = 1
@@ -79,6 +82,16 @@ struct SetupView: View {
     @State private var jfPass = ""
     @State private var showJellyfin = false
 
+    /// Where the remote lands when Setup opens.
+    ///
+    /// tvOS does not hand focus into a view that appears inside an `.overlay` on
+    /// its own — the screen came up correctly rendered with NOTHING highlighted,
+    /// so the remote had nothing to move between and the whole page read as
+    /// frozen. Set explicitly once `refresh()` has resolved, which is also when
+    /// we know whether the first real control is LINK PLEX or a library row.
+    private enum Anchor: Hashable { case link, library, done }
+    @FocusState private var anchor: Anchor?
+
     @State private var chanName = ""
     @State private var chanNumber = ""
     @State private var chanOrdering = "sequential"
@@ -105,18 +118,30 @@ struct SetupView: View {
                 .frame(maxWidth: columnWidth, alignment: .leading)
             }
         }
-        // One style for every button in the tree, set here rather than per-call:
-        // a missed button is a blue pill on iOS and an unreadable amber-on-amber
-        // pill on tvOS, and both are the kind of thing you only notice in a
-        // screenshot. ButtonStyle propagates through the environment.
+        // BUTTON STYLING SPLITS BY PLATFORM, and tvOS gets the stock one.
+        //
+        // A custom ButtonStyle reading @Environment(\.isFocused) drew no focus
+        // state at all on tvOS: the screen came up with nothing highlighted and
+        // the remote had nothing to move between. Fighting the focus engine for
+        // cosmetics is the wrong trade on the one platform where focus IS the
+        // interface — and a reviewer expects tvOS buttons to look like tvOS
+        // buttons. So tvOS uses the system style and the system focus ring; we
+        // only guarantee the label contrasts (see below). Everywhere else keeps
+        // the palette, where focus isn't how you navigate.
+        #if os(tvOS)
+        .buttonStyle(.automatic)
+        #else
         .buttonStyle(SetupButtonStyle(scale: z))
         .tint(Palette.amber)
+        #endif
         .task {
             await model.refresh()
             if chanNumber.isEmpty { chanNumber = String(model.suggestedChannelNumber) }
             if chanOrdering.isEmpty || model.orderingModes.first(where: { $0.id == chanOrdering }) == nil {
                 chanOrdering = model.orderingModes.first?.id ?? "sequential"
             }
+            // After refresh, so "is there a library to pick?" is already answered.
+            anchor = model.isLinked ? (model.libraries.isEmpty ? .done : .library) : .link
         }
         #if os(tvOS)
         .onExitCommand(perform: onClose)
@@ -135,7 +160,10 @@ struct SetupView: View {
             Button(action: onClose) {
                 Text("DONE").font(f(13, .bold))
             }
+            .focused($anchor, equals: .done)
+            #if !os(tvOS)
             .buttonStyle(SetupButtonStyle(prominent: true, scale: z))
+            #endif
         }
     }
 
@@ -205,7 +233,10 @@ struct SetupView: View {
                     .font(f(12)).foregroundStyle(Palette.peri)
                 Button("LINK PLEX") { Task { await model.startPlexLink() } }
                     .font(f(15, .bold))
-                    .buttonStyle(SetupButtonStyle(prominent: true, scale: z))
+                    .focused($anchor, equals: .link)
+                    #if !os(tvOS)
+            .buttonStyle(SetupButtonStyle(prominent: true, scale: z))
+            #endif
                 Button(showJellyfin ? "HIDE JELLYFIN" : "USE JELLYFIN INSTEAD") {
                     showJellyfin.toggle()
                 }
@@ -220,7 +251,9 @@ struct SetupView: View {
                             Task { await model.connectJellyfin(url: jfURL, user: jfUser, pass: jfPass) }
                         }
                         .font(f(14, .bold))
-                        .buttonStyle(SetupButtonStyle(prominent: true, scale: z))
+                        #if !os(tvOS)
+            .buttonStyle(SetupButtonStyle(prominent: true, scale: z))
+            #endif
                         Text("Jellyfin has no code-based link, so this one needs typing. On a remote, the web companion below is easier.")
                             .font(f(10)).foregroundStyle(Palette.dim)
                             .fixedSize(horizontal: false, vertical: true)
@@ -271,7 +304,7 @@ struct SetupView: View {
                     .font(f(12))
             } else {
                 Text("Which library?").font(f(11)).foregroundStyle(Palette.dim)
-                ForEach(model.libraries) { lib in
+                ForEach(Array(model.libraries.enumerated()), id: \.element.id) { idx, lib in
                     Button {
                         chosenLibrary = lib
                         if chanName.isEmpty { chanName = lib.title.uppercased() }
@@ -282,6 +315,9 @@ struct SetupView: View {
                         }
                         .font(f(13))
                     }
+                    // Only the first row is an anchor; the rest are reached by
+                    // moving down from it.
+                    .focused($anchor, equals: idx == 0 ? .library : nil)
                 }
 
                 if let lib = chosenLibrary {
@@ -323,7 +359,9 @@ struct SetupView: View {
                             }
                         }
                         .font(f(15, .bold))
-                        .buttonStyle(SetupButtonStyle(prominent: true, scale: z))
+                        #if !os(tvOS)
+            .buttonStyle(SetupButtonStyle(prominent: true, scale: z))
+            #endif
                         .disabled(model.busy != nil)
 
                         Text("This adds every title in \(lib.title). Fine-tuning what's in it — excludes, ordering per item, ad breaks — lives in the web companion.")

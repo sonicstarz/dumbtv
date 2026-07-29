@@ -6,10 +6,14 @@
  * the bezel, and the whole point is that this ends up on a CRT.
  */
 
+import { config } from '../config.js';
+
 const W = 1280;
 const H = 720;
-const SAFE_X = Math.round(W * 0.075);
-const SAFE_Y = Math.round(H * 0.075);
+// Tunable, because overscan varies per set and this is meant to be adjusted
+// while looking at real glass rather than guessed at in a file (DUMBTV_SAFE_AREA).
+const SAFE_X = Math.round(W * config.safeArea);
+const SAFE_Y = Math.round(H * config.safeArea);
 const SAFE_W = W - SAFE_X * 2;
 
 // ASS colours are &HBBGGRR&

@@ -1043,6 +1043,49 @@ console.log('\nRemote keymap');
     keys.filter((k, i) => keys.indexOf(k) !== i).join(','));
 }
 
+// ---- overnight sleep schedule (Track D) ------------------------------------
+// sleep_start/sleep_end have been settable through the API since build 1 and
+// did NOTHING — a control wired to no behaviour. It blanks the picture and
+// wakes itself in the morning; the schedule keeps running throughout, so the
+// channel is mid-programme when the set comes back, exactly as a real one is.
+console.log('\nSleep schedule');
+{
+  const { engine } = await import('../src/player/engine.js');
+  const { setSetting: put } = await import('../src/db.js');
+  const p2 = (n) => String(n).padStart(2, '0');
+  const now = new Date();
+  const from = new Date(now.getTime() - 30 * 60000);
+  const to = new Date(now.getTime() + 30 * 60000);
+  put('sleep_start', `${p2(from.getHours())}:${p2(from.getMinutes())}`);
+  put('sleep_end', `${p2(to.getHours())}:${p2(to.getMinutes())}`);
+
+  await engine.tick();
+  check('sleep: the set goes off inside the window',
+    engine.asleep === true && engine.asleepReason === 'schedule',
+    `(asleep=${engine.asleep} reason=${engine.asleepReason})`);
+
+  // Waking it by hand must HOLD — otherwise the next tick, one second later,
+  // puts it straight back to sleep and the remote looks broken.
+  engine.asleep = false; engine.asleepReason = null;
+  engine.wokeManuallyUntil = Date.now() + 8 * HOUR;
+  await engine.tick();
+  check('sleep: a manual wake holds against the schedule', engine.asleep === false);
+
+  engine.wokeManuallyUntil = 0;
+  engine.asleep = true; engine.asleepReason = 'schedule';
+  put('sleep_start', '03:00'); put('sleep_end', '03:01');
+  await engine.tick();
+  check('sleep: it wakes itself when the window ends', engine.asleep === false);
+
+  // A sleep-TIMER off state is a different thing and waits for a keypress.
+  engine.asleep = true; engine.asleepReason = 'timer';
+  await engine.tick();
+  check('sleep: a timer sleep waits for a key, not the clock', engine.asleep === true);
+
+  engine.asleep = false; engine.asleepReason = null;
+  put('sleep_start', null); put('sleep_end', null);
+}
+
 // ---- determinism regression gate (build 17) --------------------------------
 // The scheduler tier teaches rules to select content by TAG, which is exactly
 // the kind of change that can quietly make output depend on Set iteration or

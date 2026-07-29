@@ -3,7 +3,7 @@ import { db, getSetting, setSetting } from '../db.js';
 import { config } from '../config.js';
 import { MpvPlayer } from './mpv.js';
 import { nowOn, upNextShow, guide, publicChannel } from '../schedule/resolver.js';
-import { MINUTE, HOUR, floorToSlot } from '../util/time.js';
+import { MINUTE, HOUR, floorToSlot, inDarkWindow } from '../util/time.js';
 import {
   channelBanner,
   tuneDigits,
@@ -50,6 +50,12 @@ export class Engine extends EventEmitter {
     // real set forgetting when you switch it off at the wall.
     this.sleepAt = 0;
     this.asleep = false;
+    // Why the set is off, which decides how it comes back on: a SLEEP TIMER
+    // waits for a keypress, an overnight SCHEDULE wakes itself in the morning.
+    this.asleepReason = null;
+    // Set when a scheduled sleep is dismissed by hand; suppresses the schedule
+    // until it expires so the override actually holds.
+    this.wokeManuallyUntil = 0;
   }
 
   async start() {
@@ -199,9 +205,11 @@ export class Engine extends EventEmitter {
       // button on a sleeping television turns it on, it does not also change
       // the channel.
       if (this.asleep) {
-        this.asleep = false;
-        if (this.mpv) await this.mpv.clearOverlay(OVERLAY_IDS.card).catch(() => {});
-        await this.sync(true).catch(() => {});
+        await this.#wake();
+        // A scheduled sleep that is woken by hand stays awake until the window
+        // ends — otherwise the next tick, one second later, puts it straight
+        // back to sleep and the remote appears broken.
+        if (this.asleepReason === null) this.wokeManuallyUntil = Date.now() + 8 * HOUR;
         return;
       }
       if (action === 'guide') {
@@ -376,6 +384,27 @@ export class Engine extends EventEmitter {
     }, 1200);
   }
 
+  /** Blank the picture. `reason` decides how it comes back — see asleepReason. */
+  async #sleep(reason) {
+    this.asleep = true;
+    this.asleepReason = reason;
+    this.emit('log', reason === 'timer' ? 'sleep timer fired — display off' : 'sleep schedule — display off');
+    if (!this.mpv || !this.mpv.ready) return;
+    await this.mpv.stop().catch(() => {});
+    await this.mpv
+      .showOverlay(OVERLAY_IDS.card, offAirCard('GOOD NIGHT',
+        reason === 'timer' ? 'Press any key' : 'Back in the morning'))
+      .catch(() => {});
+  }
+
+  /** Wake and re-derive. Whatever is on now is what plays — never a replay. */
+  async #wake() {
+    this.asleep = false;
+    this.asleepReason = null;
+    if (this.mpv) await this.mpv.clearOverlay(OVERLAY_IDS.card).catch(() => {});
+    await this.sync(true).catch(() => {});
+  }
+
   /** MUTE. Persisted, so it survives a channel change and a restart — a set
    *  that un-mutes itself when the show ends would be maddening. */
   async #toggleMute() {
@@ -525,13 +554,30 @@ export class Engine extends EventEmitter {
     // stop using. Any remote key clears it, because that is what "wake" means.
     if (this.sleepAt && Date.now() >= this.sleepAt) {
       this.sleepAt = 0;
-      this.asleep = true;
-      if (this.mpv && this.mpv.ready) {
-        await this.mpv.stop().catch(() => {});
-        await this.mpv.showOverlay(OVERLAY_IDS.card, offAirCard('GOOD NIGHT', 'Press any key')).catch(() => {});
-      }
-      this.emit('log', 'sleep timer fired — display off');
+      await this.#sleep('timer');
     }
+
+    // The overnight sleep SCHEDULE. This setting has existed in the API since
+    // build 1 and did nothing at all — a control in the UI wired to no
+    // behaviour. It blanks the picture between the two times and wakes itself
+    // in the morning; the schedule keeps running throughout, so the channel you
+    // left on is mid-programme when the set comes back, exactly as it would be.
+    //
+    // Blanking, never halting: a box that takes 30 seconds to boot is a box
+    // people stop using.
+    const sStart = getSetting('sleep_start', null);
+    const sEnd = getSetting('sleep_end', null);
+    const inWindow = !!(sStart && sEnd && inDarkWindow(Date.now(), sStart, sEnd));
+    // Someone who wakes the set by hand during the overnight window wants to
+    // watch television, not to argue with a timer once a second.
+    const overridden = this.wokeManuallyUntil > Date.now();
+    const scheduledOff = inWindow && !overridden;
+    if (scheduledOff && !this.asleep) {
+      await this.#sleep('schedule');
+    } else if (!scheduledOff && this.asleep && this.asleepReason === 'schedule') {
+      await this.#wake();          // morning — a timer sleep would wait for a key
+    }
+
     if (this.asleep) return;   // nothing re-derives while the set is off
 
     // If the tuned channel was deleted or disabled out from under us, fall back

@@ -89,11 +89,30 @@ Configure it from another device's browser:
 
 Then link Plex, build a channel, and plug the Pi's HDMI into your TV.
 
+Next, on the Pi itself:
+
+  - A remote:  a FLIRC dongle turns any old IR remote into this. See
+               docs/pi-remote.md for the keymap and how to program it.
+               No remote yet? Open http://dumbtv.local:8080/remote on a phone —
+               it drives the same player.
+
+  - A CRT:     ./pi/crt.sh            shows what your display is doing now
+               ./pi/crt.sh --apply    sets a 480-line mode, then reboot
+               Use an HDMI->composite converter box rather than the Pi's own
+               composite out — steadier sync, and a much better picture.
+
+  - Overnight: set a sleep window in the web UI under Settings. The picture
+               blanks and comes back in the morning; the schedule keeps running,
+               so the channel is mid-programme when it returns. Blanking, never
+               halting — it wakes instantly on any key.
+
 Notes:
   - Display output uses mpv DRM/KMS (--vo=gpu --gpu-context=drm). If the
     picture doesn't appear, confirm HDMI is detected and the user is in the
-    'video' and 'render' groups:  sudo usermod -aG video,render $USER_NAME
-  - For a CRT: use an HDMI->composite converter and a 480-line mode.
+    'video', 'render' and 'input' groups:
+      sudo usermod -aG video,render,input $USER_NAME
+  - Edges cut off on a CRT? Widen the safe area rather than the display mode:
+      sudo systemctl edit dumbtv     ->  Environment=DUMBTV_SAFE_AREA=0.10
   - Logs:      journalctl -u dumbtv -f
   - Restart:   sudo systemctl restart dumbtv
 DONE

@@ -28,6 +28,13 @@ export const config = {
   // HDMI via DRM: DUMBTV_MPV_ARGS="--vo=gpu --gpu-context=drm"
   mpvExtraArgs: (process.env.DUMBTV_MPV_ARGS || '').split(' ').map((s) => s.trim()).filter(Boolean),
 
+  // CRT safe area, as a fraction inset on each edge. Every tube hides a
+  // different amount behind the bezel — 7.5% is the broadcast convention, but
+  // the whole point of "a safe-area pass on real glass" is that you cannot know
+  // until you see it on the set. A knob beats a code change:
+  //   DUMBTV_SAFE_AREA=0.10 npm start
+  safeArea: Math.min(0.2, Math.max(0, Number(process.env.DUMBTV_SAFE_AREA ?? 0.075))),
+
   // How often the engine re-checks what should be on air. 1s feels live
   // and costs nothing — it's one indexed SQLite read per channel.
   tickMs: Number(process.env.DUMBTV_TICK_MS || 1000),

@@ -1,0 +1,110 @@
+name: Site
+
+# Deploys dumbtv.app — the landing page plus the two URLs App Store review
+# requires (privacy, support) — and publishes the pack catalog to
+# dumbtv.app/packs/index.json, which used to 404.
+#
+# The catalog is GENERATED, never hand-edited: it is rebuilt from the pack
+# manifests during deploy so the published file cannot drift from the packs it
+# describes.
+#
+# ⚠️ Publishing it does NOT yet make curation live. No client fetches it today —
+# Node's loadCatalog() reads only the bundled packs/index.json, and Swift reads a
+# "downloaded override" path that nothing ever writes. Serving the file is the
+# prerequisite; the fetch-with-fallback client is unbuilt and unspecified (it
+# touches the no-phone-home promise, so it needs a decision, not an invention).
+# See "B3 findings" in docs/build-15-handoff.md.
+on:
+  push:
+    branches: ["main"]
+    paths:
+      - "site/**"
+      - "packs/*/manifest.json"
+      - "scripts/build-pack.js"
+      - ".github/workflows/site.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: site
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    name: Publish dumbtv.app
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # No secrets configured is a legitimate state (a fork, or before the
+      # tokens are added). Say so plainly and stop — a missing deploy key is
+      # not a broken build.
+      - name: Check for deploy credentials
+        id: creds
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+        run: |
+          if [ -z "$NETLIFY_AUTH_TOKEN" ] || [ -z "$NETLIFY_SITE_ID" ]; then
+            echo "::notice::NETLIFY_AUTH_TOKEN / NETLIFY_SITE_ID are not set — skipping deploy."
+            echo "::notice::The site build is still validated below; add the secrets to publish."
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      # Regenerate the catalog from the manifests. This hits archive.org for
+      # per-item sizes, so it can legitimately fail on a bad network day — in
+      # which case we publish the committed copy rather than nothing.
+      - name: Build the pack catalog
+        run: |
+          if node scripts/build-pack.js catalog; then
+            echo "catalog regenerated"
+          else
+            echo "::warning::catalog generation failed (sources unreachable?) — publishing the committed packs/index.json"
+          fi
+
+      - name: Assemble the site
+        run: |
+          mkdir -p _site/packs
+          cp site/*.html _site/
+          cp packs/index.json _site/packs/index.json
+          # Fail loudly rather than deploying a catalog that isn't valid JSON.
+          node -e "
+            const c = JSON.parse(require('fs').readFileSync('_site/packs/index.json','utf8'));
+            if (!Array.isArray(c.packs) || !c.packs.length) throw new Error('catalog has no packs');
+            console.log('catalog ok:', c.packs.length, 'packs');
+          "
+          ls -la _site _site/packs
+
+      - name: Deploy to Netlify
+        if: steps.creds.outputs.ready == 'true'
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+        run: npx --yes netlify-cli@17 deploy --dir=_site --prod --site "$NETLIFY_SITE_ID"
+
+      # Prove the thing that was actually broken is fixed. /packs/index.json
+      # 404'd before this workflow existed.
+      - name: Verify the published catalog
+        if: steps.creds.outputs.ready == 'true'
+        run: |
+          for i in 1 2 3 4 5; do
+            code=$(curl -sSL -o /tmp/live.json -w '%{http_code}' https://dumbtv.app/packs/index.json || true)
+            [ "$code" = "200" ] && break
+            echo "attempt $i: HTTP $code — waiting for propagation"; sleep 10
+          done
+          [ "$code" = "200" ] || { echo "::error::dumbtv.app/packs/index.json returned $code"; exit 1; }
+          node -e "
+            const live = JSON.parse(require('fs').readFileSync('/tmp/live.json','utf8'));
+            const repo = JSON.parse(require('fs').readFileSync('_site/packs/index.json','utf8'));
+            const ids = (c) => c.packs.map((p) => p.id).sort().join(',');
+            if (ids(live) !== ids(repo)) throw new Error('live catalog differs: ' + ids(live) + ' vs ' + ids(repo));
+            console.log('live catalog matches:', ids(live));
+          "

@@ -109,6 +109,26 @@ New `.github/workflows/site.yml` — on push to `main` touching `site/**`, deplo
 
 > **Ordering is not optional:** A1 and A2 must be merged before B3. Publishing the catalog is what converts S-1 from theoretical to live.
 
+### B3 findings — 2026-07-29 · **the second half of this task does not exist**
+
+The publishing half is done: `.github/workflows/site.yml` regenerates the catalog from the manifests, validates it, deploys it, and then asserts the live URL returns 200 with a matching pack list. `dumbtv.app/packs/index.json` will stop 404ing the first time that workflow runs with credentials.
+
+**But nothing consumes it, so publishing alone cannot make curation live.** Verified in both engines:
+
+- **Node** — `loadCatalog()` in `src/packs/install.js` reads exactly one path, `<repo>/packs/index.json`, and falls back to an empty catalog. There is no remote fetch anywhere in the Node codebase.
+- **Swift** — `loadCatalog()` in `Packs+API.swift` prefers `downloadedPacksDir()/index.json` over the bundled copy, but **nothing in the codebase ever writes that file.** The override is a slot that was left for this feature and never filled.
+
+So the acceptance criterion *"a fresh Docker container installs a pack from the live catalog"* **is not achievable by this chunk** — a container installs from its bundled catalog, exactly as before.
+
+**This was not specced, and it should not be invented**, because the missing piece carries a real decision:
+
+- **The no-phone-home promise.** The roadmap's P3 entry says the catalog is *"fetched only when the page opens — no phone-home."* A fetch on boot, on a timer, or on every pack-picker render are three different privacy stories, and the privacy policy currently describes none of them.
+- **Failure and staleness policy** — TTL, offline behaviour, and whether a fetched catalog that is *older* or *smaller* than the bundled one should ever win.
+- **Where the fetched copy lands on Apple** — writing `downloadedPacksDir()/index.json` interacts with the tvOS purgeable-Caches rule from the A5/N4 work.
+- **Trust.** The moment a remote catalog is honoured, S-1 and S-9 stop being theoretical. Those are fixed (Chunk A), but the threat model should be written down alongside the fetch, not after it.
+
+**Recommendation:** a small follow-up — "fetch the pack catalog, with the bundled copy as fallback" — specced with the privacy answer decided up front. Roughly `[S]` in both engines once the policy question is settled. It is the honest remainder of D5.
+
 ---
 
 # Chunk C · Pack manifest schema v2

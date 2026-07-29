@@ -64,6 +64,13 @@ final class Engine: ObservableObject {
     }
     /// Which row the arrow keys/remote have highlighted in the guide.
     @Published var guideSelection = 0
+    /// Set when the guide's ⚙ row is selected; TVView opens the native Setup
+    /// overlay and clears it. A flag rather than a closure so it survives the
+    /// view being rebuilt, and so the engine needs no reference to the UI.
+    @Published var setupRequested = false
+    /// Whether native Setup has a backend to talk to. False when the Store
+    /// failed to open, in which case the ⚙ row falls back to channel 00.
+    var setupAvailable = false
     /// Left edge of the visible time axis (floored to :30). ←→ shift it by 30 min.
     @Published var guideWindowStart: Millis = 0
     @Published var linked = false
@@ -518,11 +525,29 @@ final class Engine: ObservableObject {
         guideSelection = min(max(guideSelection + delta, -1), channels.count - 1)
     }
     func guideSelect() {
-        // The SETUP row (channel 00) — go to the setup screen, close the guide.
+        // The SETUP row — open native Setup.
+        //
+        // It used to tune to channel 00 instead, which on tvOS was a dead end:
+        // channel 00 shows a card with a "set up on this device" BUTTON, and the
+        // button can never be pressed there. TVView owns `.focusable()` and eats
+        // SELECT in `.onTapGesture`, so a nested Button never receives focus —
+        // the same reason the card's dismiss ✕ was already excluded on tvOS. The
+        // remote had no way to reach native Setup at all.
+        //
+        // Now the guide row IS the affordance: it's already reachable with the
+        // D-pad, because the guide runs its own selection index rather than
+        // relying on the focus engine.
         if guideSelection == -1 {
             guideTuning = nil
             guideTuneTask?.cancel()
-            tuneToSetup()
+            if setupAvailable {
+                guideOpen = false
+                setupRequested = true
+            } else {
+                // No backend, so there is nothing for Setup to talk to —
+                // channel 00 is still where the diagnostics explain why.
+                tuneToSetup()
+            }
             return
         }
         guard channels.indices.contains(guideSelection) else { return }

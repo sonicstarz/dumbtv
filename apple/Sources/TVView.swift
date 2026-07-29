@@ -119,10 +119,16 @@ struct TVView: View {
         // underneath is THE video surface (F3). The player keeps running behind
         // this, so closing Setup returns to a programme already in progress
         // rather than to a black frame and a reload.
+        .onAppear { engine.setupAvailable = setup != nil }
         .overlay {
-            if setupOpen, let setup {
+            // Two ways in, ORed rather than mirrored: local state for the S key
+            // and the setup-card button, and engine.setupRequested for the
+            // guide's ⚙ row. Deriving it avoids .onChange entirely — the
+            // two-parameter form is iOS 17+ and this app targets iOS 16.
+            if setupOpen || engine.setupRequested, let setup {
                 SetupView(model: setup, diag: diag, configURL: configURL) {
                     setupOpen = false
+                    engine.setupRequested = false
                     // Nothing to reload by hand: native Setup mutates through the
                     // same ConfigAPI the web UI does, which posts
                     // .dumbTVConfigChanged — and Engine already observes it. A

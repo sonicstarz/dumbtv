@@ -44,10 +44,18 @@ struct GuideView: View {
     private var footer: some View {
         HStack(spacing: 30 * s) {
             Spacer()
+            Text("⚙ TOP ROW = SETUP")
             Text("↑↓ CHANNEL")
             Text("←→ HOURS")
             Text("ENTER WATCH")
-            Text("1 CLOSE")
+            // Said "1 CLOSE" — which stopped being true when `1` was freed up to
+            // dial channel 1 (SPACE) instead of toggling the guide. A key legend
+            // that lies is worse than no legend.
+            #if os(tvOS)
+            Text("MENU CLOSE")
+            #else
+            Text("G CLOSE")
+            #endif
         }
         .font(Palette.mono(13 * s, .semibold))
         .foregroundStyle(Palette.amber)
@@ -80,8 +88,13 @@ private struct GuideGrid: View {
         let selected = engine.guideSelection == -1
         return HStack(spacing: 0) {
             ZStack {
+                // A gear, not a channel number. This row no longer tunes to
+                // channel 00 — it opens Setup — and on a remote the wheel is the
+                // thing people look for. The number stayed as "00" long after
+                // the row stopped being a channel.
                 VStack(spacing: 3 * s) {
-                    Text("00").font(Palette.display(22 * s)).foregroundStyle(Palette.amber)
+                    Image(systemName: "gearshape.fill")
+                        .font(.system(size: 20 * s)).foregroundStyle(Palette.amber)
                     Text("SETUP").font(Palette.mono(8 * s)).foregroundStyle(Palette.ice)
                 }
                 if engine.onSetupChannel {
@@ -92,7 +105,7 @@ private struct GuideGrid: View {
             }
             .frame(width: gutter)
             ZStack(alignment: .leading) {
-                Text("SET UP dumbTV — scan the QR code or open the config page")
+                Text("SET UP dumbTV — link a server, pick libraries, make a channel")
                     .font(Palette.mono(13 * s)).foregroundStyle(Palette.peri)
                     .padding(.leading, 12 * s).lineLimit(1)
             }
@@ -129,16 +142,17 @@ private struct GuideGrid: View {
                 ScrollViewReader { proxy in
                     ScrollView(.vertical, showsIndicators: false) {
                         VStack(spacing: 0) {
-                            // SETUP row (channel 00) — always first, so the QR +
-                            // setup URL stay reachable from the guide even after
-                            // Plex is linked and the demo setup card is gone.
+                            // SETUP row — always first, so Setup stays reachable
+                            // from the guide forever, on every platform. On tvOS
+                            // this is the ONLY way in: the root view owns focus,
+                            // so a Button on the setup card can never be pressed.
                             setupRow(lane: lane)
                                 .frame(height: rowH)
                                 .id(-1)
                                 .contentShape(Rectangle())
                                 .onTapGesture { engine.guideSelection = -1; engine.guideSelect() }
                                 .accessibilityElement(children: .ignore)
-                                .accessibilityLabel("Channel 0, Setup. Shows the QR code and setup address. Select to open.")
+                                .accessibilityLabel("Setup. Link a media server, choose libraries, create a channel. Select to open.")
                             ForEach(engine.guideProgramRows()) { row in
                                 let airing = row.programs.first { now >= $0.startUtc && now < $0.endUtc }
                                 GuideGridRow(row: row, gutter: gutter, lane: lane, windowStart: windowStart,

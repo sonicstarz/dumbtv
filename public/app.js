@@ -37,6 +37,15 @@ function toast(message, bad = false) {
 const clock = (ts) =>
   new Date(ts).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
 
+/** Which preset does this vibe document match? '' when it matches none. */
+function vibeNameOf(v) {
+  if (!v) return '';
+  for (const [name, preset] of Object.entries(state.vibePresets || {})) {
+    if (JSON.stringify(preset) === JSON.stringify(v)) return name;
+  }
+  return '';
+}
+
 function mins(ms) {
   return Math.round(ms / 60000);
 }
@@ -389,6 +398,11 @@ async function loadSettings() {
   $('#tzInput').value = cfg.timezone || '';
   $('#dispFill').value = cfg.displayFill === 'fill' ? 'fill' : 'fit';
   $('#dispCaptions').checked = !!cfg.captions;
+  // L-V1: presets come from the server so the two sides cannot drift apart.
+  state.vibePresets = cfg.vibePresets || {};
+  state.vibeDefault = cfg.vibeDefault || null;
+  const dv = $('#dispVibe');
+  if (dv) dv.value = vibeNameOf(cfg.vibeDefault) || 'off';
 
   try {
     const llm = await api('/api/llm/status');
@@ -416,6 +430,12 @@ $('#dispFill').addEventListener('change', async (e) => {
 $('#dispCaptions').addEventListener('change', async (e) => {
   await api('/api/settings', { method: 'POST', body: { captions: e.target.checked ? 1 : 0 } });
   toast(e.target.checked ? 'Captions on.' : 'Captions off.');
+});
+$('#dispVibe')?.addEventListener('change', async (e) => {
+  const preset = state.vibePresets?.[e.target.value] ?? null;
+  await api('/api/settings', { method: 'POST', body: { vibeDefault: preset } });
+  state.vibeDefault = preset;
+  toast(`Default look: ${e.target.selectedOptions[0].textContent.split('—')[0].trim()}.`);
 });
 $('#tzSave').addEventListener('click', async () => {
   try {
@@ -1054,6 +1074,29 @@ function openSettings(channelId, opts = {}) {
       </div>
     </details>
 
+    <details style="margin-top:18px">
+      <summary style="cursor:pointer;font:600 13px var(--mono);letter-spacing:.08em;color:var(--dim)">VIBE — HOW THIS CHANNEL LOOKS</summary>
+      <div style="margin-top:16px">
+        <div class="row">
+          <div class="field" style="flex:1">
+            <label>LOOK</label>
+            <select id="fVibe" data-current="${escapeHtml(vibeNameOf(c.vibe))}">
+              <option value="">Use the default look</option>
+              <option value="off">Off — clean picture</option>
+              <option value="crt">CRT — a tidy set in good condition</option>
+              <option value="vhs">VHS — a tape that's been played a lot</option>
+              <option value="rough">Rough — bent aerial, bar in the corner</option>
+            </select>
+          </div>
+        </div>
+        <p class="hint">
+          4:3 cropping, scanlines, vignette, grain and dead pixels — all drawn
+          over the picture, so nothing is re-encoded and playback is untouched.
+          Set the default for every channel under Settings.
+        </p>
+      </div>
+    </details>
+
     <div class="row" style="margin-top:26px;justify-content:flex-end">
       <button class="ghost" id="fCancel">Cancel</button>
       <button class="ghost" id="fRefresh">Re-read from Plex</button>
@@ -1068,6 +1111,9 @@ function openSettings(channelId, opts = {}) {
       $('#fMode', back).value === 'marathon' ? '' : 'none';
   };
   $('#fMode', back).addEventListener('change', blurb);
+  // Show the channel's current look. A channel with no vibe of its own stays on
+  // "use the default", which is the honest reading of NULL.
+  $('#fVibe', back).value = $('#fVibe', back).dataset.current || '';
   blurb();
 
   // Bedtime quick-presets fill the time inputs (and highlight the active one).
@@ -1119,6 +1165,11 @@ function openSettings(channelId, opts = {}) {
           orderingMode: $('#fMode', back).value,
           marathonSize: Number($('#fMar', back).value),
           adsEnabled: $('#fAds', back).checked,
+          // L-V1: '' means inherit the global default (stored as NULL).
+          vibe: (() => {
+            const v = $('#fVibe', back).value;
+            return v === '' ? null : (state.vibePresets?.[v] ?? null);
+          })(),
           maxAdsPerBreak: Number($('#fMaxAds', back).value),
           adTags: $('#fTags', back).value,
           timingMode: $('#fTiming', back).value,

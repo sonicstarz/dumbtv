@@ -157,6 +157,50 @@ body.fill video { object-fit: cover; }
 /* Off-air snow sits under the bars/cards, which draw their own background. */
 #screen.offair #snow { z-index: 1; }
 
+/* ---- Vibe V1: the no-shader CRT/VHS layer ----
+   Everything here is an overlay over the picture, so the video pipeline is
+   untouched and the same CSS works on the Pi, in Safari and in Chrome. The
+   shader tier (V2) is separate, gated work — nothing below anticipates it.
+   Intensities arrive from the resolved vibe as CSS variables. */
+#vibe { position: absolute; inset: 0; z-index: 3; pointer-events: none; display: none; }
+#vibe.on { display: block; }
+/* Scanlines: a 3px repeating gradient. On a real CRT at 480 lines this is
+   redundant, which is why it is a setting and not a default. */
+#vibe .scan {
+  position: absolute; inset: 0;
+  background: repeating-linear-gradient(
+    to bottom, rgba(0,0,0,.9) 0px, rgba(0,0,0,.9) 1px, transparent 1px, transparent 3px);
+  opacity: var(--vibe-scan, 0);
+}
+/* Vignette: the corners of a tube were never as bright as the middle. */
+#vibe .vig {
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse at center,
+    transparent 45%, rgba(0,0,0,.55) 88%, rgba(0,0,0,.9) 100%);
+  opacity: var(--vibe-vig, 0);
+}
+#vibe .dead { position: absolute; inset: 0; }
+#vibe .dead i {
+  position: absolute; width: 2px; height: 2px; background: #000;
+  box-shadow: 0 0 1px rgba(0,0,0,.85);
+}
+
+/* 4:3 crop — pillarbox to the shape a television actually was. The phase notes
+   call this the single biggest "it looks right" win, and it is one rule. The
+   overlays follow the picture so effects don't spill onto the black bars. */
+body.crop43 #video,
+body.crop43 #vibe,
+body.crop43 #snow {
+  position: absolute;
+  width: min(100%, calc(100vh * 4 / 3));
+  height: min(100%, calc(100vw * 3 / 4));
+  left: 50%; top: 50%; transform: translate(-50%, -50%);
+}
+/* Chroma bleed: nudge saturation the way a composite signal did. Deliberately
+   not a blur — blurring the picture to fake an analog chain costs real quality
+   for a small effect, and that trade belongs in the shader tier. */
+body.vibe-bleed #video { filter: saturate(calc(1 + var(--vibe-bleed, 0) * .7)); }
+
 /* ---- channel bug (K-B1) ----
    Inside the CRT safe area, low contrast, never over the banner. Real bugs are
    translucent and sit still — this one is deliberately unglamorous. */
@@ -233,6 +277,14 @@ body.fill video { object-fit: cover; }
   <!-- Analog snow. One canvas serves the channel-change burst, off-air snow,
        and the Vibe grain — see static-renderer.js. -->
   <canvas id="snow"></canvas>
+
+  <!-- Vibe V1 (L-V1): the no-shader CRT/VHS layer. Pure overlay, so it costs
+       the video pipeline nothing and works identically in every browser. -->
+  <div id="vibe" aria-hidden="true">
+    <div class="scan"></div>
+    <div class="vig"></div>
+    <div class="dead" id="vibeDead"></div>
+  </div>
 
   <!-- The channel bug: a broadcaster's mark in the corner, always on. -->
   <div id="bug"><span id="bugNum">00</span></div>

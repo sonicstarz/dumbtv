@@ -1,4 +1,5 @@
 import { db } from '../db.js';
+import { parseVibe } from '../vibe.js';
 import { streamUrl } from '../media/backend.js';
 import { resolvePackPath } from '../packs/install.js';
 import { HOUR } from '../util/time.js';
@@ -221,6 +222,9 @@ export function publicChannel(c) {
     // S3: a channel dumbTV ships and stands behind. The web UI swaps its
     // edit/delete affordances for a lock chip.
     locked: !!c.locked,
+    // L-V1: this channel's own look, or null to inherit the global default.
+    // The player resolves the scopes; the API just carries the document.
+    vibe: parseVibe(c.vibe),
     generatedThru: c.generated_thru,
   };
 }

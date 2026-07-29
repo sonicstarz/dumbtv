@@ -355,11 +355,25 @@
               <option value="fill">Fill — crop to fill the screen (4:3 sets)</option>
             </select>
           </div>
+          <div class="field">
+            <label>DEFAULT LOOK</label>
+            <select id="dispVibe">
+              <option value="off">Off — clean picture</option>
+              <option value="crt">CRT — a tidy set in good condition</option>
+              <option value="vhs">VHS — a tape that's been played a lot</option>
+              <option value="rough">Rough — bent aerial, bar in the corner</option>
+            </select>
+          </div>
           <label style="display:flex;gap:8px;align-items:center;font-family:var(--sans);font-size:14px;color:var(--tape)">
             <input id="dispCaptions" type="checkbox"> Show captions
           </label>
         </div>
         <p class="hint">On the TV, <span class="mono">C</span> toggles captions and the picture setting drives mpv panscan. Browser captions depend on the file exposing subtitle tracks.</p>
+        <p class="hint">
+          The look is drawn <em>over</em> the picture — 4:3 cropping, scanlines,
+          vignette, grain and dead pixels. Nothing is re-encoded and playback is
+          untouched. Any channel can override this in its own settings.
+        </p>
       </div>
 
       <div class="card" data-native-hide>

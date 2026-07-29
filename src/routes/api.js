@@ -54,6 +54,7 @@ import { config } from '../config.js';
 import { guide, nowOnAll, nowOn, upNextShow, publicChannel } from '../schedule/resolver.js';
 import { ORDERING_MODES } from '../schedule/ordering.js';
 import { hashString } from '../util/rng.js';
+import { normalizeVibe, parseVibe, VIBE_PRESETS } from '../vibe.js';
 import { scanAssets } from '../assets.js';
 import { buildSchedulePdf } from '../print.js';
 import { engine } from '../player/engine.js';
@@ -79,6 +80,7 @@ const CHANNEL_FIELDS = [
   'cooldown_days',
   'overrun_policy',
   'enabled',
+  'vibe',
 ];
 
 export default async function api(fastify) {
@@ -423,6 +425,9 @@ export default async function api(fastify) {
       cooldown_days: b.cooldownDays,
       overrun_policy: b.overrunPolicy,
       enabled: b.enabled === undefined ? undefined : b.enabled ? 1 : 0,
+      // A vibe is stored whole. `null` clears it back to the global default.
+      vibe: b.vibe === undefined ? undefined
+        : (b.vibe === null ? null : JSON.stringify(normalizeVibe(b.vibe))),
     };
     const sets = [];
     const vals = [];
@@ -691,7 +696,7 @@ export default async function api(fastify) {
         adsEnabled: !!c.ads_enabled, maxAdsPerBreak: c.max_ads_per_break,
         adTags: c.ad_tags, timingMode: c.timing_mode, adsBetween: c.ads_between,
         cooldownDays: c.cooldown_days, overrunPolicy: c.overrun_policy,
-        enabled: !!c.enabled,
+        enabled: !!c.enabled, vibe: parseVibe(c.vibe),
         sources: srcStmt.all(c.id).map((s) => ({
           ratingKey: s.rating_key, sourceType: s.source_type, title: s.title,
         })),
@@ -1104,6 +1109,9 @@ export default async function api(fastify) {
     // Display: 'fit' letterboxes to keep the whole picture; 'fill' crops to fill
     // the screen (right for a 4:3 set where letterbox bars waste the tube).
     displayFill: getSetting('display_fill', 'fit'),
+    // L-V1: the look every channel inherits unless it sets its own.
+    vibeDefault: getSetting('vibe_default', null),
+    vibePresets: VIBE_PRESETS,
     captions: getSetting('captions', 0) ? 1 : 0,
   }));
 
@@ -1114,6 +1122,9 @@ export default async function api(fastify) {
     if (b.sleepEnd !== undefined) setSetting('sleep_end', b.sleepEnd || null);
     if (b.loudnessTarget !== undefined) setSetting('loudness_target', Number(b.loudnessTarget));
     if (b.displayFill !== undefined) setSetting('display_fill', b.displayFill === 'fill' ? 'fill' : 'fit');
+    if (b.vibeDefault !== undefined) {
+      setSetting('vibe_default', b.vibeDefault ? normalizeVibe(b.vibeDefault) : null);
+    }
     if (b.captions !== undefined) setSetting('captions', b.captions ? 1 : 0);
     if (b.timezone !== undefined) {
       const tz = (b.timezone || '').trim();

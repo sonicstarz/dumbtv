@@ -33,6 +33,8 @@ const state = {
   // K-B2: the up-next banner reveals itself near the end of a program, the way
   // a broadcaster slides one in over the last act. Once per program.
   nextRevealedFor: null,
+  vibeDefault: null,   // global look; a channel may override it (L-V1)
+  snowBusy: false,     // a burst owns the snow canvas — grain must not fight it
   guideSig: '',        // E-5: only rebuild the guide DOM when it actually changed
 };
 
@@ -95,11 +97,63 @@ function applyDisplay() {
   applyCaptions();
 }
 
+// ---- Vibe V1 (L-V1) --------------------------------------------------------
+//
+// Resolution is deliberately a list, most-specific first, so adding a per-ITEM
+// scope later is one more argument rather than a rewrite — that is the open
+// question the model is built to survive. See src/vibe.js.
+const VIBE_OFF = { crop43: false, scanlines: 0, vignette: 0, grain: 0, deadPixels: 0, bleed: 0 };
+
+function resolveVibe(...scopes) {
+  const out = { ...VIBE_OFF };
+  for (const s of scopes.filter(Boolean).reverse()) Object.assign(out, s);
+  return out;
+}
+
+const vibeActive = (v) =>
+  v.crop43 || v.scanlines > 0 || v.vignette > 0 || v.grain > 0 || v.deadPixels > 0 || v.bleed > 0;
+
+let deadPixelCount = -1;
+
+function applyVibe(channelVibe) {
+  const v = resolveVibe(channelVibe, state.vibeDefault);
+  const body = document.body;
+  const el = $('#vibe');
+
+  body.classList.toggle('crop43', !!v.crop43);
+  body.classList.toggle('vibe-bleed', v.bleed > 0);
+  body.style.setProperty('--vibe-scan', v.scanlines);
+  body.style.setProperty('--vibe-vig', v.vignette);
+  body.style.setProperty('--vibe-bleed', v.bleed);
+  el.classList.toggle('on', vibeActive(v));
+
+  // Dead pixels are FIXED: a stuck pixel that wanders is not a stuck pixel.
+  // Rebuild only when the count changes, and place them from a fixed sequence
+  // so they land in the same spots every load.
+  if (v.deadPixels !== deadPixelCount) {
+    deadPixelCount = v.deadPixels;
+    const spots = [[17, 23], [62, 11], [38, 77], [84, 44], [9, 58],
+                   [71, 89], [46, 31], [93, 67], [28, 6], [55, 95], [77, 19], [12, 41]];
+    $('#vibeDead').innerHTML = spots.slice(0, v.deadPixels)
+      .map(([x, y]) => `<i style="left:${x}%;top:${y}%"></i>`).join('');
+  }
+
+  // Grain rides the shared static field at low intensity, which is why the
+  // renderer exists rather than three separate noise implementations.
+  if (v.grain > 0 && !state.guideOpen) {
+    snow.setIntensity(v.grain * 0.5);   // 1.0 grain is a bad picture, not a blizzard
+    snow.start();
+  } else if (!state.snowBusy) {
+    snow.stop();
+  }
+}
+
 async function loadDisplaySettings() {
   try {
     const s = await api('/api/settings');
     state.fill = s.displayFill === 'fill' ? 'fill' : 'fit';
     state.captions = !!s.captions;
+    state.vibeDefault = s.vibeDefault || null;
     applyDisplay();
   } catch {}
 }
@@ -147,6 +201,9 @@ async function poll() {
 
   const changed = now.id !== state.programId;
   state.programId = now.id;
+
+  // L-V1: the look follows the channel, resolved against the global default.
+  applyVibe(ch.vibe);
 
   // K-B2: reveal the up-next banner over the last stretch of a program, once.
   // A viewer who can't pause deserves to be told what's coming without asking.
@@ -280,9 +337,13 @@ function tuneTo(channelId) {
   // K-B3: a moment of snow between channels. Deliberately not awaited — the
   // tune must not wait on an animation, so the picture arrives underneath and
   // the static clears off it.
-  snow.burst(200);
+  state.snowBusy = true;
+  snow.burst(200).then(() => { state.snowBusy = false; applyVibe(currentChannel()?.vibe); });
   poll();
 }
+
+const currentChannel = () =>
+  state.channels.find((c) => c.channel.id === state.channelId)?.channel ?? null;
 
 function surf(dir) {
   const idx = state.channels.findIndex((c) => c.channel.id === state.channelId);

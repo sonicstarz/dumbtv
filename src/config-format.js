@@ -28,6 +28,9 @@ export const CHANNEL_FIELDS = [
   'number', 'name', 'slotMinutes', 'orderingMode', 'marathonSize', 'shuffleSeed',
   'darkStart', 'darkEnd', 'adsEnabled', 'maxAdsPerBreak', 'adTags',
   'timingMode', 'adsBetween', 'cooldownDays', 'overrunPolicy', 'enabled',
+  // L-V1: a channel's look is part of the lineup — a clone that arrives
+  // looking different is not the same lineup.
+  'vibe',
 ];
 
 export const SOURCE_FIELDS = ['ratingKey', 'sourceType', 'title'];
@@ -53,7 +56,7 @@ export const CHANNEL_COLUMNS = {
   shuffleSeed: 'shuffle_seed', darkStart: 'dark_start', darkEnd: 'dark_end',
   adsEnabled: 'ads_enabled', maxAdsPerBreak: 'max_ads_per_break', adTags: 'ad_tags',
   timingMode: 'timing_mode', adsBetween: 'ads_between', cooldownDays: 'cooldown_days',
-  overrunPolicy: 'overrun_policy', enabled: 'enabled',
+  overrunPolicy: 'overrun_policy', enabled: 'enabled', vibe: 'vibe',
 };
 
 export const RULE_COLUMNS = {
@@ -72,7 +75,12 @@ export function pickChannel(obj) {
   const out = {};
   for (const f of CHANNEL_FIELDS) {
     if (obj[f] === undefined) continue;
-    out[f] = BOOL_CHANNEL_FIELDS.has(f) ? (obj[f] ? 1 : 0) : obj[f];
+    if (f === 'vibe') {
+      // Travels as a document, stored as text. null stays null (inherit).
+      out[f] = obj[f] ? JSON.stringify(obj[f]) : null;
+    } else {
+      out[f] = BOOL_CHANNEL_FIELDS.has(f) ? (obj[f] ? 1 : 0) : obj[f];
+    }
   }
   return out;
 }

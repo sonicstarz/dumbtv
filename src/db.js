@@ -199,6 +199,10 @@ addColumnIfMissing('schedule_rules', 'cadence_compress', 'REAL NOT NULL DEFAULT 
 // channel should not need re-dating each autumn. Off = the original one-shot
 // absolute range, so nothing existing changes behaviour.
 addColumnIfMissing('schedule_rules', 'effective_annual', 'INTEGER NOT NULL DEFAULT 0');
+// Vibe (L-V1): the per-channel CRT/VHS look, stored as a self-contained JSON
+// document rather than a spread of columns — see src/vibe.js for why. NULL
+// means "inherit the global default", which is itself a setting.
+addColumnIfMissing('channels', 'vibe', 'TEXT');
 // Loudness: gain (dB) toward the target, measured at import, applied at playback.
 addColumnIfMissing('assets', 'gain_db', 'REAL');
 // System channels (S3): a prebuilt channel dumbTV ships and stands behind — the

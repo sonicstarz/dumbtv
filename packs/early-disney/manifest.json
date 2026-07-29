@@ -30,8 +30,15 @@
       "license": {
         "url": "https://archive.org/details/PlaneCrazy_201511",
         "verified": "2026-07-26",
-        "note": "1928 work → US public domain Jan 2024. IA item PD-marked. TRADEMARK CAUTION: the films are PD; Mickey Mouse remains a Disney trademark — never use Disney characters in dumbTV marketing. RE-SOURCED 2026-07-26: the original IA item (plane-crazy-1928) went dark — 404, apparently a takedown sweep of Disney-adjacent items; a second copy (plane-crazy-1928_202406) vanished in the same wave. The film's PD-by-age status (1928 + 95) is unaffected; only the hosting item changed. New source is PD-marked on IA."
-      }
+        "note": "1928 work → US public domain Jan 2024. IA item PD-marked. TRADEMARK CAUTION: the films are PD; Mickey Mouse remains a Disney trademark — never use Disney characters in dumbTV marketing. RE-SOURCED 2026-07-26: the original IA item (plane-crazy-1928) went dark — 404, apparently a takedown sweep of Disney-adjacent items; a second copy (plane-crazy-1928_202406) vanished in the same wave. The film's PD-by-age status (1928 + 95) is unaffected; only the hosting item changed. New source is PD-marked on IA.",
+        "basis": "AGE",
+        "musicRights": "unverified"
+      },
+      "tags": [
+        "1920s",
+        "cartoon",
+        "silent-era"
+      ]
     },
     {
       "id": "steamboat-willie",
@@ -47,8 +54,15 @@
       "license": {
         "url": "https://creativecommons.org/publicdomain/mark/1.0/",
         "verified": "2026-07-26",
-        "note": "1928 work → US PD Jan 2024. IA item PD-marked. Same trademark caution as Plane Crazy."
-      }
+        "note": "1928 work → US PD Jan 2024. IA item PD-marked. Same trademark caution as Plane Crazy.",
+        "basis": "AGE",
+        "musicRights": "unverified"
+      },
+      "tags": [
+        "1920s",
+        "cartoon",
+        "silent-era"
+      ]
     },
     {
       "id": "the-skeleton-dance",
@@ -64,8 +78,19 @@
       "license": {
         "url": "https://creativecommons.org/publicdomain/mark/1.0/",
         "verified": "2026-07-26",
-        "note": "1929 Silly Symphony → US PD Jan 2025. IA item PD-marked."
-      }
+        "note": "1929 Silly Symphony → US PD Jan 2025. IA item PD-marked.",
+        "basis": "AGE",
+        "musicRights": "unverified"
+      },
+      "tags": [
+        "1920s",
+        "cartoon",
+        "silent-era"
+      ]
     }
-  ]
+  ],
+  "rightsBasisSummary": [
+    "AGE"
+  ],
+  "partialSeries": false
 }

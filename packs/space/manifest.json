@@ -3,7 +3,7 @@
   "name": "SPACE",
   "version": 1,
   "kind": "shows",
-  "description": "Public-domain NASA mission footage on a permanent loop \u2014 Apollo, Saturn V, and the last shuttle launch. Channel 1, always on, never edited.",
+  "description": "Public-domain NASA mission footage on a permanent loop — Apollo, Saturn V, and the last shuttle launch. Channel 1, always on, never edited.",
   "channel": {
     "number": 1,
     "name": "SPACE",
@@ -17,7 +17,7 @@
     "preset": "fast",
     "abitrate": "96k"
   },
-  "rightsNote": "Every item here is US-government work published by NASA, which is generally not subject to copyright in the United States. Three standing rules for this pack, per the channel-1 spec: (1) the NASA insignia (meatball), the NASA logotype (worm), and the NASA seal are EXCLUDED \u2014 they must never appear in the pack or in any dumbTV marketing, because NASA's own media guidelines treat them as protected identifiers rather than public-domain content; (2) nothing here may imply NASA endorsement of dumbTV \u2014 the channel is named SPACE, not NASA, and no NASA branding appears in the guide, the banner, or the store listing; (3) identifiable people appear in this footage, and while the footage itself is free of copyright, personality/publicity rights are separate \u2014 so this material is presented as historical record and is never used in advertising. Anything sourced from NASA TV that carries third-party music or contractor-owned footage is out of scope for this pack.",
+  "rightsNote": "Every item here is US-government work published by NASA, which is generally not subject to copyright in the United States. Three standing rules for this pack, per the channel-1 spec: (1) the NASA insignia (meatball), the NASA logotype (worm), and the NASA seal are EXCLUDED — they must never appear in the pack or in any dumbTV marketing, because NASA's own media guidelines treat them as protected identifiers rather than public-domain content; (2) nothing here may imply NASA endorsement of dumbTV — the channel is named SPACE, not NASA, and no NASA branding appears in the guide, the banner, or the store listing; (3) identifiable people appear in this footage, and while the footage itself is free of copyright, personality/publicity rights are separate — so this material is presented as historical record and is never used in advertising. Anything sourced from NASA TV that carries third-party music or contractor-owned footage is out of scope for this pack.",
   "items": [
     {
       "id": "saturn-v-film-to-tape",
@@ -34,8 +34,16 @@
       "license": {
         "url": "https://images.nasa.gov/details/KSC-1960s-MH-NAS01-0001-Apollo_Saturn_V_Crawler,_VAB_Pad_Film_To_Tape",
         "verified": "2026-07-26",
-        "note": "1960s Kennedy Space Center film-to-tape transfer of Apollo/Saturn V ground operations. NASA-produced US-government work \u2192 not subject to US copyright. Served from NASA's own image library. No insignia/seal use; presented as historical record."
-      }
+        "note": "1960s Kennedy Space Center film-to-tape transfer of Apollo/Saturn V ground operations. NASA-produced US-government work → not subject to US copyright. Served from NASA's own image library. No insignia/seal use; presented as historical record.",
+        "basis": "GOV",
+        "musicRights": "cleared"
+      },
+      "tags": [
+        "1960s",
+        "documentary",
+        "government-film",
+        "space"
+      ]
     },
     {
       "id": "saturn-v-launch",
@@ -52,8 +60,16 @@
       "license": {
         "url": "https://images.nasa.gov/details/Ultimate Saturn V Launch w Enhanced Sound",
         "verified": "2026-07-26",
-        "note": "NASA-published Saturn V launch footage with restored audio. US-government work \u2192 not subject to US copyright. Audio is NASA's own restoration of the launch recording, not licensed music."
-      }
+        "note": "NASA-published Saturn V launch footage with restored audio. US-government work → not subject to US copyright. Audio is NASA's own restoration of the launch recording, not licensed music.",
+        "basis": "GOV",
+        "musicRights": "cleared"
+      },
+      "tags": [
+        "1960s",
+        "documentary",
+        "government-film",
+        "space"
+      ]
     },
     {
       "id": "apollo-11-restored-moonwalk",
@@ -70,8 +86,16 @@
       "license": {
         "url": "https://images.nasa.gov/details/KSC-20090716-MH-NAS01-0001-Apollo_11_Restored_Moonwalk-HM_795",
         "verified": "2026-07-26",
-        "note": "NASA's own 2009 restoration of the Apollo 11 EVA broadcast. US-government work \u2192 not subject to US copyright. Armstrong and Aldrin are identifiable; used as historical record only, never in advertising."
-      }
+        "note": "NASA's own 2009 restoration of the Apollo 11 EVA broadcast. US-government work → not subject to US copyright. Armstrong and Aldrin are identifiable; used as historical record only, never in advertising.",
+        "basis": "GOV",
+        "musicRights": "cleared"
+      },
+      "tags": [
+        "1960s",
+        "documentary",
+        "government-film",
+        "space"
+      ]
     },
     {
       "id": "apollo-11-mission",
@@ -88,8 +112,16 @@
       "license": {
         "url": "https://images.nasa.gov/details/KSC-19990712-MH-NAS01-0001-The_Apollo_11_Mission-B_3351",
         "verified": "2026-07-26",
-        "note": "NASA mission documentary covering Apollo 11 end to end. US-government work \u2192 not subject to US copyright. Served from NASA's own image library."
-      }
+        "note": "NASA mission documentary covering Apollo 11 end to end. US-government work → not subject to US copyright. Served from NASA's own image library.",
+        "basis": "GOV",
+        "musicRights": "cleared"
+      },
+      "tags": [
+        "1960s",
+        "documentary",
+        "government-film",
+        "space"
+      ]
     },
     {
       "id": "shuttle-final-launch",
@@ -106,8 +138,20 @@
       "license": {
         "url": "https://images.nasa.gov/details/NHQ_2021_0708_NASA's Final Space Shuttle Launch 10th Anniversary Replay",
         "verified": "2026-07-26",
-        "note": "NASA's replay of the STS-135 launch broadcast (Atlantis, the final shuttle flight). US-government work \u2192 not subject to US copyright. NASA-produced commentary only; no third-party music."
-      }
+        "note": "NASA's replay of the STS-135 launch broadcast (Atlantis, the final shuttle flight). US-government work → not subject to US copyright. NASA-produced commentary only; no third-party music.",
+        "basis": "GOV",
+        "musicRights": "cleared"
+      },
+      "tags": [
+        "2010s",
+        "documentary",
+        "government-film",
+        "space"
+      ]
     }
-  ]
+  ],
+  "rightsBasisSummary": [
+    "GOV"
+  ],
+  "partialSeries": false
 }

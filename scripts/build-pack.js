@@ -228,15 +228,119 @@ function loadManifest(packId) {
   return m;
 }
 
-// The provenance gate: every item must record a human-verified PD determination.
-// This is what stands between us and the "March of the Wooden Soldiers" trap.
+// ── the rights schema (v2) ───────────────────────────────────────────────────
+//
+// v1 recorded provenance as free prose: license.verified plus a paragraph. That
+// cannot be audited, filtered, or reasoned about — "public-domain" covered both
+// a US Army film with no copyright to check and a 1942 Warner short needing a
+// Catalog of Copyright Entries lookup, at wildly different confidence.
+//
+// v2 makes three things machine-readable: what the claim RESTS ON, whether the
+// MUSIC is separately encumbered (a cleanly-PD TV episode can still carry an
+// uncleared theme), and what a viewer should be WARNED about — legally clear is
+// not the same as airable, and a kids' channel needs to know the difference.
+
+/** What a public-domain claim rests on, and what verifying it costs. */
+const RIGHTS_BASIS = {
+  GOV: 'US federal government work (17 USC §105) — never had copyright. Confirm the producing agency is genuinely federal.',
+  AGE: 'Published 1930 or earlier — confirm the release date. Deterministic.',
+  NR:  'Copyright not renewed — REQUIRES a Catalog of Copyright Entries lookup, recorded in license.verifiedBy.',
+  CC:  'Openly licensed, not public domain.',
+};
+
+/** Closed on purpose: an open vocabulary cannot be filtered against. */
+const CONTENT_WARNINGS = new Set([
+  'racial-caricature', 'wartime-propaganda', 'smoking', 'graphic-violence', 'adult-humor',
+]);
+
+const MUSIC_RIGHTS = new Set(['cleared', 'unverified', 'encumbered']);
+
+/**
+ * The provenance gate. Every item must record a human-verified determination
+ * that can be audited later — this is what stands between us and the "March of
+ * the Wooden Soldiers" trap, where a missing notice on a reissue print made a
+ * fully-copyrighted film look public domain for decades.
+ */
 function checkProvenance(manifest) {
-  const bad = manifest.items.filter((i) => !i.license || !i.license.verified);
-  if (bad.length) {
+  const errs = [];
+  const label = (i) => `${i.id} (${i.title || '?'})`;
+
+  for (const i of manifest.items) {
+    const lic = i.license || {};
+
+    // 1 · a claim needs a basis, a note, and a date. All three, always.
+    if (!lic.verified) errs.push(`${label(i)}: no license.verified — needs a date after a real PD/renewal check`);
+    if (!lic.note)     errs.push(`${label(i)}: no license.note — record WHY this is public domain`);
+    if (!lic.basis) {
+      errs.push(`${label(i)}: no license.basis — one of ${Object.keys(RIGHTS_BASIS).join(' | ')}`);
+    } else if (!RIGHTS_BASIS[lic.basis]) {
+      errs.push(`${label(i)}: unknown license.basis "${lic.basis}" — expected ${Object.keys(RIGHTS_BASIS).join(' | ')}`);
+    }
+
+    // 2 · encumbered music never ships. No override, no flag.
+    if (lic.musicRights && !MUSIC_RIGHTS.has(lic.musicRights)) {
+      errs.push(`${label(i)}: unknown license.musicRights "${lic.musicRights}" — expected ${[...MUSIC_RIGHTS].join(' | ')}`);
+    }
+    if (lic.musicRights === 'encumbered') {
+      errs.push(`${label(i)}: license.musicRights is "encumbered" — this item cannot ship`);
+    }
+
+    // 3 · THE trap. An NR claim without a citation is a lead, not a clearance:
+    // somebody has to have opened the year+27 / year+28 renewal volumes.
+    if (lic.basis === 'NR' && !lic.verifiedBy) {
+      errs.push(`${label(i)}: basis NR requires license.verifiedBy naming the CCE volume(s) checked — ` +
+                `an unverified "not renewed" claim is a lead, not a clearance`);
+    }
+
+    // 4 · warnings come from a closed vocabulary the scheduler can filter on.
+    if (i.contentWarning !== undefined) {
+      if (!Array.isArray(i.contentWarning)) {
+        errs.push(`${label(i)}: contentWarning must be an array`);
+      } else {
+        for (const w of i.contentWarning) {
+          if (!CONTENT_WARNINGS.has(w)) {
+            errs.push(`${label(i)}: unknown contentWarning "${w}" — expected ${[...CONTENT_WARNINGS].join(' | ')}`);
+          }
+        }
+      }
+    }
+
+    // 5 · CC is not public domain and the question of whether we ship it at all
+    // is an open owner decision (PD Packs Task 4). Until it is answered, no.
+    // NonCommercial stays refused permanently regardless of that answer.
+    if (lic.basis === 'CC') {
+      errs.push(`${label(i)}: basis CC is not accepted — whether Creative Commons ships at all is an open ` +
+                `decision (PD Packs Task 4). NonCommercial is refused permanently either way.`);
+    }
+    if (/noncommercial|\/by-nc/i.test(lic.url || '')) {
+      errs.push(`${label(i)}: NonCommercial licence — refused`);
+    }
+
+    // 6 · tags (C3) are free-form — they feed dayparting in build 17 — but they
+    // must at least be a list of non-empty strings so a rule can select on them.
+    if (i.tags !== undefined) {
+      if (!Array.isArray(i.tags) || i.tags.some((t) => typeof t !== 'string' || !t.trim())) {
+        errs.push(`${label(i)}: tags must be an array of non-empty strings`);
+      }
+    }
+  }
+
+  // Pack level: the at-a-glance audit summary must not lie about its contents.
+  const actualBases = [...new Set(manifest.items.map((i) => i.license?.basis).filter(Boolean))].sort();
+  if (manifest.rightsBasisSummary !== undefined) {
+    const claimed = [...manifest.rightsBasisSummary].sort();
+    if (JSON.stringify(claimed) !== JSON.stringify(actualBases)) {
+      errs.push(`pack rightsBasisSummary ${JSON.stringify(claimed)} does not match the items' actual bases ${JSON.stringify(actualBases)}`);
+    }
+  }
+  if (manifest.partialSeries !== undefined && typeof manifest.partialSeries !== 'boolean') {
+    errs.push('pack partialSeries must be a boolean');
+  }
+
+  if (errs.length) {
     throw new Error(
-      `provenance gate: ${bad.length}/${manifest.items.length} item(s) lack license.verified:\n` +
-      bad.map((i) => `  - ${i.id} (${i.title || '?'})`).join('\n') +
-      `\nEach item needs license.verified = "<date>" after a real PD/renewal check.`,
+      `provenance gate: ${errs.length} problem(s) in ${manifest.id}:\n` +
+      errs.map((e) => `  - ${e}`).join('\n'),
     );
   }
 }

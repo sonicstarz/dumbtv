@@ -166,6 +166,48 @@ Add an optional per-item `tags: []` to the manifest schema and populate it durin
 
 **Acceptance:** all 8 packs pass `verify` under v2; `npm run selftest` still green; an installed v1 pack still resolves and plays.
 
+### C findings — 2026-07-29 · **the gate blocks 40 items across 5 packs, and that is it working**
+
+Two things the plan did not anticipate.
+
+**1 · The schema applies to all 8 packs, not the 2 named.** C2 scoped the migration to SNAFU and BOSKO — the two authored ahead of the gate. But `checkProvenance` runs on *every* pack, in `verify`, in `build`, and in `catalog`. Migrating only two would have left the other six failing. `scripts/migrate-manifests.js` therefore covers all eight, driven by each manifest's own documented prose.
+
+**2 · Half the catalog rests on an uncitable NR claim.** After migration:
+
+| Pack | Basis | Verify |
+| --- | --- | --- |
+| snafu-and-co (32) | GOV | ✅ |
+| space (5) | GOV | ✅ |
+| early-disney (3) | AGE | ✅ |
+| bosko-and-friends (22) | AGE + NR | ⛔ 16 items |
+| superman (17) | NR | ⛔ 17 items |
+| popeye-color (3) | NR | ⛔ 3 items |
+| saturday-morning (3) | NR | ⛔ 3 items |
+| ad-break (1) | NR | ⛔ 1 item |
+
+**40 of 86 items claim "copyright not renewed" with no Catalog of Copyright Entries citation.** Their provenance reads *"IA item carries a public-domain mark"* — which the PD Packs page itself calls *"uploader-supplied, not a legal guarantee"* and *"a lead, not a clearance."* Rule 3 of the schema exists precisely to catch this, and on day one it caught the existing catalog.
+
+Nothing here is a surprise to the manifests themselves. BOSKO's own `rightsNote` already says the 1931 titles *"clear by AGE on 2027-01-01; until then their PD status rests on documented non-renewal (NR)"*, and one of them literally says **"VERIFY before ship if shipping in 2026."** POPEYE was already moved to download-only in build 14 pending a CCE check. v2 turned prose caveats into a gate.
+
+**No citations were invented.** A script cannot open a renewal volume, and fabricating `verifiedBy` would defeat the only rule that matters. The 40 items are marked `basis: "NR"` with `verifiedBy` absent, so `verify` fails with exactly what is missing, per item.
+
+**What is and is not broken:** every pack's `dist/` is already built, so **all three apps still build and every preload channel still plays.** What is blocked is *rebuilding* those five packs and *regenerating* `packs/index.json` — the Site workflow already falls back to the committed catalog, so deploys still work.
+
+**This needs an owner decision, and it is sharper than it looks: three of the five blocked packs (`ad-break`, `saturday-morning`, `superman`) are PRELOAD** — they ship inside the App Store binary. Options, roughly in order of honesty:
+
+1. **Do the CCE lookups** for the 40 titles and record `license.verifiedBy`. Real work, but it is the work the project's own policy already committed to.
+2. **Narrow the packs** to titles with citable provenance and drop the rest.
+3. **Wait on BOSKO's 16** — they clear by AGE on 2027-01-01 with no lookup at all, so that subset resolves itself in five months.
+4. Weaken rule 3 — **not recommended**; it is the only thing standing between the catalog and the *Wooden Soldiers* trap.
+
+**Content warnings were left to a human**, as instructed: SNAFU, BOSKO and SUPERMAN all carry pack-level notes saying a warning applies *somewhere*, and the migration prints a per-pack checklist rather than guessing which titles.
+
+### Deviation from the written schema shape
+
+The Engineering Plan showed flat item fields (`rightsBasis`, `rightsNote`, `rightsVerified`, `rightsVerifiedBy`, `musicRights`). The existing manifests already nest provenance under `license: { url, verified, note }`, so the flat shape would have produced **two competing verification dates** (`rightsVerified` beside `license.verified`) and two places to record why.
+
+Implemented instead as `license.basis` / `license.verifiedBy` / `license.musicRights`, keeping `license.verified` and `license.note` as the single date and single rationale. `contentWarning` and `tags` stay at item level — they are content facts the scheduler reads, not rights facts. Every validator rule from the plan is enforced unchanged; only the nesting differs.
+
 ---
 
 # Chunk D · Config Format v3

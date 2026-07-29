@@ -20,8 +20,17 @@
       "license": {
         "url": "http://creativecommons.org/licenses/publicdomain/",
         "verified": "2026-07-26",
-        "note": "Prelinger-collection sponsored spot; IA item carries a public-domain license mark."
-      }
+        "note": "Prelinger-collection sponsored spot; IA item carries a public-domain license mark.",
+        "basis": "NR",
+        "musicRights": "unverified"
+      },
+      "tags": [
+        "commercial"
+      ]
     }
-  ]
+  ],
+  "rightsBasisSummary": [
+    "NR"
+  ],
+  "partialSeries": false
 }

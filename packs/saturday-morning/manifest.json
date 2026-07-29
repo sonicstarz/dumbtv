@@ -30,8 +30,14 @@
       "license": {
         "url": "https://archive.org/details/bb_minnie_the_moocher",
         "verified": "2026-07-26",
-        "note": "Fleischer/Paramount Betty Boop short; copyright not renewed → US public domain. IA item carries a public-domain mark."
-      }
+        "note": "Fleischer/Paramount Betty Boop short; copyright not renewed → US public domain. IA item carries a public-domain mark.",
+        "basis": "NR",
+        "musicRights": "unverified"
+      },
+      "tags": [
+        "1930s",
+        "cartoon"
+      ]
     },
     {
       "id": "bb-old-man-of-the-mountain",
@@ -46,8 +52,14 @@
       "license": {
         "url": "https://archive.org/details/bb_old_man_of_the_mountain",
         "verified": "2026-07-26",
-        "note": "Fleischer/Paramount Betty Boop short; copyright not renewed → US public domain. IA item carries a public-domain mark."
-      }
+        "note": "Fleischer/Paramount Betty Boop short; copyright not renewed → US public domain. IA item carries a public-domain mark.",
+        "basis": "NR",
+        "musicRights": "unverified"
+      },
+      "tags": [
+        "1930s",
+        "cartoon"
+      ]
     },
     {
       "id": "bb-house-cleaning-blues",
@@ -62,8 +74,18 @@
       "license": {
         "url": "https://archive.org/details/bb_house_cleaning_blues",
         "verified": "2026-07-26",
-        "note": "Fleischer/Paramount Betty Boop short; copyright not renewed → US public domain. IA item carries a CC public-domain license."
-      }
+        "note": "Fleischer/Paramount Betty Boop short; copyright not renewed → US public domain. IA item carries a CC public-domain license.",
+        "basis": "NR",
+        "musicRights": "unverified"
+      },
+      "tags": [
+        "1930s",
+        "cartoon"
+      ]
     }
-  ]
+  ],
+  "rightsBasisSummary": [
+    "NR"
+  ],
+  "partialSeries": false
 }

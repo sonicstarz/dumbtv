@@ -31,8 +31,14 @@
       "license": {
         "url": "https://creativecommons.org/publicdomain/mark/1.0/",
         "verified": "2026-07-26",
-        "note": "1936 Technicolor two-reeler; copyright not renewed → US public domain. IA item carries a PD mark. Regular B&W Popeye shorts are NOT PD — only these three color specials."
-      }
+        "note": "1936 Technicolor two-reeler; copyright not renewed → US public domain. IA item carries a PD mark. Regular B&W Popeye shorts are NOT PD — only these three color specials.",
+        "basis": "NR",
+        "musicRights": "unverified"
+      },
+      "tags": [
+        "1930s",
+        "cartoon"
+      ]
     },
     {
       "id": "ali-babas-forty-thieves",
@@ -48,8 +54,14 @@
       "license": {
         "url": "https://creativecommons.org/publicdomain/mark/1.0/",
         "verified": "2026-07-26",
-        "note": "1937 Technicolor two-reeler; not renewed → US PD. IA item PD-marked. NOTE: source is a 1.25 GB HD scan — fine for the build pipeline (re-encodes to 480p), too heavy for direct-download; prefer built-pack delivery."
-      }
+        "note": "1937 Technicolor two-reeler; not renewed → US PD. IA item PD-marked. NOTE: source is a 1.25 GB HD scan — fine for the build pipeline (re-encodes to 480p), too heavy for direct-download; prefer built-pack delivery.",
+        "basis": "NR",
+        "musicRights": "unverified"
+      },
+      "tags": [
+        "1930s",
+        "cartoon"
+      ]
     },
     {
       "id": "aladdin-wonderful-lamp",
@@ -65,9 +77,19 @@
       "license": {
         "url": "http://creativecommons.org/publicdomain/mark/1.0/",
         "verified": "2026-07-26",
-        "note": "1939 Technicolor two-reeler; not renewed → US PD. IA item PD-marked. Source is HD (~1.6 GB) — built-pack delivery preferred."
-      }
+        "note": "1939 Technicolor two-reeler; not renewed → US PD. IA item PD-marked. Source is HD (~1.6 GB) — built-pack delivery preferred.",
+        "basis": "NR",
+        "musicRights": "unverified"
+      },
+      "tags": [
+        "1930s",
+        "cartoon"
+      ]
     }
   ],
-  "rightsReview": "DOWNLOAD-ONLY pending a Catalog of Copyright Entries check — see packs/popeye-color/RIGHTS-REVIEW. The July 2026 field guide calls the Technicolor two-reelers a 'murkier claim'; the manifest basis below (IA PD marks + non-renewal) predates that. No takedown and no dispute on record — the gap is documentary. Not bundled in the App Store binary until the renewal volumes are read."
+  "rightsReview": "DOWNLOAD-ONLY pending a Catalog of Copyright Entries check — see packs/popeye-color/RIGHTS-REVIEW. The July 2026 field guide calls the Technicolor two-reelers a 'murkier claim'; the manifest basis below (IA PD marks + non-renewal) predates that. No takedown and no dispute on record — the gap is documentary. Not bundled in the App Store binary until the renewal volumes are read.",
+  "rightsBasisSummary": [
+    "NR"
+  ],
+  "partialSeries": false
 }

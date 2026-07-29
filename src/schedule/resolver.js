@@ -92,6 +92,7 @@ function decorate(row, at) {
 
   if (row.kind === 'episode' || row.kind === 'movie') {
     const m = qMedia.get(row.rating_key);
+    if (m) out.seriesPartial = !!m.series_partial;
     if (m && m.part_key) {
       if (m.part_key.startsWith('local:')) {
         // Demo content, or anything you dropped in by hand rather than
@@ -227,6 +228,8 @@ export function publicChannel(c) {
     vibe: parseVibe(c.vibe),
     // R3: what the player draws during a scheduled off-air window.
     offairPattern: c.offair_pattern || 'bars',
+    // PD Packs Task 2: warnings this channel refuses to air.
+    excludeWarnings: String(c.exclude_warnings || '').split(',').map((w) => w.trim()).filter(Boolean),
     signoffAssetId: c.signoff_asset_id ?? null,
     generatedThru: c.generated_thru,
   };

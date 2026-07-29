@@ -933,6 +933,64 @@ console.log('\nTags and dayparting');
     nomatch > 0, `(${nomatch} blocks)`);
 }
 
+// ---- content warnings + partial series (PD Packs Tasks 2/3) ----------------
+console.log('\nContent warnings and partial series');
+{
+  const mkw = db.prepare(
+    `INSERT INTO media (rating_key,parent_key,kind,title,show_title,season_no,episode_no,
+                        duration_ms,part_key,content_warnings,series_partial,updated_at)
+     VALUES (?,?,'episode',?,?,1,?,?,?,?,?,?)`
+  );
+  for (let e = 1; e <= 10; e++) mkw.run(`w-ok${e}`, 'wlib', `Fine ${e}`, 'W', e, 20 * MINUTE, `local:/o${e}.mp4`, null, 0, Date.now());
+  for (let e = 1; e <= 6; e++) mkw.run(`w-bad${e}`, 'wlib', `Rough ${e}`, 'W', 10 + e, 20 * MINUTE, `local:/b${e}.mp4`, 'racial-caricature', 0, Date.now());
+
+  const kidsCh = db.prepare(
+    `INSERT INTO channels (number,name,ordering_mode,shuffle_seed,created_at,ads_enabled,exclude_warnings)
+     VALUES (?,?,'sequential',?,?,0,?)`
+  ).run(82, 'KIDSAFE', 3, Date.now(), 'racial-caricature').lastInsertRowid;
+  const lateCh = db.prepare(
+    `INSERT INTO channels (number,name,ordering_mode,shuffle_seed,created_at,ads_enabled)
+     VALUES (?,?,'sequential',?,?,0)`
+  ).run(81, 'LATENIGHT', 4, Date.now()).lastInsertRowid;
+  for (const c of [kidsCh, lateCh]) addSource.run(c, 'wlib', 'show', 'W');
+  generateChannel(kidsCh, Date.now() + 2 * 24 * HOUR);
+  generateChannel(lateCh, Date.now() + 2 * 24 * HOUR);
+
+  const airedOn = (c) => new Set(db.prepare(
+    "SELECT DISTINCT rating_key FROM programs WHERE channel_id=? AND kind='episode'"
+  ).all(c).map((r) => r.rating_key));
+  const kidKeys = airedOn(kidsCh);
+  check('warnings: a flagged item never airs on a channel excluding it',
+    ![...kidKeys].some((k) => k.startsWith('w-bad')),
+    `(${[...kidKeys].filter((k) => k.startsWith('w-bad')).length} leaked)`);
+  check('warnings: that channel still has plenty to play', kidKeys.size >= 8, `(${kidKeys.size})`);
+  check('warnings: the same items DO air where they are not excluded',
+    [...airedOn(lateCh)].some((k) => k.startsWith('w-bad')));
+
+  // Partial series. Two of the three behaviours were already correct — this
+  // proves it rather than assuming, which is the whole point of the vectors.
+  const eps = [1, 2, 3, 7, 8, 15];   // a real PD shape: the rest were renewed
+  for (const e of eps) {
+    mkw.run(`ps${e}`, 'pslib', `Episode ${e}`, 'Partial', e, 20 * MINUTE, `local:/p${e}.mp4`, null, 1, Date.now());
+  }
+  const psCh = db.prepare(
+    `INSERT INTO channels (number,name,ordering_mode,shuffle_seed,created_at,ads_enabled)
+     VALUES (?,?,'sequential',?,?,0)`
+  ).run(80, 'PARTIAL', 8, Date.now()).lastInsertRowid;
+  addSource.run(psCh, 'pslib', 'show', 'Partial');
+  generateChannel(psCh, Date.now() + 2 * 24 * HOUR);
+  const played = db.prepare(
+    "SELECT episode_no FROM programs WHERE channel_id=? AND kind='episode' ORDER BY start_utc LIMIT 14"
+  ).all(psCh).map((r) => r.episode_no);
+  check('partial: gaps in the episode numbers do not stall the scheduler', played.length >= 12);
+  check('partial: it plays what EXISTS, in order, gaps and all',
+    JSON.stringify(played.slice(0, 6)) === JSON.stringify(eps), JSON.stringify(played.slice(0, 6)));
+  check('partial: it wraps to the start of the AVAILABLE set',
+    played[6] === eps[0], `(after ${eps[5]} came ${played[6]})`);
+  check('partial: an absent episode is never scheduled',
+    played.every((e) => eps.includes(e)));
+}
+
 // ---- determinism regression gate (build 17) --------------------------------
 // The scheduler tier teaches rules to select content by TAG, which is exactly
 // the kind of change that can quietly make output depend on Set iteration or

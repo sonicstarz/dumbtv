@@ -58,12 +58,26 @@ function loadSourceBuckets(channelId, opts = {}) {
     ? keysMatchingTags(opts.tags, opts.tagMode || 'any')
     : null;
 
+  // Content warnings the channel refuses to air (PD Packs Task 2). Same choke
+  // point as everything else, so an excluded item never counts as aired.
+  const refused = new Set(
+    String(
+      db.prepare('SELECT exclude_warnings FROM channels WHERE id = ?').get(channelId)?.exclude_warnings || ''
+    ).split(',').map((w) => w.trim().toLowerCase()).filter(Boolean)
+  );
+  const carriesRefusedWarning = (row) => {
+    if (refused.size === 0 || !row.content_warnings) return false;
+    return String(row.content_warnings).split(',')
+      .some((w) => refused.has(w.trim().toLowerCase()));
+  };
+
   return sources
     .map((s) => {
       const rows = selectSourceMedia
         .all(s.rating_key, s.rating_key)
         .filter((r) => !excluded.has(r.rating_key))
-        .filter((r) => !tagged || tagged.has(r.rating_key));
+        .filter((r) => !tagged || tagged.has(r.rating_key))
+        .filter((r) => !carriesRefusedWarning(r));
       return { source: s, items: rows.sort(bySeasonEpisode) };
     })
     .filter((b) => b.items.length > 0);

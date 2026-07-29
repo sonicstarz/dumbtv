@@ -135,6 +135,16 @@ export const installPack = db.transaction((distDir, { origin = 'downloaded' } = 
       if (Array.isArray(it.tags)) {
         setTags(`${packRatingKey(pack.id)}:${it.id}`, it.tags, 'pack');
       }
+      // Task 2/3: warnings and partial-series come off the manifest so a
+      // curated pack carries its own caveats — a kids' channel can exclude
+      // caricature without anyone having to know which cartoons carry it.
+      db.prepare('UPDATE media SET content_warnings = ?, series_partial = ? WHERE rating_key = ?')
+        .run(
+          Array.isArray(it.contentWarning) && it.contentWarning.length
+            ? it.contentWarning.join(',') : null,
+          pack.partialSeries ? 1 : 0,
+          `${packRatingKey(pack.id)}:${it.id}`,
+        );
     }
     // Reconcile: drop pack media no longer in the manifest so a partial→full
     // upgrade has an exact count and no stale rows linger.

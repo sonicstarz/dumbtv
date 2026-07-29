@@ -215,6 +215,15 @@ addColumnIfMissing('schedule_rules', 'effective_annual', 'INTEGER NOT NULL DEFAU
 // Dayparting (R1): a recurring rule may draw from a TAG-FILTERED subset instead
 // of one rating_key — "cartoons 06:00-12:00" on a channel that plays other
 // things at night. NULL keeps the original single-source behaviour.
+// Content warnings (PD Packs Task 2): what a viewer should be warned about,
+// from the closed vocabulary the pack validator enforces. Legally clear is not
+// the same as airable, and a kids' channel needs to tell them apart.
+addColumnIfMissing('media', 'content_warnings', 'TEXT');
+addColumnIfMissing('channels', 'exclude_warnings', "TEXT NOT NULL DEFAULT ''");
+// Partial series (PD Packs Task 3): most PD television is incomplete, because
+// each episode had to be renewed individually — 55 of 274 Beverly Hillbillies.
+// The guide must not imply a complete run.
+addColumnIfMissing('media', 'series_partial', 'INTEGER NOT NULL DEFAULT 0');
 addColumnIfMissing('schedule_rules', 'select_tags', 'TEXT');
 addColumnIfMissing('schedule_rules', 'select_mode', "TEXT NOT NULL DEFAULT 'any'");
 // Vibe (L-V1): the per-channel CRT/VHS look, stored as a self-contained JSON

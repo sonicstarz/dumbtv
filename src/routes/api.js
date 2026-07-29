@@ -83,6 +83,7 @@ const CHANNEL_FIELDS = [
   'vibe',
   'signoff_asset_id',
   'offair_pattern',
+  'exclude_warnings',
 ];
 
 export default async function api(fastify) {
@@ -255,7 +256,8 @@ export default async function api(fastify) {
   fastify.get('/api/library/show/:ratingKey/episodes', async (req) => {
     const showKey = String(req.params.ratingKey);
     const read = db.prepare(
-      `SELECT rating_key, title, show_title, season_no, episode_no, aired, duration_ms, thumb
+      `SELECT rating_key, title, show_title, season_no, episode_no, aired, duration_ms, thumb,
+              series_partial, content_warnings
        FROM media WHERE parent_key = ? AND duration_ms > 0
        ORDER BY COALESCE(season_no, 0), COALESCE(episode_no, 0), title`
     );
@@ -277,8 +279,14 @@ export default async function api(fastify) {
       }
     }
     return {
+      // PD Packs Task 3: most public-domain television is an INCOMPLETE run —
+      // each episode had to be renewed separately, so only the first 55 Beverly
+      // Hillbillies are PD. The UI must not imply the rest exist.
+      partialSeries: rows.some((r) => r.series_partial),
       episodes: rows.map((r) => ({
         ratingKey: r.rating_key,
+        seriesPartial: !!r.series_partial,
+        contentWarnings: String(r.content_warnings || '').split(',').map((w) => w.trim()).filter(Boolean),
         title: r.title,
         showTitle: r.show_title,
         seasonNo: r.season_no,
@@ -434,6 +442,8 @@ export default async function api(fastify) {
         : (b.signoffAssetId ? Number(b.signoffAssetId) : null),
       offair_pattern: b.offairPattern === undefined ? undefined
         : (['bars', 'snow', 'card'].includes(b.offairPattern) ? b.offairPattern : 'bars'),
+      exclude_warnings: b.excludeWarnings === undefined ? undefined
+        : (Array.isArray(b.excludeWarnings) ? b.excludeWarnings.join(',') : String(b.excludeWarnings || '')),
     };
     const sets = [];
     const vals = [];

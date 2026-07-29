@@ -765,6 +765,18 @@ async function openEpisodeFilter(channelId, source) {
     return;
   }
 
+  // PD Packs Task 3 — say plainly that a run is incomplete. Most public-domain
+  // television is: each episode had to be renewed separately, so only the first
+  // 55 Beverly Hillbillies are PD. Listing 6 of 274 episodes with no
+  // explanation reads like a broken import, not a rights boundary.
+  if (episodes.some((e) => e.seriesPartial)) {
+    $('#epList', back).insertAdjacentHTML('beforebegin',
+      `<p class="hint" style="margin:0 0 12px">
+         <b>Partial run.</b> Only the episodes below are public domain — the rest
+         of the series was renewed and is not included. Gaps are expected.
+       </p>`);
+  }
+
   // Group by season for a scannable list.
   const bySeason = {};
   for (const e of episodes) (bySeason[e.seasonNo ?? 0] ||= []).push(e);

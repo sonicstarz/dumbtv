@@ -258,6 +258,14 @@ All optional, all environment variables:
 - **Touch your watch state.** No scrobbling, nothing marked watched, nothing
   added to Continue Watching. Live TV should not rearrange your library.
 - **Let you pause.** By design.
+- **Pretend to be a TV tuner.** Other projects in this space emulate an
+  HDHomeRun so their channels appear inside Plex or Jellyfin. Doing that means
+  serving a continuous *encoded* stream, permanently, for every channel — which
+  is transcoding, which is the one thing this design will not do. dumbTV's
+  answer to "watch it anywhere" is its own apps, on iPhone, iPad, Apple TV, Mac
+  and any browser. If you want your listings in another client, dumbTV
+  publishes them as **XMLTV** at `/api/xmltv` — the guide data, none of the
+  transcoding.
 
 ---
 

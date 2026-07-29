@@ -106,6 +106,30 @@ leaves your device. (See the Privacy Policy.)
 It needs your local network and your media server. There's no cloud dependency —
 it plays from your own server.
 
+**Can I watch dumbTV channels inside Plex, Jellyfin or Channels DVR?**
+Not as live channels, and that's deliberate. Making channels appear in another
+app means pretending to be an HDHomeRun tuner and serving a continuous encoded
+stream for each one — permanent transcoding, which is exactly what dumbTV is
+built not to do. Transcoding kills instant seeking, and instant seeking is how
+you join a show already in progress.
+
+What you can do is take the **listings**: dumbTV publishes its full schedule as
+XMLTV at `/api/xmltv`, so any guide app that reads XMLTV can show what's on.
+And you can watch on essentially anything already — iPhone, iPad, Apple TV, Mac,
+or a browser pointed at `/tv`.
+
+**Do you need a beefy machine / hardware transcoding?**
+No, and that's a real difference from other projects in this space. dumbTV never
+transcodes, so there is nothing to accelerate. A Raspberry Pi is plenty.
+
+**Why is all the built-in content so old?**
+Because it's genuinely public domain, and dumbTV checks rather than assumes.
+Every bundled item records what its public-domain status rests on — a US
+government production, an old-enough publication date, or a verified failure to
+renew — and anything that can't be evidenced doesn't ship. dumbTV doesn't
+include Creative Commons material either: it's free to use but usually requires
+on-screen attribution, and a television is a bad place to put a credits line.
+
 ## Trouble
 
 **The setup page won't load.**

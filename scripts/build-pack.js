@@ -326,12 +326,20 @@ function checkProvenance(manifest) {
       }
     }
 
-    // 5 · CC is not public domain and the question of whether we ship it at all
-    // is an open owner decision (PD Packs Task 4). Until it is answered, no.
-    // NonCommercial stays refused permanently regardless of that answer.
+    // 5 · Creative Commons does not ship. DECIDED 2026-07-29 (PD Packs Task 4).
+    //
+    // CC material is free to use but almost always conditional, and the usual
+    // condition is attribution — which on a television has nowhere sensible to
+    // live. An on-screen credit fights the illusion; a guide field nobody opens
+    // is not compliance. There is more genuine public-domain material than we
+    // can curate anyway, and PD needs no attribution surface at all.
+    //
+    // Revisit only if a specific must-have title turns out to be CC-only, and
+    // then design the attribution first. NonCommercial is refused permanently
+    // and separately, because dumbTV may not always be free of charge.
     if (lic.basis === 'CC') {
-      errs.push(`${label(i)}: basis CC is not accepted — whether Creative Commons ships at all is an open ` +
-                `decision (PD Packs Task 4). NonCommercial is refused permanently either way.`);
+      errs.push(`${label(i)}: basis CC — dumbTV does not ship Creative Commons content. ` +
+                `Attribution has nowhere sensible to live on a TV, and there is ample public domain.`);
     }
     if (/noncommercial|\/by-nc/i.test(lic.url || '')) {
       errs.push(`${label(i)}: NonCommercial licence — refused`);

@@ -203,6 +203,12 @@ addColumnIfMissing('schedule_rules', 'effective_annual', 'INTEGER NOT NULL DEFAU
 // document rather than a spread of columns — see src/vibe.js for why. NULL
 // means "inherit the global default", which is itself a setting.
 addColumnIfMissing('channels', 'vibe', 'TEXT');
+// R3 · sign-off + off-air presentation. `signoff_asset_id` plays once at the
+// head of a blackout window; `offair_pattern` says what the players draw for
+// the rest of it. Colour bars used to be an ERROR state only — nobody could
+// schedule them, which is the opposite of what television did.
+addColumnIfMissing('channels', 'signoff_asset_id', 'INTEGER');
+addColumnIfMissing('channels', 'offair_pattern', "TEXT NOT NULL DEFAULT 'bars'");
 // Loudness: gain (dB) toward the target, measured at import, applied at playback.
 addColumnIfMissing('assets', 'gain_db', 'REAL');
 // System channels (S3): a prebuilt channel dumbTV ships and stands behind — the

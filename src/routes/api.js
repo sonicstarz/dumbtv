@@ -81,6 +81,8 @@ const CHANNEL_FIELDS = [
   'overrun_policy',
   'enabled',
   'vibe',
+  'signoff_asset_id',
+  'offair_pattern',
 ];
 
 export default async function api(fastify) {
@@ -428,6 +430,10 @@ export default async function api(fastify) {
       // A vibe is stored whole. `null` clears it back to the global default.
       vibe: b.vibe === undefined ? undefined
         : (b.vibe === null ? null : JSON.stringify(normalizeVibe(b.vibe))),
+      signoff_asset_id: b.signoffAssetId === undefined ? undefined
+        : (b.signoffAssetId ? Number(b.signoffAssetId) : null),
+      offair_pattern: b.offairPattern === undefined ? undefined
+        : (['bars', 'snow', 'card'].includes(b.offairPattern) ? b.offairPattern : 'bars'),
     };
     const sets = [];
     const vals = [];

@@ -36,6 +36,11 @@ const state = {
   vibeDefault: null,   // global look; a channel may override it (L-V1)
   snowBusy: false,     // a burst owns the snow canvas — grain must not fight it
   guideSig: '',        // E-5: only rebuild the guide DOM when it actually changed
+  // R10 · sleep timer. Televisions had one; it is player state, not schedule
+  // state, so it lives here and dies with the page — exactly like a real set
+  // forgetting when you switch it off at the wall.
+  sleepAt: 0,
+  sleepNote: '',
 };
 
 // The one noise field. Channel-change bursts, off-air snow, and later the Vibe
@@ -167,6 +172,17 @@ let pollFails = 0;
 
 async function poll() {
   if (document.hidden) return;
+
+  // R10: when the timer runs out the set goes off — the picture stops, the
+  // card stands in. Nothing about the SCHEDULE changes; the channel carries on
+  // without us, which is the whole point of the product.
+  if (state.sleepAt && Date.now() >= state.sleepAt) {
+    state.sleepAt = 0;
+    video.removeAttribute('src');
+    snow.stop();
+    show('bars', { number: 0, name: 'GOOD NIGHT', message: 'Sleep timer' });
+    return;
+  }
   let data;
   try {
     data = await api('/api/onair');
@@ -218,11 +234,25 @@ async function poll() {
 
   if (now.kind === 'offair') {
     if (changed) video.removeAttribute('src');
-    show('bars', { number: ch.number, name: ch.name, message: now.subtitle });
+    // R3: what a scheduled off-air window looks like is the channel's choice —
+    // bars, snow, or just the station card.
+    const pattern = ch.offairPattern || 'bars';
+    document.getElementById('screen').classList.toggle('offair', true);
+    if (pattern === 'snow') {
+      show('filler', { number: ch.number, name: ch.name });
+      snow.setIntensity(0.8);
+      snow.start();
+    } else if (pattern === 'card') {
+      show('filler', { number: ch.number, name: ch.name });
+    } else {
+      show('bars', { number: ch.number, name: ch.name, message: now.subtitle });
+    }
   } else if (now.kind === 'filler' || !now.playable) {
     if (changed) video.removeAttribute('src');
+    document.getElementById('screen').classList.remove('offair');
     show('filler', { number: ch.number, name: ch.name });
   } else {
+    document.getElementById('screen').classList.remove('offair');
     show('video');
     if (changed) {
       // This is the whole trick: open the file, then jump to exactly how far
@@ -277,7 +307,11 @@ function paint() {
         : '';
     $('#bSub').textContent = p && p.subtitle ? ep + p.subtitle : '';
     $('#bRange').textContent = p ? `${clock(p.startUtc)} – ${clock(p.endUtc)}` : '';
-    $('#bNext').textContent = entry.next ? `NEXT  ${entry.next.title}` : '';
+    $('#bNext').textContent = state.sleepNote
+      ? state.sleepNote
+      : entry.next ? `NEXT  ${entry.next.title}` : '';
+    // The note is a one-shot acknowledgement, not a permanent readout.
+    if (state.sleepNote && now > state.bannerUntil - 200) state.sleepNote = '';
     const pct = p ? Math.min(100, (p.offsetMs / p.durationMs) * 100) : 0;
     $('#bProgress').style.width = `${pct}%`;
   }
@@ -445,6 +479,20 @@ document.addEventListener('keydown', async (e) => {
     case 'H':
       state.helpUntil = Date.now() < state.helpUntil ? 0 : Date.now() + 30000;
       break;
+    case 's':
+    case 'S': {
+      // R10 · sleep timer: 30 → 60 → 90 → off, the way a set with one button
+      // cycled it. Announced on the banner rather than in a dialog, because
+      // this is a television (invariant #7).
+      const STEPS = [30, 60, 90];
+      const left = state.sleepAt ? Math.round((state.sleepAt - Date.now()) / 60000) : 0;
+      const idx = STEPS.findIndex((m) => m >= left);
+      const next = state.sleepAt && idx === STEPS.length - 1 ? 0 : STEPS[idx + 1] ?? STEPS[0];
+      state.sleepAt = next ? Date.now() + next * 60000 : 0;
+      state.sleepNote = next ? `SLEEP ${next} MIN` : 'SLEEP OFF';
+      state.bannerUntil = Date.now() + 2500;
+      break;
+    }
   }
 });
 

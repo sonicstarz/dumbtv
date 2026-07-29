@@ -12,7 +12,11 @@ function adPool(channel) {
 
   const all = db
     .prepare(`SELECT * FROM assets WHERE kind IN ('ad','bumper') ORDER BY id`)
-    .all();
+    .all()
+    // R3: a sign-off is a bumper by kind, so without this the ad system would
+    // happily drop the national anthem between two cartoons on a Tuesday
+    // afternoon. It belongs to the end of the broadcast day and nowhere else.
+    .filter((a) => a.id !== channel.signoff_asset_id);
 
   if (tags.length === 0) return all;
 
@@ -406,6 +410,9 @@ function pushProgram(ctx, item, start, blockStart, ruleId) {
   });
 }
 
+/** The sign-off asset for a channel, if it still exists (R3). */
+const qSignoff = db.prepare('SELECT id, title, duration_ms FROM assets WHERE id = ?');
+
 function pushSpan(ctx, kind, start, end, title, subtitle, ruleId, assetId = null, slotStart = start) {
   ctx.rows.push({
     channelId: ctx.channel.id,
@@ -479,6 +486,22 @@ function emitReservation(ctx, res, until) {
   if (res.start >= end) return;
   const rule = res.rule;
   if (rule.kind === 'blackout') {
+    // R3 · sign-off. Television did not simply stop — it played something and
+    // THEN went dark. A sign-off is exactly that: one asset at the head of the
+    // blackout, the off-air card for the rest. The window is unchanged, so no
+    // program's start time moves; only what fills the dark part differs.
+    const signoffId = ctx.channel.signoff_asset_id;
+    if (signoffId) {
+      const a = qSignoff.get(signoffId);
+      // Only if it actually fits — a 3-minute anthem must not eat a 2-minute
+      // blackout, and a sign-off that gets cut off is worse than none.
+      if (a && a.duration_ms > 0 && res.start + a.duration_ms <= end) {
+        pushSpan(ctx, 'bumper', res.start, res.start + a.duration_ms,
+                 a.title || 'Sign-off', null, rule.id, a.id);
+        pushSpan(ctx, 'offair', res.start + a.duration_ms, end, 'Off air', null, rule.id);
+        return;
+      }
+    }
     pushSpan(ctx, 'offair', res.start, end, 'Off air', null, rule.id);
     return;
   }

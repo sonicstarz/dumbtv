@@ -807,6 +807,57 @@ console.log('\nSeasonal windows');
     offairIn(mayStart) === 0, `(May ${nextYear})`);
 }
 
+// ---- sign-off (R3) ---------------------------------------------------------
+// Television did not just stop — it played something and THEN went dark. A
+// sign-off is one asset at the head of a blackout, the off-air card for the
+// rest. The window is unchanged; only what fills the dark part differs.
+console.log('\nSign-off');
+{
+  const anthem = db.prepare("INSERT INTO assets (path,title,kind,duration_ms,tags) VALUES (?,?,?,?,'')")
+    .run('/tmp/dumbtv-anthem.mp4', 'Anthem', 'bumper', 90_000).lastInsertRowid;
+  const soCh = db.prepare(
+    `INSERT INTO channels (number,name,shuffle_seed,created_at,signoff_asset_id,offair_pattern)
+     VALUES (?,?,?,?,?,?)`
+  ).run(87, 'SIGNOFF', 11, Date.now(), anthem, 'snow').lastInsertRowid;
+  db.prepare('INSERT INTO channel_sources (channel_id,rating_key,source_type,title) VALUES (?,?,?,?)')
+    .run(soCh, 'show-xmen', 'show', 'X-Men Evolution');
+  db.prepare(`INSERT INTO schedule_rules
+      (channel_id,name,kind,priority,enabled,days_of_week,start_time,duration_min)
+    VALUES (?,?,'blackout',1000,1,'0,1,2,3,4,5,6','01:00',300)`).run(soCh, 'Overnight');
+  generateChannel(soCh, Date.now() + 3 * 24 * HOUR);
+
+  const rows = db.prepare(
+    'SELECT kind,duration_ms,start_utc,asset_id FROM programs WHERE channel_id=? ORDER BY start_utc'
+  ).all(soCh);
+  const signoffs = rows.filter((r) => r.kind === 'bumper' && r.asset_id === anthem);
+
+  check('signoff: plays at the head of each blackout', signoffs.length >= 2, `(${signoffs.length})`);
+  check('signoff: runs its own exact length', signoffs.every((b) => b.duration_ms === 90_000));
+  // The asset is kind 'bumper', so without an explicit exclusion the ad system
+  // would drop the anthem between two cartoons on a Tuesday afternoon.
+  check('signoff: never appears outside a sign-off (excluded from ad pods)',
+    signoffs.length <= 4, `(${signoffs.length} in 3 days)`);
+  check('signoff: off air begins the instant it ends — no gap',
+    signoffs.every((b) => {
+      const n = rows.find((r) => r.start_utc === b.start_utc + b.duration_ms);
+      return n && n.kind === 'offair';
+    }));
+
+  // A sign-off that would be cut off is worse than none.
+  const tinyCh = db.prepare(
+    'INSERT INTO channels (number,name,shuffle_seed,created_at,signoff_asset_id) VALUES (?,?,?,?,?)'
+  ).run(86, 'TINYDARK', 12, Date.now(), anthem).lastInsertRowid;
+  db.prepare('INSERT INTO channel_sources (channel_id,rating_key,source_type,title) VALUES (?,?,?,?)')
+    .run(tinyCh, 'show-xmen', 'show', 'X-Men Evolution');
+  db.prepare(`INSERT INTO schedule_rules
+      (channel_id,name,kind,priority,enabled,days_of_week,start_time,duration_min)
+    VALUES (?,?,'blackout',1000,1,'0,1,2,3,4,5,6','02:00',1)`).run(tinyCh, 'One minute');
+  generateChannel(tinyCh, Date.now() + 2 * 24 * HOUR);
+  check('signoff: not crammed into a window too short for it',
+    db.prepare('SELECT COUNT(*) n FROM programs WHERE channel_id=? AND asset_id=?')
+      .get(tinyCh, anthem).n === 0);
+}
+
 const counts = db.prepare('SELECT COUNT(*) n FROM programs').get().n;
 console.log(`\n${counts} programs across all channels`);
 console.log(`${pass} passed, ${fail} failed\n`);

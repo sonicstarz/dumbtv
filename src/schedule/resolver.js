@@ -225,6 +225,9 @@ export function publicChannel(c) {
     // L-V1: this channel's own look, or null to inherit the global default.
     // The player resolves the scopes; the API just carries the document.
     vibe: parseVibe(c.vibe),
+    // R3: what the player draws during a scheduled off-air window.
+    offairPattern: c.offair_pattern || 'bars',
+    signoffAssetId: c.signoff_asset_id ?? null,
     generatedThru: c.generated_thru,
   };
 }

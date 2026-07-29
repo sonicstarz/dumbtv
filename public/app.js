@@ -1108,6 +1108,35 @@ function openSettings(channelId, opts = {}) {
     </details>
 
     <details style="margin-top:18px">
+      <summary style="cursor:pointer;font:600 13px var(--mono);letter-spacing:.08em;color:var(--dim)">SIGN-OFF — WHAT HAPPENS WHEN IT GOES DARK</summary>
+      <div style="margin-top:16px">
+        <div class="row">
+          <div class="field" style="flex:1">
+            <label>SIGN-OFF FILM (OPTIONAL)</label>
+            <select id="fSignoff">
+              <option value="">Nothing — go straight to off air</option>
+              ${(state.assets || []).filter((a) => a.kind === 'bumper')
+                .map((a) => `<option value="${a.id}" ${c.signoffAssetId === a.id ? 'selected' : ''}>${escapeHtml(a.title)}</option>`).join('')}
+            </select>
+          </div>
+          <div class="field" style="flex:1">
+            <label>OFF-AIR SCREEN</label>
+            <select id="fOffair">
+              <option value="bars" ${(c.offairPattern || 'bars') === 'bars' ? 'selected' : ''}>Colour bars</option>
+              <option value="snow" ${c.offairPattern === 'snow' ? 'selected' : ''}>Snow</option>
+              <option value="card" ${c.offairPattern === 'card' ? 'selected' : ''}>Station card</option>
+            </select>
+          </div>
+        </div>
+        <p class="hint">
+          Plays once at the start of a dark window, then the screen you pick until
+          sign-on. Needs dark hours or an off-air rule to have anything to sign off
+          from — and it is skipped if the window is too short to finish it.
+        </p>
+      </div>
+    </details>
+
+    <details style="margin-top:18px">
       <summary style="cursor:pointer;font:600 13px var(--mono);letter-spacing:.08em;color:var(--dim)">VIBE — HOW THIS CHANNEL LOOKS</summary>
       <div style="margin-top:16px">
         <div class="row">
@@ -1198,6 +1227,8 @@ function openSettings(channelId, opts = {}) {
           orderingMode: $('#fMode', back).value,
           marathonSize: Number($('#fMar', back).value),
           adsEnabled: $('#fAds', back).checked,
+          signoffAssetId: $('#fSignoff', back).value ? Number($('#fSignoff', back).value) : null,
+          offairPattern: $('#fOffair', back).value,
           // L-V1: '' means inherit the global default (stored as NULL).
           vibe: (() => {
             const v = $('#fVibe', back).value;

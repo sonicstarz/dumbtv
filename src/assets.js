@@ -41,7 +41,7 @@ async function probeDuration(file) {
  * storing this gain lets playback pull them down so kids don't get blasted at 2am.
  * Returns the dB gain to apply (negative = quieter), or null if it can't measure.
  */
-export async function measureGain(input, target = -23) {
+export async function measureLoudnessGain(input, target = -23) {
   try {
     const { stderr } = await execFileAsync(
       'ffmpeg',
@@ -122,7 +122,7 @@ export async function scanAssets() {
       .replace(/[._-]+/g, ' ')
       .trim();
 
-    const gain = await measureGain(file, target);
+    const gain = await measureLoudnessGain(file, target);
     insert.run(file, title, kind, duration, tags, gain);
     added++;
   }

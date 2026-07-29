@@ -1,6 +1,6 @@
 import { db, getSetting } from '../db.js';
 import { getJfServer, JF_AUTH_HEADER } from './auth.js';
-import { measureGain } from '../assets.js';
+import { measureLoudnessGain } from '../assets.js';
 
 // VERIFIED LIVE against Jellyfin 10.11.11 (build 13): AuthenticateByName,
 // /Users/:id/Views, /Users/:id/Items, /Shows/:id/Episodes, the movie lookup,
@@ -176,7 +176,7 @@ export async function importJellyfinAds(sectionKey) {
   const ads = await getSectionAds(sectionKey);
   const target = getSetting('loudness_target', -23);
   for (const a of ads) {
-    try { a.gainDb = await measureGain(streamUrl(a.partKey), target); } catch { a.gainDb = null; }
+    try { a.gainDb = await measureLoudnessGain(streamUrl(a.partKey), target); } catch { a.gainDb = null; }
   }
   const run = db.transaction((rows) => {
     for (const a of rows) {

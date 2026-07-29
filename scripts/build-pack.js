@@ -178,15 +178,36 @@ async function probeDurationMs(file) {
 }
 
 // Re-encode to a uniform 480p h.264/AAC MP4 with faststart (seekable, web-safe).
+/**
+ * J-A1 · loudness is baked in at ENCODE time. This is the cheapest real win in
+ * the whole audio phase: we already re-encode public-domain content, so a
+ * loudnorm pass here makes every pack level with every other pack on EVERY
+ * platform with zero runtime code — no per-item filter chain, nothing for
+ * VLCKit to not support. Invariant #2 is about runtime playback, not mastering.
+ *
+ * The limiter after it is not optional. A 1930s optical soundtrack and a 1960s
+ * sponsored film sit whole decibels apart, and pushing the quiet one up without
+ * a ceiling is how you get clipping on exactly the loud material the feature
+ * exists to tame (the same mistake A2 fixes on the runtime path).
+ *
+ * -23 LUFS is EBU R128. ATSC A/85 (-24 LKFS) is the US broadcast number and is
+ * arguably more period-correct; it is a setting on the runtime side and a
+ * manifest option here rather than a hardcode.
+ */
 function encode(input, output, enc, sampleSec) {
   const height = enc?.height ?? 480;
   const crf = String(enc?.crf ?? 23);
   const preset = enc?.preset ?? 'medium';
   const abitrate = enc?.abitrate ?? '128k';
+  const target = enc?.loudnessTarget ?? -23;
+  const audioFilter = enc?.loudness === false
+    ? []
+    : ['-af', `loudnorm=I=${target}:TP=-1.5:LRA=11,alimiter=limit=0.95`];
   const args = [
     '-hide_banner', '-y', '-i', input,
     ...(sampleSec ? ['-t', String(sampleSec)] : []),
     '-vf', `scale=-2:${height}`,
+    ...audioFilter,
     '-c:v', 'libx264', '-crf', crf, '-preset', preset, '-pix_fmt', 'yuv420p',
     '-c:a', 'aac', '-b:a', abitrate, '-ac', '2',
     '-movflags', '+faststart',

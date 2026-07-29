@@ -991,6 +991,25 @@ console.log('\nContent warnings and partial series');
     played.every((e) => eps.includes(e)));
 }
 
+// ---- XMLTV export (R6) -----------------------------------------------------
+// The cheap half of the competitor category's headline feature: publish the
+// grid, without the permanent per-channel transcoding a tuner would need.
+console.log('\nXMLTV');
+{
+  const { buildXmltv } = await import('../src/xmltv.js');
+  const xml = buildXmltv({ days: 1 });
+  check('xmltv: has the doctype', xml.includes('<!DOCTYPE tv SYSTEM "xmltv.dtd">'));
+  check('xmltv: declares channels', /<channel id="dumbtv\.\d+">/.test(xml));
+  check('xmltv: lists programmes', (xml.match(/<programme /g) || []).length > 5,
+    `(${(xml.match(/<programme /g) || []).length})`);
+  check('xmltv: timestamps carry a timezone offset', /start="\d{14} [+-]\d{4}"/.test(xml));
+  // Titles come from Plex, filenames and pack manifests — the same untrusted
+  // sources that made the TV's guide an XSS hole in build 15.
+  check('xmltv: escapes markup rather than emitting it', !/<title>[^<]*<[a-z]/i.test(xml));
+  check('xmltv: omits ads and filler, like a real listings grid',
+    !xml.includes('<title>Toy Ad') && !xml.includes('<title>Station ID'));
+}
+
 // ---- determinism regression gate (build 17) --------------------------------
 // The scheduler tier teaches rules to select content by TAG, which is exactly
 // the kind of change that can quietly make output depend on Set iteration or

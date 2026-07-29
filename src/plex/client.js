@@ -1,7 +1,7 @@
 import { PLEX_HEADERS } from '../config.js';
 import { db, getSetting } from '../db.js';
 import { getServer } from './auth.js';
-import { measureGain } from '../assets.js';
+import { measureLoudnessGain } from '../assets.js';
 
 function requireServer() {
   const server = getServer();
@@ -199,7 +199,7 @@ export async function importPlexAds(sectionKey) {
   // Measure loudness up front (async — can't run inside the write transaction).
   // Over the WAN this is the slow part of an import; best-effort per spot.
   for (const s of spots) {
-    try { s.gainDb = await measureGain(streamUrl(s.partKey), target); } catch { s.gainDb = null; }
+    try { s.gainDb = await measureLoudnessGain(streamUrl(s.partKey), target); } catch { s.gainDb = null; }
   }
   const run = db.transaction((rows) => {
     for (const s of rows) {

@@ -422,8 +422,20 @@ export class Engine extends EventEmitter {
         this.lastError = err.message;
       });
       // Loudness: pull a hot commercial down (or a quiet one up) to match shows.
+      //
+      // J-A2 · the limiter is not decoration. A flat dB gain with no ceiling
+      // CLIPS on exactly the material this feature exists to tame: a quiet
+      // 1930s optical soundtrack measured against a -23 LUFS target gets pushed
+      // up by whole decibels, and anything already near full scale distorts.
+      // acompressor with a hard ratio at -1.5 dBFS catches the peaks and is
+      // inaudible below them.
       await this.mpv
-        .setProperty('af', program.gainDb ? `volume=${program.gainDb}dB` : '')
+        .setProperty(
+          'af',
+          program.gainDb
+            ? `volume=${program.gainDb}dB,acompressor=threshold=-1.5dB:ratio=20:attack=1:release=50`
+            : ''
+        )
         .catch(() => {});
       // Display fill: panscan 1.0 crops the picture to fill the screen (no
       // letterbox bars), the right call on a 4:3 set. 'fit' leaves it whole.

@@ -57,6 +57,7 @@ import { hashString } from '../util/rng.js';
 import { normalizeVibe, parseVibe, VIBE_PRESETS } from '../vibe.js';
 import { scanAssets } from '../assets.js';
 import { buildSchedulePdf } from '../print.js';
+import { buildXmltv } from '../xmltv.js';
 import { engine } from '../player/engine.js';
 import { HOUR } from '../util/time.js';
 
@@ -606,6 +607,23 @@ export default async function api(fastify) {
   fastify.get('/api/channels/:id/preview', async (req) =>
     previewChannel(Number(req.params.id), Number(req.query.days || 7))
   );
+
+  /**
+   * R6 · the schedule as XMLTV, for third-party guide clients.
+   *
+   * Deliberately NOT paired with tuner emulation (R7): that would mean a
+   * permanent per-channel encoded stream, which is invariant #2 in reverse.
+   * This is the half that costs nothing — the grid already exists.
+   */
+  fastify.get('/api/xmltv', async (req, reply) => {
+    const from = req.query.from ? Number(req.query.from) : Date.now();
+    const days = Math.max(1, Math.min(14, Number(req.query.days || 7)));
+    const proto = req.headers['x-forwarded-proto'] || 'http';
+    const baseUrl = req.headers.host ? `${proto}://${req.headers.host}` : '';
+    reply.header('Content-Type', 'application/xml; charset=utf-8');
+    reply.header('Content-Disposition', 'inline; filename="dumbtv.xml"');
+    return reply.send(buildXmltv({ from, days, baseUrl }));
+  });
 
   // Printable PDF guide, straight from the programs table.
   fastify.get('/api/schedule/print', async (req, reply) => {

@@ -17,6 +17,7 @@ import { Readable } from 'node:stream';
 import { pipeline } from 'node:stream/promises';
 import { db, getSetting, setSetting } from '../db.js';
 import { config } from '../config.js';
+import { assertSafePackFile } from './safe-file.js';
 import { regenerateChannel } from '../schedule/generator.js';
 
 const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
@@ -83,6 +84,9 @@ export function readPack(distDir) {
   if (!p.id || !Array.isArray(p.items) || !p.items.length) throw new Error(`invalid pack.json: ${file}`);
   for (const it of p.items) {
     if (!it.file || !Number.isFinite(it.durationMs)) throw new Error(`pack ${p.id}: item ${it.id} missing file/durationMs`);
+    // A hand-placed pack directory is the same hazard as a downloaded one:
+    // resolvePackPath joins this onto root_path, so it must not escape it.
+    assertSafePackFile(it.file, `pack ${p.id}/item ${it.id}`);
   }
   return p;
 }
@@ -242,11 +246,43 @@ export function loadCatalog() {
 const installProgress = new Map();
 export const getInstallProgress = (id) => installProgress.get(id) ?? null;
 
-async function downloadTo(url, dest, onBytes) {
-  const res = await fetch(url, { headers: { 'User-Agent': 'dumbTV' } });
+// A download is a remote party writing to our disk, so it gets a clock and a
+// ceiling. Without them a hostile or simply mis-authored catalog entry can hang
+// the install forever or fill the disk (S-9).
+const DOWNLOAD_TIMEOUT_MS = 10 * 60 * 1000;   // generous for ~300 MB on a slow line
+const MIN_SIZE_CAP = 50 * 1024 * 1024;        // floor, for entries declaring nothing
+const SIZE_CAP_HEADROOM = 1.5;                // IA derivatives vary from the declared size
+const FLAT_SIZE_CAP = 4 * 1024 * 1024 * 1024; // absolute ceiling when size is unknown
+
+/** How many bytes we're willing to accept for an item that declares `bytes`. */
+const sizeCapFor = (declaredBytes) =>
+  Number.isFinite(declaredBytes) && declaredBytes > 0
+    ? Math.max(MIN_SIZE_CAP, Math.round(declaredBytes * SIZE_CAP_HEADROOM))
+    : FLAT_SIZE_CAP;
+
+async function downloadTo(url, dest, onBytes, { capBytes = FLAT_SIZE_CAP } = {}) {
+  const res = await fetch(url, {
+    headers: { 'User-Agent': 'dumbTV' },
+    signal: AbortSignal.timeout(DOWNLOAD_TIMEOUT_MS),
+  });
   if (!res.ok || !res.body) throw new Error(`download failed: HTTP ${res.status}`);
+
+  // Refuse before reading a byte when the server is honest about the size.
+  const declared = Number(res.headers.get('content-length'));
+  if (Number.isFinite(declared) && declared > capBytes) {
+    throw new Error(`download too large: ${declared} bytes exceeds the ${capBytes}-byte cap`);
+  }
+
   const rs = Readable.fromWeb(res.body);
-  if (onBytes) rs.on('data', (chunk) => onBytes(chunk.length));   // C4: byte progress
+  let written = 0;
+  rs.on('data', (chunk) => {
+    written += chunk.length;
+    if (onBytes) onBytes(chunk.length);          // C4: byte progress
+    // A server that lies about (or omits) content-length is stopped mid-stream.
+    if (written > capBytes) {
+      rs.destroy(new Error(`download too large: exceeded the ${capBytes}-byte cap`));
+    }
+  });
   await pipeline(rs, fs.createWriteStream(dest));
 }
 
@@ -300,6 +336,9 @@ export function startInstall(packId) {
   (async () => {
     try {
       for (const it of entry.items) {
+        // S-1: the catalog is remote, so its file names are not ours to trust.
+        // Validate BEFORE joining — path.join('../..') escapes the pack dir.
+        assertSafePackFile(it.file, `pack ${entry.id}/item ${it.id}`);
         const dest = path.join(dir, it.file);
         // N1: accept an existing file ONLY if it's the expected size — a
         // truncated/partial download must be re-fetched, not treated as done.
@@ -311,7 +350,14 @@ export function startInstall(packId) {
           // Download to a .part file and rename on success, so an interrupted
           // download never leaves a poisoned "complete" file (N1).
           const part = `${dest}.part`;
-          await downloadTo(it.url, part, (n) => { prog.bytesDone += n; });
+          try {
+            await downloadTo(it.url, part, (n) => { prog.bytesDone += n; },
+                             { capBytes: sizeCapFor(it.bytes) });
+          } catch (e) {
+            // Don't leave litter behind an aborted or capped download (S-9).
+            fs.rmSync(part, { force: true });
+            throw e;
+          }
           fs.renameSync(part, dest);
         }
         prog.done++;

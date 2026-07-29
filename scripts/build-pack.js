@@ -41,6 +41,7 @@ import { promisify } from 'node:util';
 import { pipeline } from 'node:stream/promises';
 import { Readable } from 'node:stream';
 import { fileURLToPath } from 'node:url';
+import { assertSafePackFile } from '../src/packs/safe-file.js';
 
 const execFileAsync = promisify(execFile);
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -220,6 +221,10 @@ function loadManifest(packId) {
       sourceless.map((i) => `  - ${i.id}`).join('\n'),
     );
   }
+  // The catalog derives each item's on-disk name from its id (`<id>.mp4`), and
+  // installers join that onto the pack directory — so an id carrying a path
+  // separator is a traversal waiting to be published. Same rule as the runtime.
+  for (const i of m.items) assertSafePackFile(`${i.id}.mp4`, `pack ${packId}/item ${i.id}`);
   return m;
 }
 
@@ -290,7 +295,7 @@ async function cmdCatalog() {
         id: it.id, title: it.title, show: it.show ?? null, season: it.season ?? null,
         episode: it.episode ?? null, aired: it.aired ?? null,
         durationMs,
-        file: `${it.id}.mp4`,
+        file: assertSafePackFile(`${it.id}.mp4`, `pack ${m.id}/item ${it.id}`),
         url,
         bytes,
         license: it.license,

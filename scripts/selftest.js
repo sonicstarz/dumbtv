@@ -740,6 +740,37 @@ try {
 check('collision: a taken number falls back to next-free, no throw',
   !collisionThrew && newNum != null && newNum !== takenNum, `(asked ${takenNum} → got ${newNum})`);
 
+// ---- pack file names cannot escape the pack directory (S-1) ---------------
+// The download catalog is remote once dumbtv.app/packs/index.json is live, so
+// an item's `file` is attacker-controlled: path.join(dir, '../../x') writes
+// wherever it likes. Nothing outside the pack root may ever be touched.
+console.log('\nPack file-name safety');
+const { assertSafePackFile } = await import('../src/packs/safe-file.js');
+
+const escapes = ['../escape.mp4', '../../etc/passwd', 'sub/dir.mp4', '..', '.', '.hidden.mp4', '', 'a\\b.mp4'];
+const allRejected = escapes.every((f) => {
+  try { assertSafePackFile(f, 'test'); return false; } catch { return true; }
+});
+check('pack-file: traversal, separators, dotfiles and empty names are rejected', allRejected);
+check('pack-file: an ordinary filename is accepted',
+  assertSafePackFile('the-mad-scientist.mp4', 'test') === 'the-mad-scientist.mp4');
+
+// installPack must refuse a hand-placed pack whose manifest carries an escape,
+// and must not register anything from it.
+const evilPackDir = path.join(os.tmpdir(), `dumbtv-evilpack-${Date.now()}`);
+fs.mkdirSync(evilPackDir, { recursive: true });
+fs.writeFileSync(path.join(evilPackDir, 'pack.json'), JSON.stringify({
+  id: 'eviltest', name: 'EVIL', version: 1, kind: 'shows',
+  items: [{ id: 'a', file: '../escape.mp4', title: 'A', durationMs: 10 * MINUTE }],
+}));
+let evilThrew = false;
+try { installPack(evilPackDir, { origin: 'downloaded' }); } catch { evilThrew = true; }
+check('pack-file: installPack rejects a manifest with a traversing file name',
+  evilThrew && db.prepare("SELECT COUNT(*) n FROM packs WHERE id='eviltest'").get().n === 0);
+check('pack-file: nothing was written outside the pack dir',
+  !fs.existsSync(path.join(os.tmpdir(), 'escape.mp4')));
+fs.rmSync(evilPackDir, { recursive: true, force: true });
+
 const counts = db.prepare('SELECT COUNT(*) n FROM programs').get().n;
 console.log(`\n${counts} programs across all channels`);
 console.log(`${pass} passed, ${fail} failed\n`);

@@ -1,3 +1,5 @@
+import { escapeHtml } from './esc.js';
+
 const $ = (sel, root = document) => root.querySelector(sel);
 const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
 
@@ -34,11 +36,6 @@ function toast(message, bad = false) {
 
 const clock = (ts) =>
   new Date(ts).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
-
-const escapeHtml = (s) =>
-  String(s ?? '').replace(/[&<>"']/g, (c) =>
-    ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])
-  );
 
 function mins(ms) {
   return Math.round(ms / 60000);

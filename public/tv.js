@@ -3,6 +3,8 @@
  * what's on is what's on, you join it in progress, and you can't pause it.
  */
 
+import { escapeHtml } from './esc.js';
+
 const $ = (s) => document.querySelector(s);
 
 const video = $('#video');
@@ -184,22 +186,26 @@ function paint() {
   $('#screen').classList.toggle('guiding', state.guideOpen);
   if (state.guideOpen) {
     $('#gClock').textContent = clock(now);
+    // Everything interpolated here is escaped: titles and channel names come
+    // from Plex/Jellyfin metadata, from filenames, and from pack manifests, so
+    // none of it is ours. (The banner and the cards above use textContent and
+    // are safe by construction — this grid is the one place building markup.)
     $('#gRows').innerHTML = state.channels
       .map((c, i) => {
         const cells = [c.now, c.next]
           .map((p) =>
             p
               ? `<div class="gp">
-                   <div class="tm">${clock(p.startUtc)}</div>
-                   <div class="pt">${p.title}</div>
-                   <div class="ps">${p.subtitle || ''}</div>
+                   <div class="tm">${escapeHtml(clock(p.startUtc))}</div>
+                   <div class="pt">${escapeHtml(p.title)}</div>
+                   <div class="ps">${escapeHtml(p.subtitle || '')}</div>
                  </div>`
               : '<div class="gp"><div class="ps">—</div></div>'
           )
           .join('');
         return `<div class="grow ${i === state.guideIndex ? 'sel' : ''}">
-          <div class="gc"><div class="n">${String(c.channel.number).padStart(2, '0')}</div>
-          <div class="t">${c.channel.name}</div></div>
+          <div class="gc"><div class="n">${escapeHtml(String(c.channel.number).padStart(2, '0'))}</div>
+          <div class="t">${escapeHtml(c.channel.name)}</div></div>
           ${cells}
           <div class="gp"></div>
         </div>`;

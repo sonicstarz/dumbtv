@@ -44,6 +44,7 @@ targetTemplates:
           mkdir -p "$DEST"
           cp "${SRCROOT}/../public/index.html" \
              "${SRCROOT}/../public/app.js" \
+             "${SRCROOT}/../public/esc.js" \
              "${SRCROOT}/../public/style.css" "$DEST/"
       # Bundle preload content packs (Track I). A pack ships in the binary when
       # its source dir has a PRELOAD marker AND has been built (dist/pack.json).

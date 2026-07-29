@@ -45,12 +45,22 @@ import { scanLocalFolder, previewLocalFolder, createChannelFromLocalFolder } fro
 import {
   isConfigured, setPin, verifyPin, clearPin, tokenValid, cookieToken, sessionCookieHeader,
 } from '../auth.js';
+import {
+  CONFIG_VERSION, CHANNEL_COLUMNS, RULE_COLUMNS,
+  pickChannel, pickRule, pickSource, upgradeV2,
+} from '../config-format.js';
+import { config } from '../config.js';
 import { guide, nowOnAll, nowOn, upNextShow, publicChannel } from '../schedule/resolver.js';
 import { ORDERING_MODES } from '../schedule/ordering.js';
+import { hashString } from '../util/rng.js';
 import { scanAssets } from '../assets.js';
 import { buildSchedulePdf } from '../print.js';
 import { engine } from '../player/engine.js';
 import { HOUR } from '../util/time.js';
+
+/** A shuffle seed derived from the channel's identity, so the same lineup built
+ *  on two devices plays in the same order (invariant #5, across boxes). */
+const channelSeed = (name, number) => hashString(`channel:${name}:${number}`) & 0x7fffffff;
 
 const CHANNEL_FIELDS = [
   'name',
@@ -319,7 +329,12 @@ export default async function api(fastify) {
         b.slotMinutes ?? 30,
         b.orderingMode || 'sequential',
         b.marathonSize ?? 3,
-        Math.floor(Math.random() * 2 ** 31),
+        // Seed from the channel's identity, not the clock. The seed is stored
+        // either way, so the schedule was always deterministic ON a device —
+        // but a random one means the SAME lineup built on two boxes plays in a
+        // different order, which breaks cloning and makes a printed guide
+        // device-specific. createChannelFromLocalFolder already did this right.
+        channelSeed(b.name || 'New Channel', number),
         b.darkStart || null,
         b.darkEnd || null,
         b.adsEnabled === true ? 1 : 0,   // ads OFF by default (matches Swift + D2)
@@ -602,44 +617,131 @@ export default async function api(fastify) {
   // ---- Config backup / restore -------------------------------------------
 
   // Export the whole lineup as one JSON — back it up, share it, or move it to
-  // the Pi. No secrets (token, PIN) are included.
-  fastify.get('/api/config/export', async () => ({
-    version: 2,
-    exportedAt: Date.now(),
-    channels: db.prepare('SELECT * FROM channels ORDER BY number').all(),
-    sources: db.prepare('SELECT * FROM channel_sources').all(),
-    rules: db.prepare('SELECT * FROM schedule_rules').all(),
-    excludes: db.prepare('SELECT * FROM channel_excludes').all(),
-  }));
+  // another box. Format spec + what deliberately never travels: config-format.js.
+  fastify.get('/api/config/export', async () => {
+    // A locked channel is the device's own (SPACE ships with dumbTV), so it is
+    // not the user's to clone — and the receiving device already has its own.
+    const channels = db.prepare('SELECT * FROM channels WHERE locked = 0 ORDER BY number').all();
+    const srcStmt = db.prepare('SELECT * FROM channel_sources WHERE channel_id = ? ORDER BY id');
+    const ruleStmt = db.prepare('SELECT * FROM schedule_rules WHERE channel_id = ? ORDER BY id');
+    const exclStmt = db.prepare('SELECT rating_key FROM channel_excludes WHERE channel_id = ?');
+
+    return {
+      version: CONFIG_VERSION,
+      exportedAt: Date.now(),
+      origin: { platform: 'node', appVersion: config.productVersion },
+      channels: channels.map((c) => ({
+        key: `ch-${c.id}`,
+        number: c.number, name: c.name, slotMinutes: c.slot_minutes,
+        orderingMode: c.ordering_mode, marathonSize: c.marathon_size,
+        // Invariant #5 across devices: without the seed a cloned lineup plays
+        // in a different order, and a printed guide stops being true.
+        shuffleSeed: c.shuffle_seed,
+        darkStart: c.dark_start, darkEnd: c.dark_end,
+        adsEnabled: !!c.ads_enabled, maxAdsPerBreak: c.max_ads_per_break,
+        adTags: c.ad_tags, timingMode: c.timing_mode, adsBetween: c.ads_between,
+        cooldownDays: c.cooldown_days, overrunPolicy: c.overrun_policy,
+        enabled: !!c.enabled,
+        sources: srcStmt.all(c.id).map((s) => ({
+          ratingKey: s.rating_key, sourceType: s.source_type, title: s.title,
+        })),
+        excludes: exclStmt.all(c.id).map((e) => e.rating_key),
+        rules: ruleStmt.all(c.id).map((r) => ({
+          name: r.name, kind: r.kind, priority: r.priority, enabled: !!r.enabled,
+          daysOfWeek: r.days_of_week, startTime: r.start_time, durationMin: r.duration_min,
+          startsAtUtc: r.starts_at_utc, sourceType: r.source_type, ratingKey: r.rating_key,
+          orderingMode: r.ordering_mode, effectiveFrom: r.effective_from,
+          effectiveTo: r.effective_to, adPolicy: r.ad_policy, airdateMode: r.airdate_mode,
+          cadenceCompress: r.cadence_compress,
+        })),
+      })),
+      settings: {
+        kidsMode: !!getSetting('kids_mode', 0),
+        kidsSafeChannels: getSetting('kids_safe_channels', []),
+        mediaBackend: activeBackend(),
+        loudnessTarget: getSetting('loudness_target', -23),
+        timezone: getSetting('timezone', null),
+      },
+    };
+  });
 
   fastify.post('/api/config/import', async (req, reply) => {
-    const cfg = req.body;
+    let cfg = req.body;
     if (!cfg || !Array.isArray(cfg.channels)) {
       return reply.code(400).send({ error: 'Not a dumbTV config file' });
     }
-    const insertRow = (table, obj, remap = {}) => {
-      const row = { ...obj, ...remap };
-      const cols = Object.keys(row).filter((k) => k !== 'id');
-      return db.prepare(`INSERT INTO ${table} (${cols.join(',')}) VALUES (${cols.map(() => '?').join(',')})`)
-        .run(...cols.map((c) => row[c]));
+    // A v2 backup still restores; only v3 is written.
+    if (cfg.version === 2 || cfg.sources !== undefined) cfg = upgradeV2(cfg);
+    if (cfg.version !== CONFIG_VERSION) {
+      return reply.code(400).send({ error: `Unsupported config version ${cfg.version}` });
+    }
+
+    const insChannel = (ch) => {
+      const picked = pickChannel(ch);
+      const cols = Object.keys(picked).map((f) => CHANNEL_COLUMNS[f]);
+      // Every column name comes from the whitelist above, never from the file.
+      return db.prepare(
+        `INSERT INTO channels (${cols.join(',')}, created_at)
+         VALUES (${cols.map(() => '?').join(',')}, ?)`
+      ).run(...Object.keys(picked).map((f) => picked[f]), Date.now()).lastInsertRowid;
     };
+    const insRule = (channelId, r) => {
+      const picked = pickRule(r);
+      const cols = Object.keys(picked).map((f) => RULE_COLUMNS[f]);
+      db.prepare(
+        `INSERT INTO schedule_rules (channel_id${cols.length ? ',' + cols.join(',') : ''})
+         VALUES (?${cols.map(() => ',?').join('')})`
+      ).run(channelId, ...Object.keys(picked).map((f) => picked[f]));
+    };
+    const insSource = db.prepare(
+      'INSERT OR IGNORE INTO channel_sources (channel_id, rating_key, source_type, title) VALUES (?,?,?,?)'
+    );
+    const insExclude = db.prepare(
+      'INSERT OR IGNORE INTO channel_excludes (channel_id, rating_key) VALUES (?,?)'
+    );
+
+    let imported = 0;
+    let skippedLocked = 0;
     const run = db.transaction(() => {
-      db.prepare('DELETE FROM channels').run(); // cascades sources, rules, programs
-      const idMap = {};
-      for (const c of cfg.channels) idMap[c.id] = insertRow('channels', c).lastInsertRowid;
-      for (const s of cfg.sources || []) {
-        if (idMap[s.channel_id]) insertRow('channel_sources', s, { channel_id: idMap[s.channel_id] });
+      // Replace the user's lineup, but NOT the device's own system channels —
+      // the API returns 403 on deleting one, so an import must not do it either.
+      db.prepare('DELETE FROM channels WHERE locked = 0').run(); // cascades sources/rules/excludes/programs
+      const taken = new Set(db.prepare('SELECT number FROM channels').all().map((r) => r.number));
+      let nextFree = Math.max(1, ...taken, 0);
+
+      for (const ch of cfg.channels) {
+        // Devices own their system channels; a file never carries one in.
+        if (ch.locked) { skippedLocked++; continue; }
+        // A surviving locked channel may sit on the incoming number.
+        if (ch.number == null || taken.has(ch.number)) ch.number = ++nextFree;
+        taken.add(ch.number);
+
+        const id = insChannel(ch);
+        for (const s of ch.sources || []) {
+          const p = pickSource(s);
+          if (p.ratingKey) insSource.run(id, String(p.ratingKey), p.sourceType ?? null, p.title ?? null);
+        }
+        for (const k of ch.excludes || []) insExclude.run(id, String(k));
+        for (const r of ch.rules || []) insRule(id, r);
+        imported++;
       }
-      for (const r of cfg.rules || []) {
-        if (idMap[r.channel_id]) insertRow('schedule_rules', r, { channel_id: idMap[r.channel_id] });
-      }
-      for (const e of cfg.excludes || []) {
-        if (idMap[e.channel_id]) insertRow('channel_excludes', e, { channel_id: idMap[e.channel_id] });
+
+      const s = cfg.settings || {};
+      if (s.kidsMode !== undefined) setSetting('kids_mode', s.kidsMode ? 1 : 0);
+      if (Array.isArray(s.kidsSafeChannels)) setSetting('kids_safe_channels', s.kidsSafeChannels);
+      if (s.loudnessTarget !== undefined) setSetting('loudness_target', Number(s.loudnessTarget));
+      if (s.timezone !== undefined) setSetting('timezone', s.timezone || null);
+      // The backend CHOICE travels; its credentials do not, so the new device
+      // asks for its own login rather than inheriting one it cannot use.
+      if (s.mediaBackend === 'plex' || s.mediaBackend === 'jellyfin') {
+        setSetting('media_backend', s.mediaBackend);
       }
     });
     run();
+    // Schedules are never carried — they are re-derived from this device's
+    // clock. Invariant #4 holds: regeneration only deletes start_utc >= now.
     ensureSchedule();
-    return { ok: true, channels: cfg.channels.length, rules: (cfg.rules || []).length };
+    return { ok: true, channels: imported, skippedLocked };
   });
 
   // ---- LLM assist (optional, proposes only — a human applies) ------------

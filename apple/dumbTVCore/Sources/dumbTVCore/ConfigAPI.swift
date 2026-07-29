@@ -130,6 +130,7 @@ public final class ConfigAPI {
         case ("PATCH", 2) where s[0] == "rules":     return patchRule(s[1], req)
         case ("DELETE", 2) where s[0] == "rules":    return deleteRule(s[1])
         case ("GET", 2) where s[0] == "config" && s[1] == "export": return exportConfig()
+        case ("POST", 2) where s[0] == "config" && s[1] == "import": return importConfig(req)
 
         // --- content packs (Track I) ---
         case ("GET", 1) where s[0] == "packs":                       return packsList()
@@ -578,14 +579,185 @@ public final class ConfigAPI {
         return .ok()
     }
 
-    // MARK: - config export
+    // MARK: - config export / import (format v3)
+
+    // The portable lineup format, byte-identical to what Node emits — see
+    // src/config-format.js for the spec and the reasoning. Two things never
+    // travel: SECRETS (Plex/Jellyfin credentials, the PIN) and SCHEDULES
+    // (`programs` rows are per-device; import re-derives them from this box's
+    // clock). What DOES travel is shuffleSeed, without which the same lineup
+    // would play in a different order here than on the device it came from.
+    //
+    // v2 emitted `{version, channels, rules}` with rules in a flat top-level
+    // array and excludes missing entirely — so an Apple export lost every
+    // channel's episode filtering. v3 nests sources, excludes and rules inside
+    // their channel, which also removes the id-remapping the old shape needed.
+
+    static let configVersion = 3
 
     private func exportConfig() -> Response {
-        .ok([
-            "version": 2,
-            "channels": store.allChannels().map(channelJSON),
-            "rules": allRules().map(ruleJSON),
+        // A locked channel is this device's own (SPACE ships with dumbTV), so it
+        // is not the user's to clone — and the receiving device has its own.
+        let channels = store.allChannels().filter { !$0.locked }
+        return .ok([
+            "version": Self.configVersion,
+            "exportedAt": nowMs(),
+            "origin": ["platform": platformName(), "appVersion": appVersion()],
+            "channels": channels.map { c -> [String: Any] in
+                [
+                    "key": "ch-\(c.id)",
+                    "number": c.number, "name": c.name, "slotMinutes": c.slotMinutes,
+                    "orderingMode": c.orderingMode.rawValue, "marathonSize": c.marathonSize,
+                    "shuffleSeed": Int(c.shuffleSeed),
+                    "darkStart": c.darkStart ?? NSNull(), "darkEnd": c.darkEnd ?? NSNull(),
+                    "adsEnabled": c.adsEnabled, "maxAdsPerBreak": c.maxAdsPerBreak,
+                    "adTags": c.adTags, "timingMode": c.timingMode.rawValue,
+                    "adsBetween": c.adsBetween, "cooldownDays": c.cooldownDays,
+                    "overrunPolicy": c.overrunPolicy.rawValue, "enabled": c.enabled,
+                    "sources": store.sources(c.id).map { s -> [String: Any] in
+                        ["ratingKey": s.ratingKey, "sourceType": s.sourceType,
+                         "title": s.title ?? NSNull()]
+                    },
+                    // v2 dropped these on the floor.
+                    "excludes": Array(store.excludes(c.id)).sorted(),
+                    "rules": store.rules(c.id).map { r -> [String: Any] in
+                        ["name": r.name ?? NSNull(), "kind": r.kind.rawValue,
+                         "priority": r.priority, "enabled": r.enabled,
+                         "daysOfWeek": r.daysOfWeek ?? NSNull(),
+                         "startTime": r.startTime ?? NSNull(),
+                         "durationMin": r.durationMin ?? NSNull(),
+                         "startsAtUtc": r.startsAtUtc ?? NSNull(),
+                         "sourceType": r.sourceType ?? NSNull(),
+                         "ratingKey": r.ratingKey ?? NSNull(),
+                         "orderingMode": r.orderingMode?.rawValue ?? NSNull(),
+                         "effectiveFrom": r.effectiveFrom ?? NSNull(),
+                         "effectiveTo": r.effectiveTo ?? NSNull()]
+                    },
+                ]
+            },
+            "settings": [
+                "kidsMode": store.getSetting("kids_mode") == "1",
+                "kidsSafeChannels": kidSafeIds().sorted(),
+                "mediaBackend": usingJellyfin ? "jellyfin" : "plex",
+                "loudnessTarget": Int(store.getSetting("loudness_target") ?? "-23") ?? -23,
+                "timezone": store.getSetting("timezone").map { $0 as Any } ?? NSNull(),
+            ],
         ])
+    }
+
+    /// Restore a lineup. Replaces the user's channels but never the device's own
+    /// system channels — the API returns 403 on deleting one, so an import must
+    /// not do it either (that bug shipped in the Node importer for months).
+    private func importConfig(_ req: Request) -> Response {
+        guard let body = req.body, let incoming = body["channels"] as? [[String: Any]] else {
+            return .bad("Not a dumbTV config file")
+        }
+        let version = body["version"] as? Int ?? 0
+        guard version == Self.configVersion else {
+            // v2 upgrading lives in the Node importer; an Apple device has never
+            // written a v2 file that carried sources, so there is nothing here
+            // worth reconstructing from one.
+            return .bad("Unsupported config version \(version) — expected \(Self.configVersion)")
+        }
+
+        for c in store.allChannels() where !c.locked { store.deleteChannel(c.id) }
+
+        var taken = Set(store.allChannels().map { $0.number })
+        var nextFree = (taken.max() ?? 0)
+        var imported = 0
+        var skippedLocked = 0
+
+        for ch in incoming {
+            // Devices own their system channels; a file never carries one in.
+            if ch["locked"] as? Bool == true { skippedLocked += 1; continue }
+
+            var number = ch["number"] as? Int ?? 0
+            if number <= 0 || taken.contains(number) { nextFree += 1; number = nextFree }
+            taken.insert(number)
+
+            var config = ChannelConfig(
+                id: 0,
+                number: number,
+                name: ch["name"] as? String ?? "Channel \(number)"
+            )
+            config.slotMinutes = ch["slotMinutes"] as? Int ?? 30
+            if let m = ch["orderingMode"] as? String, let mode = OrderingMode(rawValue: m) { config.orderingMode = mode }
+            config.marathonSize = ch["marathonSize"] as? Int ?? 3
+            // Invariant #5 across devices — a lineup that arrives without its
+            // seed is a different lineup.
+            if let seed = ch["shuffleSeed"] as? Int { config.shuffleSeed = UInt32(truncatingIfNeeded: seed) }
+            config.darkStart = ch["darkStart"] as? String
+            config.darkEnd = ch["darkEnd"] as? String
+            config.adsEnabled = ch["adsEnabled"] as? Bool ?? false
+            config.maxAdsPerBreak = ch["maxAdsPerBreak"] as? Int ?? 10
+            config.adTags = ch["adTags"] as? String ?? ""
+            if let t = ch["timingMode"] as? String, let mode = TimingMode(rawValue: t) { config.timingMode = mode }
+            config.adsBetween = ch["adsBetween"] as? Int ?? 4
+            config.cooldownDays = ch["cooldownDays"] as? Int ?? 0
+            if let o = ch["overrunPolicy"] as? String, let p = OverrunPolicy(rawValue: o) { config.overrunPolicy = p }
+            config.enabled = ch["enabled"] as? Bool ?? true
+            config.locked = false   // never honour an incoming lock
+
+            let id = store.insertChannel(config)
+
+            for s in ch["sources"] as? [[String: Any]] ?? [] {
+                guard let key = s["ratingKey"] as? String else { continue }
+                store.addSource(id, ratingKey: key,
+                                sourceType: s["sourceType"] as? String ?? "show",
+                                title: s["title"] as? String, thumb: nil)
+            }
+            let excl = (ch["excludes"] as? [String]) ?? []
+            if !excl.isEmpty { store.setExcludes(id, Set(excl)) }
+
+            for r in ch["rules"] as? [[String: Any]] ?? [] {
+                guard let kindRaw = r["kind"] as? String, let kind = RuleKind(rawValue: kindRaw) else { continue }
+                var rule = ScheduleRule(id: 0, channelId: id, kind: kind,
+                                        priority: r["priority"] as? Int ?? 0)
+                rule.name = r["name"] as? String
+                rule.enabled = r["enabled"] as? Bool ?? true
+                rule.daysOfWeek = r["daysOfWeek"] as? String
+                rule.startTime = r["startTime"] as? String
+                rule.durationMin = r["durationMin"] as? Int
+                rule.startsAtUtc = (r["startsAtUtc"] as? Int).map { Millis($0) }
+                rule.sourceType = r["sourceType"] as? String
+                rule.ratingKey = r["ratingKey"] as? String
+                if let m = r["orderingMode"] as? String { rule.orderingMode = OrderingMode(rawValue: m) }
+                rule.effectiveFrom = r["effectiveFrom"] as? String
+                rule.effectiveTo = r["effectiveTo"] as? String
+                _ = store.insertRule(rule)
+            }
+            imported += 1
+        }
+
+        if let s = body["settings"] as? [String: Any] {
+            if let kids = s["kidsMode"] as? Bool { store.setSetting("kids_mode", kids ? "1" : "0") }
+            if let target = s["loudnessTarget"] as? Int { store.setSetting("loudness_target", String(target)) }
+            if let tz = s["timezone"] as? String { store.setSetting("timezone", tz) }
+            // The backend CHOICE travels; credentials do not, so this device asks
+            // for its own login rather than inheriting one it cannot use.
+            if let backend = s["mediaBackend"] as? String, backend == "plex" || backend == "jellyfin" {
+                store.setSetting("media_backend", backend)
+            }
+        }
+
+        // An import must not be undone by the preload re-seed on next launch.
+        store.setSetting("preload_seeded", "1")
+
+        return .ok(["ok": true, "channels": imported, "skippedLocked": skippedLocked])
+    }
+
+    private func platformName() -> String {
+        #if os(tvOS)
+        return "tvos"
+        #elseif os(macOS)
+        return "macos"
+        #else
+        return "ios"
+        #endif
+    }
+
+    private func appVersion() -> String {
+        (Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String) ?? "unknown"
     }
 
     /// The listings grid: every channel's programs over the next `hours`,

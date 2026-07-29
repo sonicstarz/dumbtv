@@ -18,6 +18,7 @@ import { pipeline } from 'node:stream/promises';
 import { db, getSetting, setSetting } from '../db.js';
 import { config } from '../config.js';
 import { assertSafePackFile } from './safe-file.js';
+import { hashString } from '../util/rng.js';
 import { regenerateChannel } from '../schedule/generator.js';
 
 const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
@@ -155,7 +156,10 @@ export const createChannelFromPack = db.transaction((packId, overrides = {}) => 
      VALUES (?,?,30,?,3,?,NULL,NULL,?,10,'',1,?,?)`
   ).run(
     number, ch.name, ch.ordering,
-    ch.seed ?? Math.floor(Math.random() * 2 ** 31),
+    // A manifest may pin a seed; otherwise derive it from the pack id so the
+    // same pack installed on two devices plays in the same order (invariant #5
+    // across boxes, and the thing that makes "clone my lineup" truthful).
+    ch.seed ?? (hashString(`pack:${packId}`) & 0x7fffffff),
     overrides.adsEnabled === false ? 0 : 1,
     // S3: a pack whose manifest declares `channel.system` creates a LOCKED
     // channel — SPACE at 1 is the first. Hideable, not editable.

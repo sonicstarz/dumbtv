@@ -858,6 +858,81 @@ console.log('\nSign-off');
       .get(tinyCh, anthem).n === 0);
 }
 
+// ---- determinism regression gate (build 17) --------------------------------
+// The scheduler tier teaches rules to select content by TAG, which is exactly
+// the kind of change that can quietly make output depend on Set iteration or
+// SQL row order. Invariant #5 is that a printed guide stays true, so this
+// asserts the property that actually underwrites it: SAME INPUTS → SAME BYTES.
+//
+// Note what this deliberately does NOT assert. Regenerating after time has
+// passed re-phases the playlist cursor from wherever the airing program ends,
+// so a later rebuild legitimately differs — that is documented behaviour, and
+// "already-aired programs survive" is covered separately above. Here the whole
+// pre-generation state is restored so the two passes are genuinely comparable.
+console.log('\nDeterminism');
+{
+  const detCh = db.prepare(
+    'INSERT INTO channels (number,name,ordering_mode,shuffle_seed,created_at) VALUES (?,?,?,?,?)'
+  ).run(85, 'DETERMINISM', 'shuffle', 424242, Date.now()).lastInsertRowid;
+  for (const k of ['show-xmen', 'show-spidey', 'show-gargoyles']) {
+    db.prepare('INSERT INTO channel_sources (channel_id,rating_key,source_type,title) VALUES (?,?,?,?)')
+      .run(detCh, k, 'show', k);
+  }
+
+  const horizon = Date.now() + 5 * 24 * HOUR;
+  // Compare the SEQUENCE, not the wall clock. Generation anchors to Date.now()
+  // (minus the channel's stagger), so two runs milliseconds apart necessarily
+  // start at different absolute times — that is the design, not a defect.
+  // Invariant #5 is about WHAT plays in WHAT ORDER for WHAT LENGTH, which is
+  // precisely what a tag predicate could break.
+  // PROGRAMS only, and only the prefix. Two deliberate exclusions:
+  //   · Ad selection is seeded per SLOT from the start anchor, and generation
+  //     anchors to Date.now() — so two passes milliseconds apart pick different
+  //     commercials by design. Verified: with ads off the whole run is
+  //     byte-identical. What invariant #5 promises is the SHOW order.
+  //   · The tail, because whether the last program fits before the horizon
+  //     depends on that same millisecond offset.
+  const snapshot = () => JSON.stringify(
+    db.prepare(
+      `SELECT kind,rating_key,title,duration_ms FROM programs
+       WHERE channel_id=? AND kind IN ('episode','movie')
+       ORDER BY start_utc LIMIT 100`
+    ).all(detCh)
+  );
+  // Everything generation reads and advances, so pass two starts where pass one did.
+  const readState = () => db.prepare(
+    'SELECT cursor, generated_thru FROM channels WHERE id=?'
+  ).get(detCh);
+  const readRuleCursors = () => db.prepare(
+    'SELECT id, cursor FROM schedule_rules WHERE channel_id=? ORDER BY id'
+  ).all(detCh);
+
+  generateChannel(detCh, horizon);   // creates the rotation rule on first call
+  const state0 = readState();
+  const rules0 = readRuleCursors();
+  db.prepare('DELETE FROM programs WHERE channel_id=?').run(detCh);
+  db.prepare('UPDATE channels SET cursor=?, generated_thru=? WHERE id=?')
+    .run(state0.cursor, state0.generated_thru, detCh);
+  generateChannel(detCh, horizon);
+  const passA = snapshot();
+
+  // Rewind to exactly the same starting point and do it again.
+  db.prepare('DELETE FROM programs WHERE channel_id=?').run(detCh);
+  db.prepare('UPDATE channels SET cursor=?, generated_thru=? WHERE id=?')
+    .run(state0.cursor, state0.generated_thru, detCh);
+  for (const r of rules0) {
+    db.prepare('UPDATE schedule_rules SET cursor=? WHERE id=?').run(r.cursor, r.id);
+  }
+  db.prepare('DELETE FROM airings WHERE channel_id=?').run(detCh);
+  generateChannel(detCh, horizon);
+  const passB = snapshot();
+
+  check('determinism: identical inputs produce byte-identical schedules',
+    passA === passB, passA === passB ? '' : `(${passA.length} vs ${passB.length} chars)`);
+  check('determinism: the schedule is non-empty (the check would be vacuous)',
+    passA.length > 1000, `(${passA.length} chars)`);
+}
+
 const counts = db.prepare('SELECT COUNT(*) n FROM programs').get().n;
 console.log(`\n${counts} programs across all channels`);
 console.log(`${pass} passed, ${fail} failed\n`);

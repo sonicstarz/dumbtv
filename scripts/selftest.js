@@ -1010,6 +1010,39 @@ console.log('\nXMLTV');
     !xml.includes('<title>Toy Ad') && !xml.includes('<title>Station ID'));
 }
 
+// ---- the remote keymap (Track D) -------------------------------------------
+// The keymap is the Pi's contract with a FLIRC dongle: whatever the remote is
+// programmed to send, these bindings must interpret. The IR hardware cannot be
+// tested here — but WHICH KEY MEANS WHAT can, and that is where the bug lived:
+// `1` used to open the guide, so channel 1 (SPACE, a built-in channel) could
+// never be dialled, nor 10–19, nor anything over 100.
+console.log('\nRemote keymap');
+{
+  const { MpvPlayer } = await import('../src/player/mpv.js');
+  const p = new MpvPlayer();
+  const sent = [];
+  p.command = async (...a) => { sent.push(a); };
+  await p.bindKeys();
+  const map = new Map(sent.filter((a) => a[0] === 'keybind').map((a) => [a[1], a[2]]));
+  const act = (k) => String(map.get(k) || '').replace('script-message dumbtv-key ', '');
+
+  check('remote: all ten digits dial',
+    [...Array(10).keys()].every((d) => act(String(d)) === `digit ${d}`),
+    [...Array(10).keys()].filter((d) => act(String(d)) !== `digit ${d}`).join(','));
+  check('remote: 1 dials 1 — SPACE lives on channel 1', act('1') === 'digit 1');
+  check('remote: guide has its own key', act('g') === 'guide' && act('G') === 'guide');
+  check('remote: info / captions / mute / sleep are bound',
+    act('i') === 'info' && act('c') === 'captions' && act('m') === 'mute' && act('s') === 'sleep');
+  check('remote: back dismisses', act('ESC') === 'back');
+  // Invariant #1, including the PLAY/PAUSE key every remote has — unbound, mpv
+  // would handle it itself and actually pause.
+  check('remote: every play/pause/seek key is a no-op (invariant #1)',
+    ['SPACE', 'k', 'j', 'l', 'p', 'PLAY', 'PAUSE', 'PLAYPAUSE'].every((k) => act(k) === 'blocked'));
+  const keys = sent.filter((a) => a[0] === 'keybind').map((a) => a[1]);
+  check('remote: no key is bound twice', keys.length === new Set(keys).size,
+    keys.filter((k, i) => keys.indexOf(k) !== i).join(','));
+}
+
 // ---- determinism regression gate (build 17) --------------------------------
 // The scheduler tier teaches rules to select content by TAG, which is exactly
 // the kind of change that can quietly make output depend on Set iteration or

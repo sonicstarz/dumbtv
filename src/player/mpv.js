@@ -183,19 +183,48 @@ export class MpvPlayer extends EventEmitter {
   async bindKeys() {
     const msg = (...a) => `script-message dumbtv-key ${a.join(' ')}`;
     const binds = [];
-    // 0 and 2-9 tune; 1 opens the program guide.
-    for (let d = 0; d <= 9; d++) binds.push([String(d), d === 1 ? msg('guide') : msg('digit', d)]);
+
+    // ── the canonical remote keymap ──────────────────────────────────────────
+    //
+    // This is what a FLIRC dongle is programmed to send, so it doubles as the
+    // remote's contract — see docs/pi-remote.md. It deliberately mirrors the
+    // browser TV and the Apple apps: one control language across the family.
+    //
+    // ⚠️ FIXED HERE: `1` used to open the guide, so the digit 1 could never be
+    // dialled. That made channel 1 — SPACE, the built-in system channel —
+    // permanently unreachable from the player, along with 10–19 and anything
+    // over 100. A number pad on which one number does something else entirely
+    // is not a number pad. GUIDE now lives on its own key, exactly as it does
+    // on a real remote and in tv.js.
+    for (let d = 0; d <= 9; d++) binds.push([String(d), msg('digit', d)]);
+
     // Arrows carry a direction; the engine decides surf vs guide-navigation.
     binds.push(['UP', msg('arrow', 'up')]);
     binds.push(['DOWN', msg('arrow', 'down')]);
     binds.push(['LEFT', msg('arrow', 'left')]);
     binds.push(['RIGHT', msg('arrow', 'right')]);
     binds.push(['ENTER', msg('enter')]);
-    // Captions toggle.
-    binds.push(['c', msg('captions')]);
-    binds.push(['C', msg('captions')]);
+
+    // Named buttons. Every one of these is a real key on a 90s remote, and each
+    // is bound to both cases so a FLIRC sending either works.
+    for (const [k, action] of [
+      ['g', 'guide'],     // GUIDE
+      ['i', 'info'],      // INFO — bring the banner back
+      ['c', 'captions'],  // CC
+      ['m', 'mute'],      // MUTE
+      ['s', 'sleep'],     // SLEEP — 30 / 60 / 90 / off
+    ]) {
+      binds.push([k, msg(action)]);
+      binds.push([k.toUpperCase(), msg(action)]);
+    }
+    // BACK / EXIT — dismiss whatever is up, never quit the player.
+    binds.push(['ESC', msg('back')]);
+    binds.push(['BS', msg('back')]);
+
     // No pausing, no seeking (invariant #1). These flash ⊘ and do nothing.
-    for (const k of ['SPACE', 'k', 'j', 'l']) {
+    // PLAY/PAUSE is on every remote ever made, so it must be caught rather than
+    // left to mpv's default — which would actually pause.
+    for (const k of ['SPACE', 'k', 'j', 'l', 'p', 'PLAY', 'PAUSE', 'PLAYPAUSE']) {
       binds.push([k, msg('blocked')]);
     }
     for (const [key, command] of binds) {

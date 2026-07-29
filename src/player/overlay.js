@@ -227,7 +227,17 @@ export function blockedGlyph() {
 }
 
 /** Brief confirmation when captions are toggled from the remote. */
-export function captionFlash(on) {
+/**
+ * A brief centred acknowledgement — CC, MUTE, SLEEP. One helper rather than
+ * three, because they are the same gesture: press a button on the remote, see
+ * that it registered, get on with watching. `label` overrides the CC wording.
+ */
+export function captionFlash(on, label) {
+  if (label) {
+    return text(W / 2, H * 0.16, label, {
+      size: 64, colour: on ? C.amber : C.dim, bold: 1, align: 8,
+    });
+  }
   return text(W / 2, H * 0.16, on ? 'CC  ON' : 'CC  OFF', {
     size: 64,
     colour: on ? C.amber : C.dim,

@@ -46,6 +46,10 @@ export class Engine extends EventEmitter {
     this.guideIndex = 0;
     this.guideOffset = 0; // in 30-minute steps forward from now
     this.stickyChannelId = null; // a channel you chose while it was on dead air
+    // SLEEP timer (Track D). Player state, so it dies with the process — like a
+    // real set forgetting when you switch it off at the wall.
+    this.sleepAt = 0;
+    this.asleep = false;
   }
 
   async start() {
@@ -191,6 +195,15 @@ export class Engine extends EventEmitter {
     if (args[0] !== 'dumbtv-key') return;
     const [, action, value] = args;
     try {
+      // Any key wakes the set, and that keypress is spent doing so — pressing a
+      // button on a sleeping television turns it on, it does not also change
+      // the channel.
+      if (this.asleep) {
+        this.asleep = false;
+        if (this.mpv) await this.mpv.clearOverlay(OVERLAY_IDS.card).catch(() => {});
+        await this.sync(true).catch(() => {});
+        return;
+      }
       if (action === 'guide') {
         this.guideOpen ? await this.#closeGuide() : await this.#openGuide();
       } else if (action === 'digit') {
@@ -210,6 +223,20 @@ export class Engine extends EventEmitter {
         }
       } else if (action === 'captions') {
         await this.#toggleCaptions();
+      } else if (action === 'info') {
+        // INFO on a cable box brought the banner back. Nothing else.
+        this.showBanner();
+        await this.tick().catch(() => {});
+      } else if (action === 'mute') {
+        await this.#toggleMute();
+      } else if (action === 'sleep') {
+        await this.#cycleSleep();
+      } else if (action === 'back') {
+        // BACK dismisses what is up. It never quits — there is nothing to quit
+        // to on an appliance, and a remote that can kill the picture is a
+        // support call waiting to happen.
+        if (this.guideOpen) await this.#closeGuide();
+        else this.bannerUntil = 0;
       } else if (action === 'blocked') {
         await this.#flashBlocked();
       }
@@ -349,6 +376,42 @@ export class Engine extends EventEmitter {
     }, 1200);
   }
 
+  /** MUTE. Persisted, so it survives a channel change and a restart — a set
+   *  that un-mutes itself when the show ends would be maddening. */
+  async #toggleMute() {
+    const on = !getSetting('muted', 0);
+    setSetting('muted', on ? 1 : 0);
+    if (!this.mpv || !this.mpv.ready) return;
+    await this.mpv.setProperty('mute', on ? 'yes' : 'no').catch(() => {});
+    await this.mpv.showOverlay(OVERLAY_IDS.captions, captionFlash(on, 'MUTE')).catch(() => {});
+    setTimeout(() => {
+      this.mpv?.clearOverlay(OVERLAY_IDS.captions).catch(() => {});
+    }, 1200);
+  }
+
+  /**
+   * SLEEP — 30 → 60 → 90 → off, the way a set with one button cycled it.
+   *
+   * Player state, not schedule state: when it fires the SCREEN goes off and the
+   * schedule carries on without you, which is the whole idea. Blanking the
+   * display rather than halting the Pi means it wakes instantly on any key.
+   */
+  async #cycleSleep() {
+    const STEPS = [30, 60, 90];
+    const leftMin = this.sleepAt ? Math.round((this.sleepAt - Date.now()) / MINUTE) : 0;
+    const idx = STEPS.findIndex((m) => m >= leftMin);
+    const next = this.sleepAt && idx === STEPS.length - 1 ? 0 : (STEPS[idx + 1] ?? STEPS[0]);
+    this.sleepAt = next ? Date.now() + next * MINUTE : 0;
+    this.emit('log', next ? `sleep timer: ${next} min` : 'sleep timer off');
+    if (!this.mpv || !this.mpv.ready) return;
+    await this.mpv
+      .showOverlay(OVERLAY_IDS.captions, captionFlash(!!next, next ? `SLEEP ${next} MIN` : 'SLEEP OFF'))
+      .catch(() => {});
+    setTimeout(() => {
+      this.mpv?.clearOverlay(OVERLAY_IDS.captions).catch(() => {});
+    }, 1800);
+  }
+
   async #drawDigits() {
     if (!this.mpv || !this.mpv.ready) return;
     await this.mpv.showOverlay(OVERLAY_IDS.digits, tuneDigits(this.digits)).catch(() => {});
@@ -456,6 +519,21 @@ export class Engine extends EventEmitter {
   }
 
   async tick() {
+    // SLEEP (Track D). The set goes off; the schedule does not. Blanking the
+    // picture rather than halting the Pi is deliberate — it wakes instantly on
+    // any key, and a box that takes 30 seconds to come back is a box people
+    // stop using. Any remote key clears it, because that is what "wake" means.
+    if (this.sleepAt && Date.now() >= this.sleepAt) {
+      this.sleepAt = 0;
+      this.asleep = true;
+      if (this.mpv && this.mpv.ready) {
+        await this.mpv.stop().catch(() => {});
+        await this.mpv.showOverlay(OVERLAY_IDS.card, offAirCard('GOOD NIGHT', 'Press any key')).catch(() => {});
+      }
+      this.emit('log', 'sleep timer fired — display off');
+    }
+    if (this.asleep) return;   // nothing re-derives while the set is off
+
     // If the tuned channel was deleted or disabled out from under us, fall back
     // so the TV never strands on "Nothing is scheduled" pointing at a ghost.
     if (this.channelId && !db.prepare('SELECT 1 FROM channels WHERE id = ? AND enabled = 1').get(this.channelId)) {

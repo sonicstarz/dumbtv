@@ -529,6 +529,1905 @@
       ]
     },
     {
+      "id": "looney-tunes",
+      "name": "LOONEY TUNES",
+      "kind": "shows",
+      "description": "The public-domain Warner Bros. run, 1932-1943 — Porky, early Daffy, early Bugs, and the Merrie Melodies one-shots. Ends at Puss n' Booty; everything after it is still copyrighted.",
+      "audience": "all",
+      "contentNote": "Pre-Code and wartime humor throughout. A handful of titles carry racial caricature or wartime propaganda and are tagged individually — they are presented as animation history and should stay off any kid-safe channel list.",
+      "channel": {
+        "number": 12,
+        "name": "LOONEY TUNES",
+        "ordering": "shuffle",
+        "seed": 19320101
+      },
+      "itemCount": 94,
+      "runtimeMs": 41381820,
+      "downloadBytes": 17360739945,
+      "items": [
+        {
+          "id": "hittin-the-trail-for-hallelujah-land",
+          "title": "Hittin' the Trail for Hallelujah Land",
+          "show": null,
+          "season": null,
+          "episode": null,
+          "aired": "1931-01-01",
+          "durationMs": 428940,
+          "file": "hittin-the-trail-for-hallelujah-land.mp4",
+          "url": "https://archive.org/download/ltmm-publicdomain/Hittin'%20the%20Trail%20for%20Hallelujah%20Land%20(1931).ia.mp4",
+          "bytes": 97903521,
+          "license": {
+            "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "verified": "2026-07-29",
+            "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+            "basis": "CLAIMED",
+            "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "musicRights": "unverified"
+          }
+        },
+        {
+          "id": "a-great-big-bunch-of-you",
+          "title": "A Great Big Bunch of You",
+          "show": null,
+          "season": null,
+          "episode": null,
+          "aired": "1932-01-01",
+          "durationMs": 406060,
+          "file": "a-great-big-bunch-of-you.mp4",
+          "url": "https://archive.org/download/ltmm-publicdomain/A%20Great%20Big%20Bunch%20of%20You%20(1932).ia.mp4",
+          "bytes": 194300942,
+          "license": {
+            "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "verified": "2026-07-29",
+            "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+            "basis": "CLAIMED",
+            "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "musicRights": "unverified"
+          }
+        },
+        {
+          "id": "battling-bosko",
+          "title": "Battling Bosko",
+          "show": null,
+          "season": null,
+          "episode": null,
+          "aired": "1932-01-01",
+          "durationMs": 407370,
+          "file": "battling-bosko.mp4",
+          "url": "https://archive.org/download/ltmm-publicdomain/Battling%20Bosko%20(1932).ia.mp4",
+          "bytes": 76431060,
+          "license": {
+            "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "verified": "2026-07-29",
+            "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+            "basis": "CLAIMED",
+            "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "musicRights": "unverified"
+          }
+        },
+        {
+          "id": "big-hearted-bosko",
+          "title": "Big-Hearted Bosko",
+          "show": null,
+          "season": null,
+          "episode": null,
+          "aired": "1932-01-01",
+          "durationMs": 416970,
+          "file": "big-hearted-bosko.mp4",
+          "url": "https://archive.org/download/ltmm-publicdomain/Big%20Hearted%20Bosko%20(1932).ia.mp4",
+          "bytes": 88077463,
+          "license": {
+            "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "verified": "2026-07-29",
+            "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+            "basis": "CLAIMED",
+            "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "musicRights": "unverified"
+          }
+        },
+        {
+          "id": "bosko-and-bruno",
+          "title": "Bosko and Bruno",
+          "show": null,
+          "season": null,
+          "episode": null,
+          "aired": "1932-01-01",
+          "durationMs": 396880,
+          "file": "bosko-and-bruno.mp4",
+          "url": "https://archive.org/download/ltmm-publicdomain/Bosko%20and%20Bruno%20(1932).ia.mp4",
+          "bytes": 77710101,
+          "license": {
+            "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "verified": "2026-07-29",
+            "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+            "basis": "CLAIMED",
+            "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "musicRights": "unverified"
+          }
+        },
+        {
+          "id": "bosko-at-the-beach",
+          "title": "Bosko at the Beach",
+          "show": null,
+          "season": null,
+          "episode": null,
+          "aired": "1932-01-01",
+          "durationMs": 401900,
+          "file": "bosko-at-the-beach.mp4",
+          "url": "https://archive.org/download/ltmm-publicdomain/Bosko%20at%20the%20Beach%20(1932).ia.mp4",
+          "bytes": 53921543,
+          "license": {
+            "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "verified": "2026-07-29",
+            "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+            "basis": "CLAIMED",
+            "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "musicRights": "unverified"
+          }
+        },
+        {
+          "id": "bosko-at-the-zoo",
+          "title": "Bosko at the Zoo",
+          "show": null,
+          "season": null,
+          "episode": null,
+          "aired": "1932-01-01",
+          "durationMs": 406740,
+          "file": "bosko-at-the-zoo.mp4",
+          "url": "https://archive.org/download/ltmm-publicdomain/Bosko%20at%20the%20Zoo%20(1932).ia.mp4",
+          "bytes": 71290258,
+          "license": {
+            "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "verified": "2026-07-29",
+            "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+            "basis": "CLAIMED",
+            "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "musicRights": "unverified"
+          }
+        },
+        {
+          "id": "bosko-the-lumberjack",
+          "title": "Bosko the Lumberjack",
+          "show": null,
+          "season": null,
+          "episode": null,
+          "aired": "1932-01-01",
+          "durationMs": 428750,
+          "file": "bosko-the-lumberjack.mp4",
+          "url": "https://archive.org/download/ltmm-publicdomain/Bosko%20the%20Lumberjack%20(1932).ia.mp4",
+          "bytes": 68369617,
+          "license": {
+            "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "verified": "2026-07-29",
+            "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+            "basis": "CLAIMED",
+            "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "musicRights": "unverified"
+          }
+        },
+        {
+          "id": "boskos-dog-race",
+          "title": "Bosko's Dog Race",
+          "show": null,
+          "season": null,
+          "episode": null,
+          "aired": "1932-01-01",
+          "durationMs": 422800,
+          "file": "boskos-dog-race.mp4",
+          "url": "https://archive.org/download/ltmm-publicdomain/Bosko's%20Dog%20Race%20(1932).ia.mp4",
+          "bytes": 100176270,
+          "license": {
+            "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "verified": "2026-07-29",
+            "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+            "basis": "CLAIMED",
+            "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "musicRights": "unverified"
+          }
+        },
+        {
+          "id": "boskos-party",
+          "title": "Bosko's Party",
+          "show": null,
+          "season": null,
+          "episode": null,
+          "aired": "1932-01-01",
+          "durationMs": 431020,
+          "file": "boskos-party.mp4",
+          "url": "https://archive.org/download/ltmm-publicdomain/Bosko's%20Party%20(1932).ia.mp4",
+          "bytes": 91712221,
+          "license": {
+            "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "verified": "2026-07-29",
+            "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+            "basis": "CLAIMED",
+            "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "musicRights": "unverified"
+          }
+        },
+        {
+          "id": "boskos-store",
+          "title": "Bosko's Store",
+          "show": null,
+          "season": null,
+          "episode": null,
+          "aired": "1932-01-01",
+          "durationMs": 427210,
+          "file": "boskos-store.mp4",
+          "url": "https://archive.org/download/ltmm-publicdomain/Bosko's%20Store%20(1932).ia.mp4",
+          "bytes": 78708232,
+          "license": {
+            "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "verified": "2026-07-29",
+            "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+            "basis": "CLAIMED",
+            "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "musicRights": "unverified"
+          }
+        },
+        {
+          "id": "crosby-columbo-and-vallee",
+          "title": "Crosby, Columbo, and Vallee",
+          "show": null,
+          "season": null,
+          "episode": null,
+          "aired": "1932-01-01",
+          "durationMs": 433600,
+          "file": "crosby-columbo-and-vallee.mp4",
+          "url": "https://archive.org/download/ltmm-publicdomain/Crosby%2C%20Columbo%20and%20Vallee%20(1932).ia.mp4",
+          "bytes": 99966237,
+          "license": {
+            "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "verified": "2026-07-29",
+            "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+            "basis": "CLAIMED",
+            "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "musicRights": "unverified"
+          }
+        },
+        {
+          "id": "freddy-the-freshman",
+          "title": "Freddy the Freshman",
+          "show": null,
+          "season": null,
+          "episode": null,
+          "aired": "1932-01-01",
+          "durationMs": 411290,
+          "file": "freddy-the-freshman.mp4",
+          "url": "https://archive.org/download/ltmm-publicdomain/Freddy%20the%20Freshman%20(1932).ia.mp4",
+          "bytes": 88140756,
+          "license": {
+            "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "verified": "2026-07-29",
+            "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+            "basis": "CLAIMED",
+            "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "musicRights": "unverified"
+          }
+        },
+        {
+          "id": "goopy-geer",
+          "title": "Goopy Geer",
+          "show": null,
+          "season": null,
+          "episode": null,
+          "aired": "1932-01-01",
+          "durationMs": 408040,
+          "file": "goopy-geer.mp4",
+          "url": "https://archive.org/download/ltmm-publicdomain/Goopy%20Geer%20(1932).ia.mp4",
+          "bytes": 208079986,
+          "license": {
+            "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "verified": "2026-07-29",
+            "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+            "basis": "CLAIMED",
+            "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "musicRights": "unverified"
+          }
+        },
+        {
+          "id": "i-love-a-parade",
+          "title": "I Love a Parade",
+          "show": null,
+          "season": null,
+          "episode": null,
+          "aired": "1932-01-01",
+          "durationMs": 410540,
+          "file": "i-love-a-parade.mp4",
+          "url": "https://archive.org/download/ltmm-publicdomain/I%20Love%20a%20Parade%20(1932).ia.mp4",
+          "bytes": 87540985,
+          "license": {
+            "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "verified": "2026-07-29",
+            "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+            "basis": "CLAIMED",
+            "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "musicRights": "unverified"
+          }
+        },
+        {
+          "id": "i-wish-i-had-wings",
+          "title": "I Wish I Had Wings",
+          "show": null,
+          "season": null,
+          "episode": null,
+          "aired": "1932-01-01",
+          "durationMs": 420910,
+          "file": "i-wish-i-had-wings.mp4",
+          "url": "https://archive.org/download/ltmm-publicdomain/I%20Wish%20I%20Had%20Wings%20(1932).ia.mp4",
+          "bytes": 145902134,
+          "license": {
+            "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "verified": "2026-07-29",
+            "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+            "basis": "CLAIMED",
+            "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "musicRights": "unverified"
+          }
+        },
+        {
+          "id": "its-got-me-again",
+          "title": "It's Got Me Again!",
+          "show": null,
+          "season": null,
+          "episode": null,
+          "aired": "1932-01-01",
+          "durationMs": 429200,
+          "file": "its-got-me-again.mp4",
+          "url": "https://archive.org/download/ltmm-publicdomain/It's%20Got%20Me%20Again!%20(1932).ia.mp4",
+          "bytes": 96545047,
+          "license": {
+            "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "verified": "2026-07-29",
+            "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+            "basis": "CLAIMED",
+            "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "musicRights": "unverified"
+          }
+        },
+        {
+          "id": "moonlight-for-two",
+          "title": "Moonlight for Two",
+          "show": null,
+          "season": null,
+          "episode": null,
+          "aired": "1932-01-01",
+          "durationMs": 411400,
+          "file": "moonlight-for-two.mp4",
+          "url": "https://archive.org/download/ltmm-publicdomain/Moonlight%20for%20Two%20(1932).ia.mp4",
+          "bytes": 214626954,
+          "license": {
+            "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "verified": "2026-07-29",
+            "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+            "basis": "CLAIMED",
+            "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "musicRights": "unverified"
+          }
+        },
+        {
+          "id": "pagan-moon",
+          "title": "Pagan Moon",
+          "show": null,
+          "season": null,
+          "episode": null,
+          "aired": "1932-01-01",
+          "durationMs": 415500,
+          "file": "pagan-moon.mp4",
+          "url": "https://archive.org/download/ltmm-publicdomain/Pagan%20Moon%20(1932).ia.mp4",
+          "bytes": 60536489,
+          "license": {
+            "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "verified": "2026-07-29",
+            "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+            "basis": "CLAIMED",
+            "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "musicRights": "unverified"
+          }
+        },
+        {
+          "id": "the-queen-was-in-the-parlor",
+          "title": "The Queen Was in the Parlor",
+          "show": null,
+          "season": null,
+          "episode": null,
+          "aired": "1932-01-01",
+          "durationMs": 403820,
+          "file": "the-queen-was-in-the-parlor.mp4",
+          "url": "https://archive.org/download/ltmm-publicdomain/The%20Queen%20Was%20in%20the%20Parlor%20(1932).ia.mp4",
+          "bytes": 220921956,
+          "license": {
+            "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "verified": "2026-07-29",
+            "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+            "basis": "CLAIMED",
+            "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "musicRights": "unverified"
+          }
+        },
+        {
+          "id": "youre-too-careless-with-your-kisses",
+          "title": "You're Too Careless with Your Kisses!",
+          "show": null,
+          "season": null,
+          "episode": null,
+          "aired": "1932-01-01",
+          "durationMs": 439360,
+          "file": "youre-too-careless-with-your-kisses.mp4",
+          "url": "https://archive.org/download/ltmm-publicdomain/You're%20Too%20Careless%20with%20Your%20Kisses!%20(1932).ia.mp4",
+          "bytes": 41556901,
+          "license": {
+            "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "verified": "2026-07-29",
+            "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+            "basis": "CLAIMED",
+            "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "musicRights": "unverified"
+          }
+        },
+        {
+          "id": "the-shanty-where-santy-claus-lives",
+          "title": "The Shanty Where Santy Claus Lives",
+          "show": null,
+          "season": null,
+          "episode": null,
+          "aired": "1933-01-01",
+          "durationMs": 431280,
+          "file": "the-shanty-where-santy-claus-lives.mp4",
+          "url": "https://archive.org/download/ltmm-publicdomain/The%20Shanty%20Where%20Santy%20Claus%20Lives%20(1933).ia.mp4",
+          "bytes": 384995672,
+          "license": {
+            "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "verified": "2026-07-29",
+            "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+            "basis": "CLAIMED",
+            "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "musicRights": "unverified"
+          }
+        },
+        {
+          "id": "hollywood-capers",
+          "title": "Hollywood Capers",
+          "show": null,
+          "season": null,
+          "episode": null,
+          "aired": "1935-01-01",
+          "durationMs": 402350,
+          "file": "hollywood-capers.mp4",
+          "url": "https://archive.org/download/ltmm-publicdomain/Hollywood%20Capers%20(1935).ia.mp4",
+          "bytes": 416991652,
+          "license": {
+            "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "verified": "2026-07-29",
+            "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+            "basis": "CLAIMED",
+            "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "musicRights": "unverified"
+          }
+        },
+        {
+          "id": "boom-boom",
+          "title": "Boom Boom",
+          "show": null,
+          "season": null,
+          "episode": null,
+          "aired": "1936-01-01",
+          "durationMs": 456210,
+          "file": "boom-boom.mp4",
+          "url": "https://archive.org/download/ltmm-publicdomain/Boom%20Boom%20(1936).ia.mp4",
+          "bytes": 53364098,
+          "license": {
+            "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "verified": "2026-07-29",
+            "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+            "basis": "CLAIMED",
+            "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "musicRights": "unverified"
+          }
+        },
+        {
+          "id": "westward-whoa",
+          "title": "Westward Whoa",
+          "show": null,
+          "season": null,
+          "episode": null,
+          "aired": "1936-01-01",
+          "durationMs": 439150,
+          "file": "westward-whoa.mp4",
+          "url": "https://archive.org/download/ltmm-publicdomain/Westward%20Whoa%20(1936).ia.mp4",
+          "bytes": 72574734,
+          "license": {
+            "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "verified": "2026-07-29",
+            "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+            "basis": "CLAIMED",
+            "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "musicRights": "unverified"
+          }
+        },
+        {
+          "id": "get-rich-quick-porky",
+          "title": "Get Rich Quick Porky",
+          "show": null,
+          "season": null,
+          "episode": null,
+          "aired": "1937-01-01",
+          "durationMs": 454540,
+          "file": "get-rich-quick-porky.mp4",
+          "url": "https://archive.org/download/ltmm-publicdomain/Get%20Rich%20Quick%20Porky%20(1937).ia.mp4",
+          "bytes": 60844169,
+          "license": {
+            "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "verified": "2026-07-29",
+            "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+            "basis": "CLAIMED",
+            "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "musicRights": "unverified"
+          }
+        },
+        {
+          "id": "i-wanna-be-a-sailor",
+          "title": "I Wanna Be a Sailor",
+          "show": null,
+          "season": null,
+          "episode": null,
+          "aired": "1937-01-01",
+          "durationMs": 418600,
+          "file": "i-wanna-be-a-sailor.mp4",
+          "url": "https://archive.org/download/ltmm-publicdomain/I%20Wanna%20Be%20a%20Sailor%20(1937).ia.mp4",
+          "bytes": 39654244,
+          "license": {
+            "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "verified": "2026-07-29",
+            "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+            "basis": "CLAIMED",
+            "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "musicRights": "unverified"
+          }
+        },
+        {
+          "id": "porkys-garden",
+          "title": "Porky's Garden",
+          "show": null,
+          "season": null,
+          "episode": null,
+          "aired": "1937-01-01",
+          "durationMs": 431800,
+          "file": "porkys-garden.mp4",
+          "url": "https://archive.org/download/ltmm-publicdomain/Porky's%20Garden%20(1937).ia.mp4",
+          "bytes": 71846613,
+          "license": {
+            "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "verified": "2026-07-29",
+            "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+            "basis": "CLAIMED",
+            "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "musicRights": "unverified"
+          }
+        },
+        {
+          "id": "porkys-railroad",
+          "title": "Porky's Railroad",
+          "show": null,
+          "season": null,
+          "episode": null,
+          "aired": "1937-01-01",
+          "durationMs": 433420,
+          "file": "porkys-railroad.mp4",
+          "url": "https://archive.org/download/ltmm-publicdomain/Porky's%20Railroad%20(1937).ia.mp4",
+          "bytes": 422070341,
+          "license": {
+            "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "verified": "2026-07-29",
+            "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+            "basis": "CLAIMED",
+            "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "musicRights": "unverified"
+          }
+        },
+        {
+          "id": "have-you-got-any-castles",
+          "title": "Have You Got Any Castles?",
+          "show": null,
+          "season": null,
+          "episode": null,
+          "aired": "1938-01-01",
+          "durationMs": 446990,
+          "file": "have-you-got-any-castles.mp4",
+          "url": "https://archive.org/download/ltmm-publicdomain/Have%20You%20Got%20Any%20Castles%20(1938).ia.mp4",
+          "bytes": 134445918,
+          "license": {
+            "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "verified": "2026-07-29",
+            "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+            "basis": "CLAIMED",
+            "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "musicRights": "unverified"
+          }
+        },
+        {
+          "id": "jungle-jitters",
+          "title": "Jungle Jitters",
+          "show": null,
+          "season": null,
+          "episode": null,
+          "aired": "1938-01-01",
+          "durationMs": 418700,
+          "file": "jungle-jitters.mp4",
+          "url": "https://archive.org/download/ltmm-publicdomain/Jungle%20Jitters%20(1938).ia.mp4",
+          "bytes": 350786722,
+          "license": {
+            "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "verified": "2026-07-29",
+            "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+            "basis": "CLAIMED",
+            "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "musicRights": "unverified"
+          }
+        },
+        {
+          "id": "a-day-at-the-zoo",
+          "title": "A Day at the Zoo",
+          "show": null,
+          "season": null,
+          "episode": null,
+          "aired": "1939-01-01",
+          "durationMs": 422590,
+          "file": "a-day-at-the-zoo.mp4",
+          "url": "https://archive.org/download/ltmm-publicdomain/A%20Day%20at%20the%20Zoo%20(1939).ia.mp4",
+          "bytes": 56019967,
+          "license": {
+            "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "verified": "2026-07-29",
+            "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+            "basis": "CLAIMED",
+            "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "musicRights": "unverified"
+          }
+        },
+        {
+          "id": "bars-and-stripes-forever",
+          "title": "Bars and Stripes Forever",
+          "show": null,
+          "season": null,
+          "episode": null,
+          "aired": "1939-01-01",
+          "durationMs": 460780,
+          "file": "bars-and-stripes-forever.mp4",
+          "url": "https://archive.org/download/ltmm-publicdomain/Bars%20and%20Stripes%20Forever%20(1939).mp4",
+          "bytes": 93641482,
+          "license": {
+            "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "verified": "2026-07-29",
+            "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+            "basis": "CLAIMED",
+            "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "musicRights": "unverified"
+          }
+        },
+        {
+          "id": "daffy-duck-and-the-dinosaur",
+          "title": "Daffy Duck and the Dinosaur",
+          "show": null,
+          "season": null,
+          "episode": null,
+          "aired": "1939-01-01",
+          "durationMs": 466570,
+          "file": "daffy-duck-and-the-dinosaur.mp4",
+          "url": "https://archive.org/download/ltmm-publicdomain/Daffy%20Duck%20and%20the%20Dinosaur%20(1939).ia.mp4",
+          "bytes": 505977684,
+          "license": {
+            "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "verified": "2026-07-29",
+            "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+            "basis": "CLAIMED",
+            "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "musicRights": "unverified"
+          }
+        },
+        {
+          "id": "gold-rush-daze",
+          "title": "Gold Rush Daze",
+          "show": null,
+          "season": null,
+          "episode": null,
+          "aired": "1939-01-01",
+          "durationMs": 480310,
+          "file": "gold-rush-daze.mp4",
+          "url": "https://archive.org/download/ltmm-publicdomain/Gold%20Rush%20Daze%20(1939).mp4",
+          "bytes": 200911020,
+          "license": {
+            "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "verified": "2026-07-29",
+            "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+            "basis": "CLAIMED",
+            "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "musicRights": "unverified"
+          }
+        },
+        {
+          "id": "hamateur-night",
+          "title": "Hamateur Night",
+          "show": null,
+          "season": null,
+          "episode": null,
+          "aired": "1939-01-01",
+          "durationMs": 459360,
+          "file": "hamateur-night.mp4",
+          "url": "https://archive.org/download/ltmm-publicdomain/Hamateur%20Night%20(1939).mp4",
+          "bytes": 350122520,
+          "license": {
+            "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "verified": "2026-07-29",
+            "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+            "basis": "CLAIMED",
+            "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "musicRights": "unverified"
+          }
+        },
+        {
+          "id": "prest-o-change-o",
+          "title": "Prest-O Change-O",
+          "show": null,
+          "season": null,
+          "episode": null,
+          "aired": "1939-01-01",
+          "durationMs": 425520,
+          "file": "prest-o-change-o.mp4",
+          "url": "https://archive.org/download/ltmm-publicdomain/Prest-O%20Change-O%20(1939).ia.mp4",
+          "bytes": 557444748,
+          "license": {
+            "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "verified": "2026-07-29",
+            "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+            "basis": "CLAIMED",
+            "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "musicRights": "unverified"
+          }
+        },
+        {
+          "id": "robin-hood-makes-good",
+          "title": "Robin Hood Makes Good",
+          "show": null,
+          "season": null,
+          "episode": null,
+          "aired": "1939-01-01",
+          "durationMs": 464650,
+          "file": "robin-hood-makes-good.mp4",
+          "url": "https://archive.org/download/ltmm-publicdomain/Robin%20Hood%20Makes%20Good%20(1939).ia.mp4",
+          "bytes": 333071046,
+          "license": {
+            "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "verified": "2026-07-29",
+            "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+            "basis": "CLAIMED",
+            "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "musicRights": "unverified"
+          }
+        },
+        {
+          "id": "ali-baba-bound",
+          "title": "Ali-Baba Bound",
+          "show": null,
+          "season": null,
+          "episode": null,
+          "aired": "1940-01-01",
+          "durationMs": 425180,
+          "file": "ali-baba-bound.mp4",
+          "url": "https://archive.org/download/ltmm-publicdomain/Ali-Baba%20Bound%20(1940).ia.mp4",
+          "bytes": 46457476,
+          "license": {
+            "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "verified": "2026-07-29",
+            "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+            "basis": "CLAIMED",
+            "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "musicRights": "unverified"
+          }
+        },
+        {
+          "id": "the-early-worm-gets-the-bird",
+          "title": "The Early Worm Gets the Bird",
+          "show": null,
+          "season": null,
+          "episode": null,
+          "aired": "1940-01-01",
+          "durationMs": 512850,
+          "file": "the-early-worm-gets-the-bird.mp4",
+          "url": "https://archive.org/download/ltmm-publicdomain/The%20Early%20Worm%20Gets%20the%20Bird%20(1940).ia.mp4",
+          "bytes": 51911285,
+          "license": {
+            "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "verified": "2026-07-29",
+            "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+            "basis": "CLAIMED",
+            "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "musicRights": "unverified"
+          }
+        },
+        {
+          "id": "the-timid-toreador",
+          "title": "The Timid Toreador",
+          "show": null,
+          "season": null,
+          "episode": null,
+          "aired": "1940-01-01",
+          "durationMs": 429290,
+          "file": "the-timid-toreador.mp4",
+          "url": "https://archive.org/download/ltmm-publicdomain/The%20Timid%20Toreador%20(1940).mp4",
+          "bytes": 291569958,
+          "license": {
+            "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "verified": "2026-07-29",
+            "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+            "basis": "CLAIMED",
+            "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "musicRights": "unverified"
+          }
+        },
+        {
+          "id": "a-coy-decoy",
+          "title": "A Coy Decoy",
+          "show": null,
+          "season": null,
+          "episode": null,
+          "aired": "1941-01-01",
+          "durationMs": 454500,
+          "file": "a-coy-decoy.mp4",
+          "url": "https://archive.org/download/ltmm-publicdomain/A%20Coy%20Decoy%20(1941).ia.mp4",
+          "bytes": 64847028,
+          "license": {
+            "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "verified": "2026-07-29",
+            "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+            "basis": "CLAIMED",
+            "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "musicRights": "unverified"
+          }
+        },
+        {
+          "id": "all-this-and-rabbit-stew",
+          "title": "All This and Rabbit Stew",
+          "show": null,
+          "season": null,
+          "episode": null,
+          "aired": "1941-01-01",
+          "durationMs": 405260,
+          "file": "all-this-and-rabbit-stew.mp4",
+          "url": "https://archive.org/download/ltmm-publicdomain/All%20This%20and%20Rabbit%20Stew%20(1941).ia.mp4",
+          "bytes": 53682354,
+          "license": {
+            "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "verified": "2026-07-29",
+            "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+            "basis": "CLAIMED",
+            "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "musicRights": "unverified"
+          }
+        },
+        {
+          "id": "farm-frolics",
+          "title": "Farm Frolics",
+          "show": null,
+          "season": null,
+          "episode": null,
+          "aired": "1941-01-01",
+          "durationMs": 491590,
+          "file": "farm-frolics.mp4",
+          "url": "https://archive.org/download/ltmm-publicdomain/Farm%20Frolics%20(1941).ia.mp4",
+          "bytes": 143000545,
+          "license": {
+            "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "verified": "2026-07-29",
+            "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+            "basis": "CLAIMED",
+            "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "musicRights": "unverified"
+          }
+        },
+        {
+          "id": "joe-glow-the-firefly",
+          "title": "Joe Glow, the Firefly",
+          "show": null,
+          "season": null,
+          "episode": null,
+          "aired": "1941-01-01",
+          "durationMs": 404680,
+          "file": "joe-glow-the-firefly.mp4",
+          "url": "https://archive.org/download/ltmm-publicdomain/Joe%20Glow%2C%20the%20Firefly%20(1941).mp4",
+          "bytes": 297124042,
+          "license": {
+            "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "verified": "2026-07-29",
+            "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+            "basis": "CLAIMED",
+            "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "musicRights": "unverified"
+          }
+        },
+        {
+          "id": "meet-john-doughboy",
+          "title": "Meet John Doughboy",
+          "show": null,
+          "season": null,
+          "episode": null,
+          "aired": "1941-01-01",
+          "durationMs": 420050,
+          "file": "meet-john-doughboy.mp4",
+          "url": "https://archive.org/download/ltmm-publicdomain/Meet%20John%20Doughboy%20(1941).ia.mp4",
+          "bytes": 55582882,
+          "license": {
+            "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "verified": "2026-07-29",
+            "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+            "basis": "CLAIMED",
+            "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "musicRights": "unverified"
+          }
+        },
+        {
+          "id": "notes-to-you",
+          "title": "Notes to You",
+          "show": null,
+          "season": null,
+          "episode": null,
+          "aired": "1941-01-01",
+          "durationMs": 432870,
+          "file": "notes-to-you.mp4",
+          "url": "https://archive.org/download/ltmm-publicdomain/Notes%20to%20You%20(1941).ia.mp4",
+          "bytes": 71596984,
+          "license": {
+            "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "verified": "2026-07-29",
+            "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+            "basis": "CLAIMED",
+            "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "musicRights": "unverified"
+          }
+        },
+        {
+          "id": "porkys-ant",
+          "title": "Porky's Ant",
+          "show": null,
+          "season": null,
+          "episode": null,
+          "aired": "1941-01-01",
+          "durationMs": 469180,
+          "file": "porkys-ant.mp4",
+          "url": "https://archive.org/download/ltmm-publicdomain/Porky's%20Ant%20(1941).ia.mp4",
+          "bytes": 51691474,
+          "license": {
+            "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "verified": "2026-07-29",
+            "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+            "basis": "CLAIMED",
+            "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "musicRights": "unverified"
+          }
+        },
+        {
+          "id": "porkys-bear-facts",
+          "title": "Porky's Bear Facts",
+          "show": null,
+          "season": null,
+          "episode": null,
+          "aired": "1941-01-01",
+          "durationMs": 423440,
+          "file": "porkys-bear-facts.mp4",
+          "url": "https://archive.org/download/ltmm-publicdomain/Porky's%20Bear%20Facts%20(1941).ia.mp4",
+          "bytes": 145773976,
+          "license": {
+            "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "verified": "2026-07-29",
+            "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+            "basis": "CLAIMED",
+            "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "musicRights": "unverified"
+          }
+        },
+        {
+          "id": "porkys-midnight-matinee",
+          "title": "Porky's Midnight Matinee",
+          "show": null,
+          "season": null,
+          "episode": null,
+          "aired": "1941-01-01",
+          "durationMs": 456620,
+          "file": "porkys-midnight-matinee.mp4",
+          "url": "https://archive.org/download/ltmm-publicdomain/Porky's%20Midnight%20Matinee%20(1941).ia.mp4",
+          "bytes": 42582392,
+          "license": {
+            "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "verified": "2026-07-29",
+            "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+            "basis": "CLAIMED",
+            "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "musicRights": "unverified"
+          }
+        },
+        {
+          "id": "porkys-pooch",
+          "title": "Porky's Pooch",
+          "show": null,
+          "season": null,
+          "episode": null,
+          "aired": "1941-01-01",
+          "durationMs": 425960,
+          "file": "porkys-pooch.mp4",
+          "url": "https://archive.org/download/ltmm-publicdomain/Porky's%20Pooch%20(1941).ia.mp4",
+          "bytes": 295603666,
+          "license": {
+            "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "verified": "2026-07-29",
+            "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+            "basis": "CLAIMED",
+            "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "musicRights": "unverified"
+          }
+        },
+        {
+          "id": "porkys-preview",
+          "title": "Porky's Preview",
+          "show": null,
+          "season": null,
+          "episode": null,
+          "aired": "1941-01-01",
+          "durationMs": 410600,
+          "file": "porkys-preview.mp4",
+          "url": "https://archive.org/download/ltmm-publicdomain/Porky's%20Preview%20(1941).ia.mp4",
+          "bytes": 175396886,
+          "license": {
+            "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "verified": "2026-07-29",
+            "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+            "basis": "CLAIMED",
+            "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "musicRights": "unverified"
+          }
+        },
+        {
+          "id": "porkys-prize-pony",
+          "title": "Porky's Prize Pony",
+          "show": null,
+          "season": null,
+          "episode": null,
+          "aired": "1941-01-01",
+          "durationMs": 441110,
+          "file": "porkys-prize-pony.mp4",
+          "url": "https://archive.org/download/ltmm-publicdomain/Porky's%20Prize%20Pony%20(1941).ia.mp4",
+          "bytes": 41916912,
+          "license": {
+            "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "verified": "2026-07-29",
+            "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+            "basis": "CLAIMED",
+            "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "musicRights": "unverified"
+          }
+        },
+        {
+          "id": "robinson-crusoe-jr",
+          "title": "Robinson Crusoe Jr.",
+          "show": null,
+          "season": null,
+          "episode": null,
+          "aired": "1941-01-01",
+          "durationMs": 438360,
+          "file": "robinson-crusoe-jr.mp4",
+          "url": "https://archive.org/download/ltmm-publicdomain/Robinson%20Crusoe%20Jr.%20(1941).ia.mp4",
+          "bytes": 45288093,
+          "license": {
+            "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "verified": "2026-07-29",
+            "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+            "basis": "CLAIMED",
+            "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "musicRights": "unverified"
+          }
+        },
+        {
+          "id": "rookie-revue",
+          "title": "Rookie Revue",
+          "show": null,
+          "season": null,
+          "episode": null,
+          "aired": "1941-01-01",
+          "durationMs": 461680,
+          "file": "rookie-revue.mp4",
+          "url": "https://archive.org/download/ltmm-publicdomain/Rookie%20Revue%20(1941).ia.mp4",
+          "bytes": 43964285,
+          "license": {
+            "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "verified": "2026-07-29",
+            "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+            "basis": "CLAIMED",
+            "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "musicRights": "unverified"
+          }
+        },
+        {
+          "id": "sport-chumpions",
+          "title": "Sport Chumpions",
+          "show": null,
+          "season": null,
+          "episode": null,
+          "aired": "1941-01-01",
+          "durationMs": 424320,
+          "file": "sport-chumpions.mp4",
+          "url": "https://archive.org/download/ltmm-publicdomain/Sport%20Chumpions%20(1941).mp4",
+          "bytes": 322511854,
+          "license": {
+            "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "verified": "2026-07-29",
+            "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+            "basis": "CLAIMED",
+            "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "musicRights": "unverified"
+          }
+        },
+        {
+          "id": "the-haunted-mouse",
+          "title": "The Haunted Mouse",
+          "show": null,
+          "season": null,
+          "episode": null,
+          "aired": "1941-01-01",
+          "durationMs": 474700,
+          "file": "the-haunted-mouse.mp4",
+          "url": "https://archive.org/download/ltmm-publicdomain/The%20Haunted%20Mouse%20(1941).ia.mp4",
+          "bytes": 129275738,
+          "license": {
+            "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "verified": "2026-07-29",
+            "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+            "basis": "CLAIMED",
+            "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "musicRights": "unverified"
+          }
+        },
+        {
+          "id": "the-henpecked-duck",
+          "title": "The Henpecked Duck",
+          "show": null,
+          "season": null,
+          "episode": null,
+          "aired": "1941-01-01",
+          "durationMs": 443990,
+          "file": "the-henpecked-duck.mp4",
+          "url": "https://archive.org/download/ltmm-publicdomain/The%20Henpecked%20Duck%20(1941).ia.mp4",
+          "bytes": 42755966,
+          "license": {
+            "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "verified": "2026-07-29",
+            "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+            "basis": "CLAIMED",
+            "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "musicRights": "unverified"
+          }
+        },
+        {
+          "id": "we-the-animals-squeak",
+          "title": "We, the Animals – Squeak!",
+          "show": null,
+          "season": null,
+          "episode": null,
+          "aired": "1941-01-01",
+          "durationMs": 545960,
+          "file": "we-the-animals-squeak.mp4",
+          "url": "https://archive.org/download/ltmm-publicdomain/We%2C%20the%20Animals%20-%20Squeak!%20(1941).ia.mp4",
+          "bytes": 98964474,
+          "license": {
+            "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "verified": "2026-07-29",
+            "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+            "basis": "CLAIMED",
+            "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "musicRights": "unverified"
+          }
+        },
+        {
+          "id": "a-tale-of-two-kitties",
+          "title": "A Tale of Two Kitties",
+          "show": null,
+          "season": null,
+          "episode": null,
+          "aired": "1942-01-01",
+          "durationMs": 397390,
+          "file": "a-tale-of-two-kitties.mp4",
+          "url": "https://archive.org/download/ltmm-publicdomain/A%20Tale%20of%20Two%20Kitties%20(1942).ia.mp4",
+          "bytes": 323214537,
+          "license": {
+            "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "verified": "2026-07-29",
+            "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+            "basis": "CLAIMED",
+            "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "musicRights": "unverified"
+          }
+        },
+        {
+          "id": "case-of-the-missing-hare",
+          "title": "Case of the Missing Hare",
+          "show": null,
+          "season": null,
+          "episode": null,
+          "aired": "1942-01-01",
+          "durationMs": 493360,
+          "file": "case-of-the-missing-hare.mp4",
+          "url": "https://archive.org/download/ltmm-publicdomain/Case%20of%20the%20Missing%20Hare%20(1942).ia.mp4",
+          "bytes": 469669475,
+          "license": {
+            "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "verified": "2026-07-29",
+            "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+            "basis": "CLAIMED",
+            "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "musicRights": "unverified"
+          }
+        },
+        {
+          "id": "daffys-southern-exposure",
+          "title": "Daffy's Southern Exposure",
+          "show": null,
+          "season": null,
+          "episode": null,
+          "aired": "1942-01-01",
+          "durationMs": 450790,
+          "file": "daffys-southern-exposure.mp4",
+          "url": "https://archive.org/download/ltmm-publicdomain/Daffy's%20Southern%20Exposure%20(1942).ia.mp4",
+          "bytes": 135231424,
+          "license": {
+            "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "verified": "2026-07-29",
+            "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+            "basis": "CLAIMED",
+            "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "musicRights": "unverified"
+          }
+        },
+        {
+          "id": "ding-dog-daddy",
+          "title": "Ding Dog Daddy",
+          "show": null,
+          "season": null,
+          "episode": null,
+          "aired": "1942-01-01",
+          "durationMs": 496400,
+          "file": "ding-dog-daddy.mp4",
+          "url": "https://archive.org/download/ltmm-publicdomain/Ding%20Dog%20Daddy%20(1942).ia.mp4",
+          "bytes": 157996112,
+          "license": {
+            "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "verified": "2026-07-29",
+            "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+            "basis": "CLAIMED",
+            "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "musicRights": "unverified"
+          }
+        },
+        {
+          "id": "foney-fables",
+          "title": "Foney Fables",
+          "show": null,
+          "season": null,
+          "episode": null,
+          "aired": "1942-01-01",
+          "durationMs": 491180,
+          "file": "foney-fables.mp4",
+          "url": "https://archive.org/download/ltmm-publicdomain/Foney%20Fables%20(1942).ia.mp4",
+          "bytes": 326181217,
+          "license": {
+            "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "verified": "2026-07-29",
+            "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+            "basis": "CLAIMED",
+            "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "musicRights": "unverified"
+          }
+        },
+        {
+          "id": "fox-pop",
+          "title": "Fox Pop",
+          "show": null,
+          "season": null,
+          "episode": null,
+          "aired": "1942-01-01",
+          "durationMs": 467370,
+          "file": "fox-pop.mp4",
+          "url": "https://archive.org/download/ltmm-publicdomain/Fox%20Pop%20(1942).ia.mp4",
+          "bytes": 206620997,
+          "license": {
+            "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "verified": "2026-07-29",
+            "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+            "basis": "CLAIMED",
+            "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "musicRights": "unverified"
+          }
+        },
+        {
+          "id": "fresh-hare",
+          "title": "Fresh Hare",
+          "show": null,
+          "season": null,
+          "episode": null,
+          "aired": "1942-01-01",
+          "durationMs": 454500,
+          "file": "fresh-hare.mp4",
+          "url": "https://archive.org/download/ltmm-publicdomain/Fresh%20Hare%20(1942).ia.mp4",
+          "bytes": 93364949,
+          "license": {
+            "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "verified": "2026-07-29",
+            "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+            "basis": "CLAIMED",
+            "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "musicRights": "unverified"
+          }
+        },
+        {
+          "id": "gopher-goofy",
+          "title": "Gopher Goofy",
+          "show": null,
+          "season": null,
+          "episode": null,
+          "aired": "1942-01-01",
+          "durationMs": 423920,
+          "file": "gopher-goofy.mp4",
+          "url": "https://archive.org/download/ltmm-publicdomain/Gopher%20Goofy%20(1942).ia.mp4",
+          "bytes": 117953019,
+          "license": {
+            "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "verified": "2026-07-29",
+            "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+            "basis": "CLAIMED",
+            "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "musicRights": "unverified"
+          }
+        },
+        {
+          "id": "hobby-horse-laffs",
+          "title": "Hobby Horse-Laffs",
+          "show": null,
+          "season": null,
+          "episode": null,
+          "aired": "1942-01-01",
+          "durationMs": 398410,
+          "file": "hobby-horse-laffs.mp4",
+          "url": "https://archive.org/download/ltmm-publicdomain/Hobby%20Horse%20Laffs%20(1942).ia.mp4",
+          "bytes": 157256704,
+          "license": {
+            "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "verified": "2026-07-29",
+            "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+            "basis": "CLAIMED",
+            "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "musicRights": "unverified"
+          }
+        },
+        {
+          "id": "nutty-news",
+          "title": "Nutty News",
+          "show": null,
+          "season": null,
+          "episode": null,
+          "aired": "1942-01-01",
+          "durationMs": 417810,
+          "file": "nutty-news.mp4",
+          "url": "https://archive.org/download/ltmm-publicdomain/Nutty%20News%20(1942).ia.mp4",
+          "bytes": 39962940,
+          "license": {
+            "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "verified": "2026-07-29",
+            "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+            "basis": "CLAIMED",
+            "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "musicRights": "unverified"
+          }
+        },
+        {
+          "id": "porkys-cafe",
+          "title": "Porky's Cafe",
+          "show": null,
+          "season": null,
+          "episode": null,
+          "aired": "1942-01-01",
+          "durationMs": 395310,
+          "file": "porkys-cafe.mp4",
+          "url": "https://archive.org/download/ltmm-publicdomain/Porky's%20Cafe%20(1942).ia.mp4",
+          "bytes": 171844300,
+          "license": {
+            "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "verified": "2026-07-29",
+            "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+            "basis": "CLAIMED",
+            "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "musicRights": "unverified"
+          }
+        },
+        {
+          "id": "porkys-pastry-pirates",
+          "title": "Porky's Pastry Pirates",
+          "show": null,
+          "season": null,
+          "episode": null,
+          "aired": "1942-01-01",
+          "durationMs": 406120,
+          "file": "porkys-pastry-pirates.mp4",
+          "url": "https://archive.org/download/ltmm-publicdomain/Porky's%20Pastry%20Pirates%20(1942).ia.mp4",
+          "bytes": 97538139,
+          "license": {
+            "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "verified": "2026-07-29",
+            "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+            "basis": "CLAIMED",
+            "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "musicRights": "unverified"
+          }
+        },
+        {
+          "id": "the-daffy-duckaroo",
+          "title": "The Daffy Duckaroo",
+          "show": null,
+          "season": null,
+          "episode": null,
+          "aired": "1942-01-01",
+          "durationMs": 464000,
+          "file": "the-daffy-duckaroo.mp4",
+          "url": "https://archive.org/download/ltmm-publicdomain/The%20Daffy%20Duckaroo%20(1942).ia.mp4",
+          "bytes": 64878992,
+          "license": {
+            "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "verified": "2026-07-29",
+            "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+            "basis": "CLAIMED",
+            "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "musicRights": "unverified"
+          }
+        },
+        {
+          "id": "the-ducktators",
+          "title": "The Ducktators",
+          "show": null,
+          "season": null,
+          "episode": null,
+          "aired": "1942-01-01",
+          "durationMs": 462730,
+          "file": "the-ducktators.mp4",
+          "url": "https://archive.org/download/ltmm-publicdomain/The%20Ducktators%20(1942).ia.mp4",
+          "bytes": 105483061,
+          "license": {
+            "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "verified": "2026-07-29",
+            "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+            "basis": "CLAIMED",
+            "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "musicRights": "unverified"
+          }
+        },
+        {
+          "id": "the-impatient-patient",
+          "title": "The Impatient Patient",
+          "show": null,
+          "season": null,
+          "episode": null,
+          "aired": "1942-01-01",
+          "durationMs": 466380,
+          "file": "the-impatient-patient.mp4",
+          "url": "https://archive.org/download/ltmm-publicdomain/The%20Impatient%20Patient%20(1942).ia.mp4",
+          "bytes": 196364410,
+          "license": {
+            "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "verified": "2026-07-29",
+            "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+            "basis": "CLAIMED",
+            "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "musicRights": "unverified"
+          }
+        },
+        {
+          "id": "the-sheepish-wolf",
+          "title": "The Sheepish Wolf",
+          "show": null,
+          "season": null,
+          "episode": null,
+          "aired": "1942-01-01",
+          "durationMs": 439390,
+          "file": "the-sheepish-wolf.mp4",
+          "url": "https://archive.org/download/ltmm-publicdomain/The%20Sheepish%20Wolf%20(1942).mp4",
+          "bytes": 188728905,
+          "license": {
+            "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "verified": "2026-07-29",
+            "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+            "basis": "CLAIMED",
+            "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "musicRights": "unverified"
+          }
+        },
+        {
+          "id": "the-wabbit-who-came-to-supper",
+          "title": "The Wabbit Who Came to Supper",
+          "show": null,
+          "season": null,
+          "episode": null,
+          "aired": "1942-01-01",
+          "durationMs": 486890,
+          "file": "the-wabbit-who-came-to-supper.mp4",
+          "url": "https://archive.org/download/ltmm-publicdomain/The%20Wabbit%20Who%20Came%20To%20Supper%20(1942).ia.mp4",
+          "bytes": 567973094,
+          "license": {
+            "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "verified": "2026-07-29",
+            "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+            "basis": "CLAIMED",
+            "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "musicRights": "unverified"
+          }
+        },
+        {
+          "id": "the-wacky-wabbit",
+          "title": "The Wacky Wabbit",
+          "show": null,
+          "season": null,
+          "episode": null,
+          "aired": "1942-01-01",
+          "durationMs": 441680,
+          "file": "the-wacky-wabbit.mp4",
+          "url": "https://archive.org/download/ltmm-publicdomain/The%20Wacky%20Wabbit%20(1942).ia.mp4",
+          "bytes": 530526831,
+          "license": {
+            "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "verified": "2026-07-29",
+            "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+            "basis": "CLAIMED",
+            "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "musicRights": "unverified"
+          }
+        },
+        {
+          "id": "wacky-blackout",
+          "title": "Wacky Blackout",
+          "show": null,
+          "season": null,
+          "episode": null,
+          "aired": "1942-01-01",
+          "durationMs": 471400,
+          "file": "wacky-blackout.mp4",
+          "url": "https://archive.org/download/ltmm-publicdomain/Wacky%20Blackout%20(1942).ia.mp4",
+          "bytes": 511351026,
+          "license": {
+            "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "verified": "2026-07-29",
+            "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+            "basis": "CLAIMED",
+            "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "musicRights": "unverified"
+          }
+        },
+        {
+          "id": "whos-who-in-the-zoo",
+          "title": "Who's Who in the Zoo",
+          "show": null,
+          "season": null,
+          "episode": null,
+          "aired": "1942-01-01",
+          "durationMs": 430680,
+          "file": "whos-who-in-the-zoo.mp4",
+          "url": "https://archive.org/download/ltmm-publicdomain/Who's%20Who%20in%20the%20Zoo%20(1942).ia.mp4",
+          "bytes": 42959115,
+          "license": {
+            "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "verified": "2026-07-29",
+            "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+            "basis": "CLAIMED",
+            "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "musicRights": "unverified"
+          }
+        },
+        {
+          "id": "a-corny-concerto",
+          "title": "A Corny Concerto",
+          "show": null,
+          "season": null,
+          "episode": null,
+          "aired": "1943-01-01",
+          "durationMs": 476860,
+          "file": "a-corny-concerto.mp4",
+          "url": "https://archive.org/download/ltmm-publicdomain/A%20Corny%20Concerto%20(1943).ia.mp4",
+          "bytes": 45162941,
+          "license": {
+            "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "verified": "2026-07-29",
+            "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+            "basis": "CLAIMED",
+            "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "musicRights": "unverified"
+          }
+        },
+        {
+          "id": "confusions-of-a-nutzy-spy",
+          "title": "Confusions of a Nutzy Spy",
+          "show": null,
+          "season": null,
+          "episode": null,
+          "aired": "1943-01-01",
+          "durationMs": 456170,
+          "file": "confusions-of-a-nutzy-spy.mp4",
+          "url": "https://archive.org/download/ltmm-publicdomain/Confusions%20of%20a%20Nutzy%20Spy%20(1943).ia.mp4",
+          "bytes": 274832310,
+          "license": {
+            "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "verified": "2026-07-29",
+            "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+            "basis": "CLAIMED",
+            "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "musicRights": "unverified"
+          }
+        },
+        {
+          "id": "daffy-the-commando",
+          "title": "Daffy – The Commando",
+          "show": null,
+          "season": null,
+          "episode": null,
+          "aired": "1943-01-01",
+          "durationMs": 444030,
+          "file": "daffy-the-commando.mp4",
+          "url": "https://archive.org/download/ltmm-publicdomain/Daffy%20-%20The%20Commando%20(1943).ia.mp4",
+          "bytes": 119065810,
+          "license": {
+            "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "verified": "2026-07-29",
+            "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+            "basis": "CLAIMED",
+            "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "musicRights": "unverified"
+          }
+        },
+        {
+          "id": "falling-hare",
+          "title": "Falling Hare",
+          "show": null,
+          "season": null,
+          "episode": null,
+          "aired": "1943-01-01",
+          "durationMs": 507440,
+          "file": "falling-hare.mp4",
+          "url": "https://archive.org/download/ltmm-publicdomain/Falling%20Hare%20(1943).ia.mp4",
+          "bytes": 500831298,
+          "license": {
+            "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "verified": "2026-07-29",
+            "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+            "basis": "CLAIMED",
+            "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "musicRights": "unverified"
+          }
+        },
+        {
+          "id": "hop-and-go",
+          "title": "Hop and Go",
+          "show": null,
+          "season": null,
+          "episode": null,
+          "aired": "1943-01-01",
+          "durationMs": 431700,
+          "file": "hop-and-go.mp4",
+          "url": "https://archive.org/download/ltmm-publicdomain/Hop%20and%20Go%20(1943).mp4",
+          "bytes": 129216390,
+          "license": {
+            "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "verified": "2026-07-29",
+            "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+            "basis": "CLAIMED",
+            "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "musicRights": "unverified"
+          }
+        },
+        {
+          "id": "inki-and-the-minah-bird",
+          "title": "Inki and the Minah Bird",
+          "show": null,
+          "season": null,
+          "episode": null,
+          "aired": "1943-01-01",
+          "durationMs": 446570,
+          "file": "inki-and-the-minah-bird.mp4",
+          "url": "https://archive.org/download/ltmm-publicdomain/Inki%20and%20the%20Minah%20Bird%20(1943).ia.mp4",
+          "bytes": 74955871,
+          "license": {
+            "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "verified": "2026-07-29",
+            "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+            "basis": "CLAIMED",
+            "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "musicRights": "unverified"
+          }
+        },
+        {
+          "id": "pigs-in-a-polka",
+          "title": "Pigs in a Polka",
+          "show": null,
+          "season": null,
+          "episode": null,
+          "aired": "1943-01-01",
+          "durationMs": 472840,
+          "file": "pigs-in-a-polka.mp4",
+          "url": "https://archive.org/download/ltmm-publicdomain/Pigs%20in%20a%20Polka%20(1943).ia.mp4",
+          "bytes": 512207368,
+          "license": {
+            "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "verified": "2026-07-29",
+            "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+            "basis": "CLAIMED",
+            "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "musicRights": "unverified"
+          }
+        },
+        {
+          "id": "porky-pigs-feat",
+          "title": "Porky Pig's Feat",
+          "show": null,
+          "season": null,
+          "episode": null,
+          "aired": "1943-01-01",
+          "durationMs": 518380,
+          "file": "porky-pigs-feat.mp4",
+          "url": "https://archive.org/download/ltmm-publicdomain/Porky%20Pig's%20Feat%20(1943).ia.mp4",
+          "bytes": 366980510,
+          "license": {
+            "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "verified": "2026-07-29",
+            "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+            "basis": "CLAIMED",
+            "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "musicRights": "unverified"
+          }
+        },
+        {
+          "id": "puss-n-booty",
+          "title": "Puss n' Booty",
+          "show": null,
+          "season": null,
+          "episode": null,
+          "aired": "1943-01-01",
+          "durationMs": 442920,
+          "file": "puss-n-booty.mp4",
+          "url": "https://archive.org/download/ltmm-publicdomain/Puss%20N'%20Booty%20(1943).ia.mp4",
+          "bytes": 465437357,
+          "license": {
+            "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "verified": "2026-07-29",
+            "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+            "basis": "CLAIMED",
+            "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "musicRights": "unverified"
+          }
+        },
+        {
+          "id": "scrap-happy-daffy",
+          "title": "Scrap Happy Daffy",
+          "show": null,
+          "season": null,
+          "episode": null,
+          "aired": "1943-01-01",
+          "durationMs": 480560,
+          "file": "scrap-happy-daffy.mp4",
+          "url": "https://archive.org/download/ltmm-publicdomain/Scrap%20Happy%20Daffy%20(1943).ia.mp4",
+          "bytes": 267584926,
+          "license": {
+            "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "verified": "2026-07-29",
+            "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+            "basis": "CLAIMED",
+            "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "musicRights": "unverified"
+          }
+        },
+        {
+          "id": "the-fifth-column-mouse",
+          "title": "The Fifth-Column Mouse",
+          "show": null,
+          "season": null,
+          "episode": null,
+          "aired": "1943-01-01",
+          "durationMs": 450220,
+          "file": "the-fifth-column-mouse.mp4",
+          "url": "https://archive.org/download/ltmm-publicdomain/The%20Fifth-Column%20Mouse%20(1943).ia.mp4",
+          "bytes": 141252142,
+          "license": {
+            "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "verified": "2026-07-29",
+            "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+            "basis": "CLAIMED",
+            "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "musicRights": "unverified"
+          }
+        },
+        {
+          "id": "to-duck-or-not-to-duck",
+          "title": "To Duck .... or Not to Duck",
+          "show": null,
+          "season": null,
+          "episode": null,
+          "aired": "1943-01-01",
+          "durationMs": 397290,
+          "file": "to-duck-or-not-to-duck.mp4",
+          "url": "https://archive.org/download/ltmm-publicdomain/To%20Duck%20Or%20Not%20To%20Duck%20(1943).ia.mp4",
+          "bytes": 468370035,
+          "license": {
+            "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "verified": "2026-07-29",
+            "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+            "basis": "CLAIMED",
+            "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "musicRights": "unverified"
+          }
+        },
+        {
+          "id": "tokio-jokio",
+          "title": "Tokio Jokio",
+          "show": null,
+          "season": null,
+          "episode": null,
+          "aired": "1943-01-01",
+          "durationMs": 431980,
+          "file": "tokio-jokio.mp4",
+          "url": "https://archive.org/download/ltmm-publicdomain/Tokio%20Jokio%20(1943).ia.mp4",
+          "bytes": 118827573,
+          "license": {
+            "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "verified": "2026-07-29",
+            "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+            "basis": "CLAIMED",
+            "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "musicRights": "unverified"
+          }
+        },
+        {
+          "id": "wackiki-wabbit",
+          "title": "Wackiki Wabbit",
+          "show": null,
+          "season": null,
+          "episode": null,
+          "aired": "1943-01-01",
+          "durationMs": 402320,
+          "file": "wackiki-wabbit.mp4",
+          "url": "https://archive.org/download/ltmm-publicdomain/Wackiki%20Wabbit%20(1943).ia.mp4",
+          "bytes": 453581913,
+          "license": {
+            "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "verified": "2026-07-29",
+            "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+            "basis": "CLAIMED",
+            "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "musicRights": "unverified"
+          }
+        },
+        {
+          "id": "yankee-doodle-daffy",
+          "title": "Yankee Doodle Daffy",
+          "show": null,
+          "season": null,
+          "episode": null,
+          "aired": "1943-01-01",
+          "durationMs": 403520,
+          "file": "yankee-doodle-daffy.mp4",
+          "url": "https://archive.org/download/ltmm-publicdomain/Yankee%20Doodle%20Daffy%20(1943).ia.mp4",
+          "bytes": 38654681,
+          "license": {
+            "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "verified": "2026-07-29",
+            "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+            "basis": "CLAIMED",
+            "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+            "musicRights": "unverified"
+          }
+        }
+      ]
+    },
+    {
       "id": "popeye-color",
       "name": "POPEYE IN COLOR",
       "kind": "shows",

@@ -1,0 +1,2107 @@
+{
+  "id": "looney-tunes",
+  "name": "LOONEY TUNES",
+  "version": 1,
+  "kind": "shows",
+  "description": "The public-domain Warner Bros. run, 1932-1943 — Porky, early Daffy, early Bugs, and the Merrie Melodies one-shots. Ends at Puss n' Booty; everything after it is still copyrighted.",
+  "audience": "all",
+  "contentNote": "Pre-Code and wartime humor throughout. A handful of titles carry racial caricature or wartime propaganda and are tagged individually — they are presented as animation history and should stay off any kid-safe channel list.",
+  "channel": {
+    "number": 12,
+    "name": "LOONEY TUNES",
+    "ordering": "shuffle",
+    "seed": 19320101
+  },
+  "encode": {
+    "height": 480,
+    "crf": 28,
+    "preset": "fast",
+    "abitrate": "96k"
+  },
+  "rightsNote": "BASIS: CLAIMED — download-only, never preload. Every title here comes from the Looney Tunes Wiki public-domain list (itself sourced from Hurst's Film Superlist) via https://archive.org/details/ltmm-publicdomain. That is a credible secondary source, NOT a renewal check: no one has opened the CCE volumes for these. Each item carries its year+27/year+28 window in cceVolumes so the research pass is mechanical. TWO STANDING TRAPS, both live in this exact IA item: (1) the 1970s REDRAWN and COMPUTER COLORIZED versions sit alphabetically adjacent to the originals and were renewed in 1994 — 77 of them were rejected by filename when this manifest was generated, and the pack builder rejects them on every rebuild; (2) Blue Ribbon reissues may carry their own fresh registration, so a clean original-title search is not the end of the check. Items whose notes mention a Blue Ribbon reissue are the highest-risk subgroup. Warner Bros. is also an aggressive trademark enforcer: play the films, keep Bugs/Daffy/Porky out of marketing, artwork and store copy.",
+  "items": [
+    {
+      "id": "hittin-the-trail-for-hallelujah-land",
+      "title": "Hittin' the Trail for Hallelujah Land",
+      "aired": "1931-01-01",
+      "source": {
+        "iaIdentifier": "ltmm-publicdomain",
+        "iaFile": "Hittin' the Trail for Hallelujah Land (1931).ia.mp4"
+      },
+      "license": {
+        "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "verified": "2026-07-29",
+        "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+        "basis": "CLAIMED",
+        "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "musicRights": "unverified"
+      },
+      "cceVolumes": "1958, 1959",
+      "contentWarning": [
+        "racial-caricature"
+      ],
+      "tags": [
+        "1930s",
+        "cartoon"
+      ]
+    },
+    {
+      "id": "a-great-big-bunch-of-you",
+      "title": "A Great Big Bunch of You",
+      "aired": "1932-01-01",
+      "source": {
+        "iaIdentifier": "ltmm-publicdomain",
+        "iaFile": "A Great Big Bunch of You (1932).ia.mp4"
+      },
+      "license": {
+        "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "verified": "2026-07-29",
+        "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+        "basis": "CLAIMED",
+        "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "musicRights": "unverified"
+      },
+      "cceVolumes": "1959, 1960",
+      "tags": [
+        "1930s",
+        "cartoon"
+      ]
+    },
+    {
+      "id": "battling-bosko",
+      "title": "Battling Bosko",
+      "aired": "1932-01-01",
+      "source": {
+        "iaIdentifier": "ltmm-publicdomain",
+        "iaFile": "Battling Bosko (1932).ia.mp4"
+      },
+      "license": {
+        "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "verified": "2026-07-29",
+        "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+        "basis": "CLAIMED",
+        "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "musicRights": "unverified"
+      },
+      "cceVolumes": "1959, 1960",
+      "tags": [
+        "1930s",
+        "cartoon"
+      ]
+    },
+    {
+      "id": "big-hearted-bosko",
+      "title": "Big-Hearted Bosko",
+      "aired": "1932-01-01",
+      "source": {
+        "iaIdentifier": "ltmm-publicdomain",
+        "iaFile": "Big Hearted Bosko (1932).ia.mp4"
+      },
+      "license": {
+        "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "verified": "2026-07-29",
+        "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+        "basis": "CLAIMED",
+        "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "musicRights": "unverified"
+      },
+      "cceVolumes": "1959, 1960",
+      "tags": [
+        "1930s",
+        "cartoon"
+      ]
+    },
+    {
+      "id": "bosko-and-bruno",
+      "title": "Bosko and Bruno",
+      "aired": "1932-01-01",
+      "source": {
+        "iaIdentifier": "ltmm-publicdomain",
+        "iaFile": "Bosko and Bruno (1932).ia.mp4"
+      },
+      "license": {
+        "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "verified": "2026-07-29",
+        "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+        "basis": "CLAIMED",
+        "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "musicRights": "unverified"
+      },
+      "cceVolumes": "1959, 1960",
+      "tags": [
+        "1930s",
+        "cartoon"
+      ]
+    },
+    {
+      "id": "bosko-at-the-beach",
+      "title": "Bosko at the Beach",
+      "aired": "1932-01-01",
+      "source": {
+        "iaIdentifier": "ltmm-publicdomain",
+        "iaFile": "Bosko at the Beach (1932).ia.mp4"
+      },
+      "license": {
+        "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "verified": "2026-07-29",
+        "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+        "basis": "CLAIMED",
+        "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "musicRights": "unverified"
+      },
+      "cceVolumes": "1959, 1960",
+      "tags": [
+        "1930s",
+        "cartoon"
+      ]
+    },
+    {
+      "id": "bosko-at-the-zoo",
+      "title": "Bosko at the Zoo",
+      "aired": "1932-01-01",
+      "source": {
+        "iaIdentifier": "ltmm-publicdomain",
+        "iaFile": "Bosko at the Zoo (1932).ia.mp4"
+      },
+      "license": {
+        "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "verified": "2026-07-29",
+        "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+        "basis": "CLAIMED",
+        "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "musicRights": "unverified"
+      },
+      "cceVolumes": "1959, 1960",
+      "tags": [
+        "1930s",
+        "cartoon"
+      ]
+    },
+    {
+      "id": "bosko-the-lumberjack",
+      "title": "Bosko the Lumberjack",
+      "aired": "1932-01-01",
+      "source": {
+        "iaIdentifier": "ltmm-publicdomain",
+        "iaFile": "Bosko the Lumberjack (1932).ia.mp4"
+      },
+      "license": {
+        "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "verified": "2026-07-29",
+        "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+        "basis": "CLAIMED",
+        "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "musicRights": "unverified"
+      },
+      "cceVolumes": "1959, 1960",
+      "tags": [
+        "1930s",
+        "cartoon"
+      ]
+    },
+    {
+      "id": "boskos-dog-race",
+      "title": "Bosko's Dog Race",
+      "aired": "1932-01-01",
+      "source": {
+        "iaIdentifier": "ltmm-publicdomain",
+        "iaFile": "Bosko's Dog Race (1932).ia.mp4"
+      },
+      "license": {
+        "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "verified": "2026-07-29",
+        "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+        "basis": "CLAIMED",
+        "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "musicRights": "unverified"
+      },
+      "cceVolumes": "1959, 1960",
+      "tags": [
+        "1930s",
+        "cartoon"
+      ]
+    },
+    {
+      "id": "boskos-party",
+      "title": "Bosko's Party",
+      "aired": "1932-01-01",
+      "source": {
+        "iaIdentifier": "ltmm-publicdomain",
+        "iaFile": "Bosko's Party (1932).ia.mp4"
+      },
+      "license": {
+        "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "verified": "2026-07-29",
+        "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+        "basis": "CLAIMED",
+        "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "musicRights": "unverified"
+      },
+      "cceVolumes": "1959, 1960",
+      "tags": [
+        "1930s",
+        "cartoon"
+      ]
+    },
+    {
+      "id": "boskos-store",
+      "title": "Bosko's Store",
+      "aired": "1932-01-01",
+      "source": {
+        "iaIdentifier": "ltmm-publicdomain",
+        "iaFile": "Bosko's Store (1932).ia.mp4"
+      },
+      "license": {
+        "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "verified": "2026-07-29",
+        "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+        "basis": "CLAIMED",
+        "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "musicRights": "unverified"
+      },
+      "cceVolumes": "1959, 1960",
+      "tags": [
+        "1930s",
+        "cartoon"
+      ]
+    },
+    {
+      "id": "crosby-columbo-and-vallee",
+      "title": "Crosby, Columbo, and Vallee",
+      "aired": "1932-01-01",
+      "source": {
+        "iaIdentifier": "ltmm-publicdomain",
+        "iaFile": "Crosby, Columbo and Vallee (1932).ia.mp4"
+      },
+      "license": {
+        "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "verified": "2026-07-29",
+        "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+        "basis": "CLAIMED",
+        "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "musicRights": "unverified"
+      },
+      "cceVolumes": "1959, 1960",
+      "tags": [
+        "1930s",
+        "cartoon"
+      ]
+    },
+    {
+      "id": "freddy-the-freshman",
+      "title": "Freddy the Freshman",
+      "aired": "1932-01-01",
+      "source": {
+        "iaIdentifier": "ltmm-publicdomain",
+        "iaFile": "Freddy the Freshman (1932).ia.mp4"
+      },
+      "license": {
+        "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "verified": "2026-07-29",
+        "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+        "basis": "CLAIMED",
+        "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "musicRights": "unverified"
+      },
+      "cceVolumes": "1959, 1960",
+      "tags": [
+        "1930s",
+        "cartoon"
+      ]
+    },
+    {
+      "id": "goopy-geer",
+      "title": "Goopy Geer",
+      "aired": "1932-01-01",
+      "source": {
+        "iaIdentifier": "ltmm-publicdomain",
+        "iaFile": "Goopy Geer (1932).ia.mp4"
+      },
+      "license": {
+        "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "verified": "2026-07-29",
+        "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+        "basis": "CLAIMED",
+        "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "musicRights": "unverified"
+      },
+      "cceVolumes": "1959, 1960",
+      "tags": [
+        "1930s",
+        "cartoon"
+      ]
+    },
+    {
+      "id": "i-love-a-parade",
+      "title": "I Love a Parade",
+      "aired": "1932-01-01",
+      "source": {
+        "iaIdentifier": "ltmm-publicdomain",
+        "iaFile": "I Love a Parade (1932).ia.mp4"
+      },
+      "license": {
+        "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "verified": "2026-07-29",
+        "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+        "basis": "CLAIMED",
+        "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "musicRights": "unverified"
+      },
+      "cceVolumes": "1959, 1960",
+      "tags": [
+        "1930s",
+        "cartoon"
+      ]
+    },
+    {
+      "id": "i-wish-i-had-wings",
+      "title": "I Wish I Had Wings",
+      "aired": "1932-01-01",
+      "source": {
+        "iaIdentifier": "ltmm-publicdomain",
+        "iaFile": "I Wish I Had Wings (1932).ia.mp4"
+      },
+      "license": {
+        "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "verified": "2026-07-29",
+        "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+        "basis": "CLAIMED",
+        "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "musicRights": "unverified"
+      },
+      "cceVolumes": "1959, 1960",
+      "tags": [
+        "1930s",
+        "cartoon"
+      ]
+    },
+    {
+      "id": "its-got-me-again",
+      "title": "It's Got Me Again!",
+      "aired": "1932-01-01",
+      "source": {
+        "iaIdentifier": "ltmm-publicdomain",
+        "iaFile": "It's Got Me Again! (1932).ia.mp4"
+      },
+      "license": {
+        "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "verified": "2026-07-29",
+        "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+        "basis": "CLAIMED",
+        "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "musicRights": "unverified"
+      },
+      "cceVolumes": "1959, 1960",
+      "tags": [
+        "1930s",
+        "cartoon"
+      ]
+    },
+    {
+      "id": "moonlight-for-two",
+      "title": "Moonlight for Two",
+      "aired": "1932-01-01",
+      "source": {
+        "iaIdentifier": "ltmm-publicdomain",
+        "iaFile": "Moonlight for Two (1932).ia.mp4"
+      },
+      "license": {
+        "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "verified": "2026-07-29",
+        "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+        "basis": "CLAIMED",
+        "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "musicRights": "unverified"
+      },
+      "cceVolumes": "1959, 1960",
+      "tags": [
+        "1930s",
+        "cartoon"
+      ]
+    },
+    {
+      "id": "pagan-moon",
+      "title": "Pagan Moon",
+      "aired": "1932-01-01",
+      "source": {
+        "iaIdentifier": "ltmm-publicdomain",
+        "iaFile": "Pagan Moon (1932).ia.mp4"
+      },
+      "license": {
+        "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "verified": "2026-07-29",
+        "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+        "basis": "CLAIMED",
+        "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "musicRights": "unverified"
+      },
+      "cceVolumes": "1959, 1960",
+      "tags": [
+        "1930s",
+        "cartoon"
+      ]
+    },
+    {
+      "id": "the-queen-was-in-the-parlor",
+      "title": "The Queen Was in the Parlor",
+      "aired": "1932-01-01",
+      "source": {
+        "iaIdentifier": "ltmm-publicdomain",
+        "iaFile": "The Queen Was in the Parlor (1932).ia.mp4"
+      },
+      "license": {
+        "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "verified": "2026-07-29",
+        "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+        "basis": "CLAIMED",
+        "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "musicRights": "unverified"
+      },
+      "cceVolumes": "1959, 1960",
+      "tags": [
+        "1930s",
+        "cartoon"
+      ]
+    },
+    {
+      "id": "youre-too-careless-with-your-kisses",
+      "title": "You're Too Careless with Your Kisses!",
+      "aired": "1932-01-01",
+      "source": {
+        "iaIdentifier": "ltmm-publicdomain",
+        "iaFile": "You're Too Careless with Your Kisses! (1932).ia.mp4"
+      },
+      "license": {
+        "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "verified": "2026-07-29",
+        "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+        "basis": "CLAIMED",
+        "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "musicRights": "unverified"
+      },
+      "cceVolumes": "1959, 1960",
+      "tags": [
+        "1930s",
+        "cartoon"
+      ]
+    },
+    {
+      "id": "the-shanty-where-santy-claus-lives",
+      "title": "The Shanty Where Santy Claus Lives",
+      "aired": "1933-01-01",
+      "source": {
+        "iaIdentifier": "ltmm-publicdomain",
+        "iaFile": "The Shanty Where Santy Claus Lives (1933).ia.mp4"
+      },
+      "license": {
+        "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "verified": "2026-07-29",
+        "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+        "basis": "CLAIMED",
+        "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "musicRights": "unverified"
+      },
+      "cceVolumes": "1960, 1961",
+      "tags": [
+        "1930s",
+        "cartoon"
+      ]
+    },
+    {
+      "id": "hollywood-capers",
+      "title": "Hollywood Capers",
+      "aired": "1935-01-01",
+      "source": {
+        "iaIdentifier": "ltmm-publicdomain",
+        "iaFile": "Hollywood Capers (1935).ia.mp4"
+      },
+      "license": {
+        "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "verified": "2026-07-29",
+        "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+        "basis": "CLAIMED",
+        "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "musicRights": "unverified"
+      },
+      "cceVolumes": "1962, 1963",
+      "tags": [
+        "1930s",
+        "cartoon"
+      ]
+    },
+    {
+      "id": "boom-boom",
+      "title": "Boom Boom",
+      "aired": "1936-01-01",
+      "source": {
+        "iaIdentifier": "ltmm-publicdomain",
+        "iaFile": "Boom Boom (1936).ia.mp4"
+      },
+      "license": {
+        "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "verified": "2026-07-29",
+        "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+        "basis": "CLAIMED",
+        "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "musicRights": "unverified"
+      },
+      "cceVolumes": "1963, 1964",
+      "tags": [
+        "1930s",
+        "cartoon"
+      ]
+    },
+    {
+      "id": "westward-whoa",
+      "title": "Westward Whoa",
+      "aired": "1936-01-01",
+      "source": {
+        "iaIdentifier": "ltmm-publicdomain",
+        "iaFile": "Westward Whoa (1936).ia.mp4"
+      },
+      "license": {
+        "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "verified": "2026-07-29",
+        "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+        "basis": "CLAIMED",
+        "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "musicRights": "unverified"
+      },
+      "cceVolumes": "1963, 1964",
+      "tags": [
+        "1930s",
+        "cartoon"
+      ]
+    },
+    {
+      "id": "get-rich-quick-porky",
+      "title": "Get Rich Quick Porky",
+      "aired": "1937-01-01",
+      "source": {
+        "iaIdentifier": "ltmm-publicdomain",
+        "iaFile": "Get Rich Quick Porky (1937).ia.mp4"
+      },
+      "license": {
+        "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "verified": "2026-07-29",
+        "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+        "basis": "CLAIMED",
+        "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "musicRights": "unverified"
+      },
+      "cceVolumes": "1964, 1965",
+      "tags": [
+        "1930s",
+        "cartoon"
+      ]
+    },
+    {
+      "id": "i-wanna-be-a-sailor",
+      "title": "I Wanna Be a Sailor",
+      "aired": "1937-01-01",
+      "source": {
+        "iaIdentifier": "ltmm-publicdomain",
+        "iaFile": "I Wanna Be a Sailor (1937).ia.mp4"
+      },
+      "license": {
+        "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "verified": "2026-07-29",
+        "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+        "basis": "CLAIMED",
+        "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "musicRights": "unverified"
+      },
+      "cceVolumes": "1964, 1965",
+      "tags": [
+        "1930s",
+        "cartoon"
+      ]
+    },
+    {
+      "id": "porkys-garden",
+      "title": "Porky's Garden",
+      "aired": "1937-01-01",
+      "source": {
+        "iaIdentifier": "ltmm-publicdomain",
+        "iaFile": "Porky's Garden (1937).ia.mp4"
+      },
+      "license": {
+        "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "verified": "2026-07-29",
+        "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+        "basis": "CLAIMED",
+        "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "musicRights": "unverified"
+      },
+      "cceVolumes": "1964, 1965",
+      "tags": [
+        "1930s",
+        "cartoon"
+      ]
+    },
+    {
+      "id": "porkys-railroad",
+      "title": "Porky's Railroad",
+      "aired": "1937-01-01",
+      "source": {
+        "iaIdentifier": "ltmm-publicdomain",
+        "iaFile": "Porky's Railroad (1937).ia.mp4"
+      },
+      "license": {
+        "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "verified": "2026-07-29",
+        "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+        "basis": "CLAIMED",
+        "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "musicRights": "unverified"
+      },
+      "cceVolumes": "1964, 1965",
+      "tags": [
+        "1930s",
+        "cartoon"
+      ]
+    },
+    {
+      "id": "have-you-got-any-castles",
+      "title": "Have You Got Any Castles?",
+      "aired": "1938-01-01",
+      "source": {
+        "iaIdentifier": "ltmm-publicdomain",
+        "iaFile": "Have You Got Any Castles (1938).ia.mp4"
+      },
+      "license": {
+        "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "verified": "2026-07-29",
+        "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+        "basis": "CLAIMED",
+        "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "musicRights": "unverified"
+      },
+      "cceVolumes": "1965, 1966",
+      "tags": [
+        "1930s",
+        "cartoon"
+      ]
+    },
+    {
+      "id": "jungle-jitters",
+      "title": "Jungle Jitters",
+      "aired": "1938-01-01",
+      "source": {
+        "iaIdentifier": "ltmm-publicdomain",
+        "iaFile": "Jungle Jitters (1938).ia.mp4"
+      },
+      "license": {
+        "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "verified": "2026-07-29",
+        "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+        "basis": "CLAIMED",
+        "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "musicRights": "unverified"
+      },
+      "cceVolumes": "1965, 1966",
+      "contentWarning": [
+        "racial-caricature"
+      ],
+      "tags": [
+        "1930s",
+        "cartoon"
+      ]
+    },
+    {
+      "id": "a-day-at-the-zoo",
+      "title": "A Day at the Zoo",
+      "aired": "1939-01-01",
+      "source": {
+        "iaIdentifier": "ltmm-publicdomain",
+        "iaFile": "A Day at the Zoo (1939).ia.mp4"
+      },
+      "license": {
+        "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "verified": "2026-07-29",
+        "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+        "basis": "CLAIMED",
+        "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "musicRights": "unverified"
+      },
+      "cceVolumes": "1966, 1967",
+      "tags": [
+        "1930s",
+        "cartoon"
+      ]
+    },
+    {
+      "id": "bars-and-stripes-forever",
+      "title": "Bars and Stripes Forever",
+      "aired": "1939-01-01",
+      "source": {
+        "iaIdentifier": "ltmm-publicdomain",
+        "iaFile": "Bars and Stripes Forever (1939).mp4"
+      },
+      "license": {
+        "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "verified": "2026-07-29",
+        "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+        "basis": "CLAIMED",
+        "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "musicRights": "unverified"
+      },
+      "cceVolumes": "1966, 1967",
+      "tags": [
+        "1930s",
+        "cartoon"
+      ]
+    },
+    {
+      "id": "daffy-duck-and-the-dinosaur",
+      "title": "Daffy Duck and the Dinosaur",
+      "aired": "1939-01-01",
+      "source": {
+        "iaIdentifier": "ltmm-publicdomain",
+        "iaFile": "Daffy Duck and the Dinosaur (1939).ia.mp4"
+      },
+      "license": {
+        "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "verified": "2026-07-29",
+        "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+        "basis": "CLAIMED",
+        "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "musicRights": "unverified"
+      },
+      "cceVolumes": "1966, 1967",
+      "tags": [
+        "1930s",
+        "cartoon"
+      ]
+    },
+    {
+      "id": "gold-rush-daze",
+      "title": "Gold Rush Daze",
+      "aired": "1939-01-01",
+      "source": {
+        "iaIdentifier": "ltmm-publicdomain",
+        "iaFile": "Gold Rush Daze (1939).mp4"
+      },
+      "license": {
+        "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "verified": "2026-07-29",
+        "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+        "basis": "CLAIMED",
+        "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "musicRights": "unverified"
+      },
+      "cceVolumes": "1966, 1967",
+      "tags": [
+        "1930s",
+        "cartoon"
+      ]
+    },
+    {
+      "id": "hamateur-night",
+      "title": "Hamateur Night",
+      "aired": "1939-01-01",
+      "source": {
+        "iaIdentifier": "ltmm-publicdomain",
+        "iaFile": "Hamateur Night (1939).mp4"
+      },
+      "license": {
+        "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "verified": "2026-07-29",
+        "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+        "basis": "CLAIMED",
+        "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "musicRights": "unverified"
+      },
+      "cceVolumes": "1966, 1967",
+      "tags": [
+        "1930s",
+        "cartoon"
+      ]
+    },
+    {
+      "id": "prest-o-change-o",
+      "title": "Prest-O Change-O",
+      "aired": "1939-01-01",
+      "source": {
+        "iaIdentifier": "ltmm-publicdomain",
+        "iaFile": "Prest-O Change-O (1939).ia.mp4"
+      },
+      "license": {
+        "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "verified": "2026-07-29",
+        "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+        "basis": "CLAIMED",
+        "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "musicRights": "unverified"
+      },
+      "cceVolumes": "1966, 1967",
+      "tags": [
+        "1930s",
+        "cartoon"
+      ]
+    },
+    {
+      "id": "robin-hood-makes-good",
+      "title": "Robin Hood Makes Good",
+      "aired": "1939-01-01",
+      "source": {
+        "iaIdentifier": "ltmm-publicdomain",
+        "iaFile": "Robin Hood Makes Good (1939).ia.mp4"
+      },
+      "license": {
+        "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "verified": "2026-07-29",
+        "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+        "basis": "CLAIMED",
+        "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "musicRights": "unverified"
+      },
+      "cceVolumes": "1966, 1967",
+      "tags": [
+        "1930s",
+        "cartoon"
+      ]
+    },
+    {
+      "id": "ali-baba-bound",
+      "title": "Ali-Baba Bound",
+      "aired": "1940-01-01",
+      "source": {
+        "iaIdentifier": "ltmm-publicdomain",
+        "iaFile": "Ali-Baba Bound (1940).ia.mp4"
+      },
+      "license": {
+        "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "verified": "2026-07-29",
+        "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+        "basis": "CLAIMED",
+        "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "musicRights": "unverified"
+      },
+      "cceVolumes": "1967, 1968",
+      "tags": [
+        "1940s",
+        "cartoon"
+      ]
+    },
+    {
+      "id": "the-early-worm-gets-the-bird",
+      "title": "The Early Worm Gets the Bird",
+      "aired": "1940-01-01",
+      "source": {
+        "iaIdentifier": "ltmm-publicdomain",
+        "iaFile": "The Early Worm Gets the Bird (1940).ia.mp4"
+      },
+      "license": {
+        "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "verified": "2026-07-29",
+        "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+        "basis": "CLAIMED",
+        "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "musicRights": "unverified"
+      },
+      "cceVolumes": "1967, 1968",
+      "tags": [
+        "1940s",
+        "cartoon"
+      ]
+    },
+    {
+      "id": "the-timid-toreador",
+      "title": "The Timid Toreador",
+      "aired": "1940-01-01",
+      "source": {
+        "iaIdentifier": "ltmm-publicdomain",
+        "iaFile": "The Timid Toreador (1940).mp4"
+      },
+      "license": {
+        "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "verified": "2026-07-29",
+        "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+        "basis": "CLAIMED",
+        "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "musicRights": "unverified"
+      },
+      "cceVolumes": "1967, 1968",
+      "tags": [
+        "1940s",
+        "cartoon"
+      ]
+    },
+    {
+      "id": "a-coy-decoy",
+      "title": "A Coy Decoy",
+      "aired": "1941-01-01",
+      "source": {
+        "iaIdentifier": "ltmm-publicdomain",
+        "iaFile": "A Coy Decoy (1941).ia.mp4"
+      },
+      "license": {
+        "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "verified": "2026-07-29",
+        "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+        "basis": "CLAIMED",
+        "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "musicRights": "unverified"
+      },
+      "cceVolumes": "1968, 1969",
+      "tags": [
+        "1940s",
+        "cartoon"
+      ]
+    },
+    {
+      "id": "all-this-and-rabbit-stew",
+      "title": "All This and Rabbit Stew",
+      "aired": "1941-01-01",
+      "source": {
+        "iaIdentifier": "ltmm-publicdomain",
+        "iaFile": "All This and Rabbit Stew (1941).ia.mp4"
+      },
+      "license": {
+        "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "verified": "2026-07-29",
+        "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+        "basis": "CLAIMED",
+        "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "musicRights": "unverified"
+      },
+      "cceVolumes": "1968, 1969",
+      "contentWarning": [
+        "racial-caricature"
+      ],
+      "tags": [
+        "1940s",
+        "cartoon"
+      ]
+    },
+    {
+      "id": "farm-frolics",
+      "title": "Farm Frolics",
+      "aired": "1941-01-01",
+      "source": {
+        "iaIdentifier": "ltmm-publicdomain",
+        "iaFile": "Farm Frolics (1941).ia.mp4"
+      },
+      "license": {
+        "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "verified": "2026-07-29",
+        "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+        "basis": "CLAIMED",
+        "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "musicRights": "unverified"
+      },
+      "cceVolumes": "1968, 1969",
+      "tags": [
+        "1940s",
+        "cartoon"
+      ]
+    },
+    {
+      "id": "joe-glow-the-firefly",
+      "title": "Joe Glow, the Firefly",
+      "aired": "1941-01-01",
+      "source": {
+        "iaIdentifier": "ltmm-publicdomain",
+        "iaFile": "Joe Glow, the Firefly (1941).mp4"
+      },
+      "license": {
+        "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "verified": "2026-07-29",
+        "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+        "basis": "CLAIMED",
+        "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "musicRights": "unverified"
+      },
+      "cceVolumes": "1968, 1969",
+      "tags": [
+        "1940s",
+        "cartoon"
+      ]
+    },
+    {
+      "id": "meet-john-doughboy",
+      "title": "Meet John Doughboy",
+      "aired": "1941-01-01",
+      "source": {
+        "iaIdentifier": "ltmm-publicdomain",
+        "iaFile": "Meet John Doughboy (1941).ia.mp4"
+      },
+      "license": {
+        "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "verified": "2026-07-29",
+        "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+        "basis": "CLAIMED",
+        "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "musicRights": "unverified"
+      },
+      "cceVolumes": "1968, 1969",
+      "tags": [
+        "1940s",
+        "cartoon"
+      ]
+    },
+    {
+      "id": "notes-to-you",
+      "title": "Notes to You",
+      "aired": "1941-01-01",
+      "source": {
+        "iaIdentifier": "ltmm-publicdomain",
+        "iaFile": "Notes to You (1941).ia.mp4"
+      },
+      "license": {
+        "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "verified": "2026-07-29",
+        "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+        "basis": "CLAIMED",
+        "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "musicRights": "unverified"
+      },
+      "cceVolumes": "1968, 1969",
+      "tags": [
+        "1940s",
+        "cartoon"
+      ]
+    },
+    {
+      "id": "porkys-ant",
+      "title": "Porky's Ant",
+      "aired": "1941-01-01",
+      "source": {
+        "iaIdentifier": "ltmm-publicdomain",
+        "iaFile": "Porky's Ant (1941).ia.mp4"
+      },
+      "license": {
+        "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "verified": "2026-07-29",
+        "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+        "basis": "CLAIMED",
+        "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "musicRights": "unverified"
+      },
+      "cceVolumes": "1968, 1969",
+      "tags": [
+        "1940s",
+        "cartoon"
+      ]
+    },
+    {
+      "id": "porkys-bear-facts",
+      "title": "Porky's Bear Facts",
+      "aired": "1941-01-01",
+      "source": {
+        "iaIdentifier": "ltmm-publicdomain",
+        "iaFile": "Porky's Bear Facts (1941).ia.mp4"
+      },
+      "license": {
+        "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "verified": "2026-07-29",
+        "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+        "basis": "CLAIMED",
+        "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "musicRights": "unverified"
+      },
+      "cceVolumes": "1968, 1969",
+      "tags": [
+        "1940s",
+        "cartoon"
+      ]
+    },
+    {
+      "id": "porkys-midnight-matinee",
+      "title": "Porky's Midnight Matinee",
+      "aired": "1941-01-01",
+      "source": {
+        "iaIdentifier": "ltmm-publicdomain",
+        "iaFile": "Porky's Midnight Matinee (1941).ia.mp4"
+      },
+      "license": {
+        "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "verified": "2026-07-29",
+        "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+        "basis": "CLAIMED",
+        "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "musicRights": "unverified"
+      },
+      "cceVolumes": "1968, 1969",
+      "tags": [
+        "1940s",
+        "cartoon"
+      ]
+    },
+    {
+      "id": "porkys-pooch",
+      "title": "Porky's Pooch",
+      "aired": "1941-01-01",
+      "source": {
+        "iaIdentifier": "ltmm-publicdomain",
+        "iaFile": "Porky's Pooch (1941).ia.mp4"
+      },
+      "license": {
+        "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "verified": "2026-07-29",
+        "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+        "basis": "CLAIMED",
+        "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "musicRights": "unverified"
+      },
+      "cceVolumes": "1968, 1969",
+      "tags": [
+        "1940s",
+        "cartoon"
+      ]
+    },
+    {
+      "id": "porkys-preview",
+      "title": "Porky's Preview",
+      "aired": "1941-01-01",
+      "source": {
+        "iaIdentifier": "ltmm-publicdomain",
+        "iaFile": "Porky's Preview (1941).ia.mp4"
+      },
+      "license": {
+        "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "verified": "2026-07-29",
+        "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+        "basis": "CLAIMED",
+        "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "musicRights": "unverified"
+      },
+      "cceVolumes": "1968, 1969",
+      "tags": [
+        "1940s",
+        "cartoon"
+      ]
+    },
+    {
+      "id": "porkys-prize-pony",
+      "title": "Porky's Prize Pony",
+      "aired": "1941-01-01",
+      "source": {
+        "iaIdentifier": "ltmm-publicdomain",
+        "iaFile": "Porky's Prize Pony (1941).ia.mp4"
+      },
+      "license": {
+        "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "verified": "2026-07-29",
+        "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+        "basis": "CLAIMED",
+        "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "musicRights": "unverified"
+      },
+      "cceVolumes": "1968, 1969",
+      "tags": [
+        "1940s",
+        "cartoon"
+      ]
+    },
+    {
+      "id": "robinson-crusoe-jr",
+      "title": "Robinson Crusoe Jr.",
+      "aired": "1941-01-01",
+      "source": {
+        "iaIdentifier": "ltmm-publicdomain",
+        "iaFile": "Robinson Crusoe Jr. (1941).ia.mp4"
+      },
+      "license": {
+        "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "verified": "2026-07-29",
+        "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+        "basis": "CLAIMED",
+        "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "musicRights": "unverified"
+      },
+      "cceVolumes": "1968, 1969",
+      "tags": [
+        "1940s",
+        "cartoon"
+      ]
+    },
+    {
+      "id": "rookie-revue",
+      "title": "Rookie Revue",
+      "aired": "1941-01-01",
+      "source": {
+        "iaIdentifier": "ltmm-publicdomain",
+        "iaFile": "Rookie Revue (1941).ia.mp4"
+      },
+      "license": {
+        "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "verified": "2026-07-29",
+        "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+        "basis": "CLAIMED",
+        "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "musicRights": "unverified"
+      },
+      "cceVolumes": "1968, 1969",
+      "tags": [
+        "1940s",
+        "cartoon"
+      ]
+    },
+    {
+      "id": "sport-chumpions",
+      "title": "Sport Chumpions",
+      "aired": "1941-01-01",
+      "source": {
+        "iaIdentifier": "ltmm-publicdomain",
+        "iaFile": "Sport Chumpions (1941).mp4"
+      },
+      "license": {
+        "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "verified": "2026-07-29",
+        "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+        "basis": "CLAIMED",
+        "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "musicRights": "unverified"
+      },
+      "cceVolumes": "1968, 1969",
+      "tags": [
+        "1940s",
+        "cartoon"
+      ]
+    },
+    {
+      "id": "the-haunted-mouse",
+      "title": "The Haunted Mouse",
+      "aired": "1941-01-01",
+      "source": {
+        "iaIdentifier": "ltmm-publicdomain",
+        "iaFile": "The Haunted Mouse (1941).ia.mp4"
+      },
+      "license": {
+        "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "verified": "2026-07-29",
+        "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+        "basis": "CLAIMED",
+        "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "musicRights": "unverified"
+      },
+      "cceVolumes": "1968, 1969",
+      "tags": [
+        "1940s",
+        "cartoon"
+      ]
+    },
+    {
+      "id": "the-henpecked-duck",
+      "title": "The Henpecked Duck",
+      "aired": "1941-01-01",
+      "source": {
+        "iaIdentifier": "ltmm-publicdomain",
+        "iaFile": "The Henpecked Duck (1941).ia.mp4"
+      },
+      "license": {
+        "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "verified": "2026-07-29",
+        "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+        "basis": "CLAIMED",
+        "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "musicRights": "unverified"
+      },
+      "cceVolumes": "1968, 1969",
+      "tags": [
+        "1940s",
+        "cartoon"
+      ]
+    },
+    {
+      "id": "we-the-animals-squeak",
+      "title": "We, the Animals – Squeak!",
+      "aired": "1941-01-01",
+      "source": {
+        "iaIdentifier": "ltmm-publicdomain",
+        "iaFile": "We, the Animals - Squeak! (1941).ia.mp4"
+      },
+      "license": {
+        "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "verified": "2026-07-29",
+        "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+        "basis": "CLAIMED",
+        "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "musicRights": "unverified"
+      },
+      "cceVolumes": "1968, 1969",
+      "tags": [
+        "1940s",
+        "cartoon"
+      ]
+    },
+    {
+      "id": "a-tale-of-two-kitties",
+      "title": "A Tale of Two Kitties",
+      "aired": "1942-01-01",
+      "source": {
+        "iaIdentifier": "ltmm-publicdomain",
+        "iaFile": "A Tale of Two Kitties (1942).ia.mp4"
+      },
+      "license": {
+        "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "verified": "2026-07-29",
+        "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+        "basis": "CLAIMED",
+        "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "musicRights": "unverified"
+      },
+      "cceVolumes": "1969, 1970",
+      "tags": [
+        "1940s",
+        "cartoon"
+      ]
+    },
+    {
+      "id": "case-of-the-missing-hare",
+      "title": "Case of the Missing Hare",
+      "aired": "1942-01-01",
+      "source": {
+        "iaIdentifier": "ltmm-publicdomain",
+        "iaFile": "Case of the Missing Hare (1942).ia.mp4"
+      },
+      "license": {
+        "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "verified": "2026-07-29",
+        "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+        "basis": "CLAIMED",
+        "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "musicRights": "unverified"
+      },
+      "cceVolumes": "1969, 1970",
+      "tags": [
+        "1940s",
+        "cartoon"
+      ]
+    },
+    {
+      "id": "daffys-southern-exposure",
+      "title": "Daffy's Southern Exposure",
+      "aired": "1942-01-01",
+      "source": {
+        "iaIdentifier": "ltmm-publicdomain",
+        "iaFile": "Daffy's Southern Exposure (1942).ia.mp4"
+      },
+      "license": {
+        "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "verified": "2026-07-29",
+        "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+        "basis": "CLAIMED",
+        "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "musicRights": "unverified"
+      },
+      "cceVolumes": "1969, 1970",
+      "tags": [
+        "1940s",
+        "cartoon"
+      ]
+    },
+    {
+      "id": "ding-dog-daddy",
+      "title": "Ding Dog Daddy",
+      "aired": "1942-01-01",
+      "source": {
+        "iaIdentifier": "ltmm-publicdomain",
+        "iaFile": "Ding Dog Daddy (1942).ia.mp4"
+      },
+      "license": {
+        "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "verified": "2026-07-29",
+        "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+        "basis": "CLAIMED",
+        "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "musicRights": "unverified"
+      },
+      "cceVolumes": "1969, 1970",
+      "tags": [
+        "1940s",
+        "cartoon"
+      ]
+    },
+    {
+      "id": "foney-fables",
+      "title": "Foney Fables",
+      "aired": "1942-01-01",
+      "source": {
+        "iaIdentifier": "ltmm-publicdomain",
+        "iaFile": "Foney Fables (1942).ia.mp4"
+      },
+      "license": {
+        "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "verified": "2026-07-29",
+        "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+        "basis": "CLAIMED",
+        "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "musicRights": "unverified"
+      },
+      "cceVolumes": "1969, 1970",
+      "tags": [
+        "1940s",
+        "cartoon"
+      ]
+    },
+    {
+      "id": "fox-pop",
+      "title": "Fox Pop",
+      "aired": "1942-01-01",
+      "source": {
+        "iaIdentifier": "ltmm-publicdomain",
+        "iaFile": "Fox Pop (1942).ia.mp4"
+      },
+      "license": {
+        "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "verified": "2026-07-29",
+        "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+        "basis": "CLAIMED",
+        "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "musicRights": "unverified"
+      },
+      "cceVolumes": "1969, 1970",
+      "tags": [
+        "1940s",
+        "cartoon"
+      ]
+    },
+    {
+      "id": "fresh-hare",
+      "title": "Fresh Hare",
+      "aired": "1942-01-01",
+      "source": {
+        "iaIdentifier": "ltmm-publicdomain",
+        "iaFile": "Fresh Hare (1942).ia.mp4"
+      },
+      "license": {
+        "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "verified": "2026-07-29",
+        "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+        "basis": "CLAIMED",
+        "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "musicRights": "unverified"
+      },
+      "cceVolumes": "1969, 1970",
+      "contentWarning": [
+        "racial-caricature"
+      ],
+      "tags": [
+        "1940s",
+        "cartoon"
+      ]
+    },
+    {
+      "id": "gopher-goofy",
+      "title": "Gopher Goofy",
+      "aired": "1942-01-01",
+      "source": {
+        "iaIdentifier": "ltmm-publicdomain",
+        "iaFile": "Gopher Goofy (1942).ia.mp4"
+      },
+      "license": {
+        "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "verified": "2026-07-29",
+        "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+        "basis": "CLAIMED",
+        "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "musicRights": "unverified"
+      },
+      "cceVolumes": "1969, 1970",
+      "tags": [
+        "1940s",
+        "cartoon"
+      ]
+    },
+    {
+      "id": "hobby-horse-laffs",
+      "title": "Hobby Horse-Laffs",
+      "aired": "1942-01-01",
+      "source": {
+        "iaIdentifier": "ltmm-publicdomain",
+        "iaFile": "Hobby Horse Laffs (1942).ia.mp4"
+      },
+      "license": {
+        "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "verified": "2026-07-29",
+        "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+        "basis": "CLAIMED",
+        "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "musicRights": "unverified"
+      },
+      "cceVolumes": "1969, 1970",
+      "tags": [
+        "1940s",
+        "cartoon"
+      ]
+    },
+    {
+      "id": "nutty-news",
+      "title": "Nutty News",
+      "aired": "1942-01-01",
+      "source": {
+        "iaIdentifier": "ltmm-publicdomain",
+        "iaFile": "Nutty News (1942).ia.mp4"
+      },
+      "license": {
+        "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "verified": "2026-07-29",
+        "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+        "basis": "CLAIMED",
+        "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "musicRights": "unverified"
+      },
+      "cceVolumes": "1969, 1970",
+      "tags": [
+        "1940s",
+        "cartoon"
+      ]
+    },
+    {
+      "id": "porkys-cafe",
+      "title": "Porky's Cafe",
+      "aired": "1942-01-01",
+      "source": {
+        "iaIdentifier": "ltmm-publicdomain",
+        "iaFile": "Porky's Cafe (1942).ia.mp4"
+      },
+      "license": {
+        "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "verified": "2026-07-29",
+        "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+        "basis": "CLAIMED",
+        "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "musicRights": "unverified"
+      },
+      "cceVolumes": "1969, 1970",
+      "tags": [
+        "1940s",
+        "cartoon"
+      ]
+    },
+    {
+      "id": "porkys-pastry-pirates",
+      "title": "Porky's Pastry Pirates",
+      "aired": "1942-01-01",
+      "source": {
+        "iaIdentifier": "ltmm-publicdomain",
+        "iaFile": "Porky's Pastry Pirates (1942).ia.mp4"
+      },
+      "license": {
+        "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "verified": "2026-07-29",
+        "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+        "basis": "CLAIMED",
+        "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "musicRights": "unverified"
+      },
+      "cceVolumes": "1969, 1970",
+      "tags": [
+        "1940s",
+        "cartoon"
+      ]
+    },
+    {
+      "id": "the-daffy-duckaroo",
+      "title": "The Daffy Duckaroo",
+      "aired": "1942-01-01",
+      "source": {
+        "iaIdentifier": "ltmm-publicdomain",
+        "iaFile": "The Daffy Duckaroo (1942).ia.mp4"
+      },
+      "license": {
+        "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "verified": "2026-07-29",
+        "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+        "basis": "CLAIMED",
+        "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "musicRights": "unverified"
+      },
+      "cceVolumes": "1969, 1970",
+      "tags": [
+        "1940s",
+        "cartoon"
+      ]
+    },
+    {
+      "id": "the-ducktators",
+      "title": "The Ducktators",
+      "aired": "1942-01-01",
+      "source": {
+        "iaIdentifier": "ltmm-publicdomain",
+        "iaFile": "The Ducktators (1942).ia.mp4"
+      },
+      "license": {
+        "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "verified": "2026-07-29",
+        "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+        "basis": "CLAIMED",
+        "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "musicRights": "unverified"
+      },
+      "cceVolumes": "1969, 1970",
+      "tags": [
+        "1940s",
+        "cartoon"
+      ]
+    },
+    {
+      "id": "the-impatient-patient",
+      "title": "The Impatient Patient",
+      "aired": "1942-01-01",
+      "source": {
+        "iaIdentifier": "ltmm-publicdomain",
+        "iaFile": "The Impatient Patient (1942).ia.mp4"
+      },
+      "license": {
+        "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "verified": "2026-07-29",
+        "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+        "basis": "CLAIMED",
+        "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "musicRights": "unverified"
+      },
+      "cceVolumes": "1969, 1970",
+      "tags": [
+        "1940s",
+        "cartoon"
+      ]
+    },
+    {
+      "id": "the-sheepish-wolf",
+      "title": "The Sheepish Wolf",
+      "aired": "1942-01-01",
+      "source": {
+        "iaIdentifier": "ltmm-publicdomain",
+        "iaFile": "The Sheepish Wolf (1942).mp4"
+      },
+      "license": {
+        "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "verified": "2026-07-29",
+        "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+        "basis": "CLAIMED",
+        "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "musicRights": "unverified"
+      },
+      "cceVolumes": "1969, 1970",
+      "tags": [
+        "1940s",
+        "cartoon"
+      ]
+    },
+    {
+      "id": "the-wabbit-who-came-to-supper",
+      "title": "The Wabbit Who Came to Supper",
+      "aired": "1942-01-01",
+      "source": {
+        "iaIdentifier": "ltmm-publicdomain",
+        "iaFile": "The Wabbit Who Came To Supper (1942).ia.mp4"
+      },
+      "license": {
+        "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "verified": "2026-07-29",
+        "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+        "basis": "CLAIMED",
+        "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "musicRights": "unverified"
+      },
+      "cceVolumes": "1969, 1970",
+      "tags": [
+        "1940s",
+        "cartoon"
+      ]
+    },
+    {
+      "id": "the-wacky-wabbit",
+      "title": "The Wacky Wabbit",
+      "aired": "1942-01-01",
+      "source": {
+        "iaIdentifier": "ltmm-publicdomain",
+        "iaFile": "The Wacky Wabbit (1942).ia.mp4"
+      },
+      "license": {
+        "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "verified": "2026-07-29",
+        "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+        "basis": "CLAIMED",
+        "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "musicRights": "unverified"
+      },
+      "cceVolumes": "1969, 1970",
+      "tags": [
+        "1940s",
+        "cartoon"
+      ]
+    },
+    {
+      "id": "wacky-blackout",
+      "title": "Wacky Blackout",
+      "aired": "1942-01-01",
+      "source": {
+        "iaIdentifier": "ltmm-publicdomain",
+        "iaFile": "Wacky Blackout (1942).ia.mp4"
+      },
+      "license": {
+        "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "verified": "2026-07-29",
+        "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+        "basis": "CLAIMED",
+        "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "musicRights": "unverified"
+      },
+      "cceVolumes": "1969, 1970",
+      "tags": [
+        "1940s",
+        "cartoon"
+      ]
+    },
+    {
+      "id": "whos-who-in-the-zoo",
+      "title": "Who's Who in the Zoo",
+      "aired": "1942-01-01",
+      "source": {
+        "iaIdentifier": "ltmm-publicdomain",
+        "iaFile": "Who's Who in the Zoo (1942).ia.mp4"
+      },
+      "license": {
+        "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "verified": "2026-07-29",
+        "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+        "basis": "CLAIMED",
+        "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "musicRights": "unverified"
+      },
+      "cceVolumes": "1969, 1970",
+      "tags": [
+        "1940s",
+        "cartoon"
+      ]
+    },
+    {
+      "id": "a-corny-concerto",
+      "title": "A Corny Concerto",
+      "aired": "1943-01-01",
+      "source": {
+        "iaIdentifier": "ltmm-publicdomain",
+        "iaFile": "A Corny Concerto (1943).ia.mp4"
+      },
+      "license": {
+        "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "verified": "2026-07-29",
+        "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+        "basis": "CLAIMED",
+        "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "musicRights": "unverified"
+      },
+      "cceVolumes": "1970, 1971",
+      "tags": [
+        "1940s",
+        "cartoon"
+      ]
+    },
+    {
+      "id": "confusions-of-a-nutzy-spy",
+      "title": "Confusions of a Nutzy Spy",
+      "aired": "1943-01-01",
+      "source": {
+        "iaIdentifier": "ltmm-publicdomain",
+        "iaFile": "Confusions of a Nutzy Spy (1943).ia.mp4"
+      },
+      "license": {
+        "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "verified": "2026-07-29",
+        "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+        "basis": "CLAIMED",
+        "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "musicRights": "unverified"
+      },
+      "cceVolumes": "1970, 1971",
+      "tags": [
+        "1940s",
+        "cartoon"
+      ]
+    },
+    {
+      "id": "daffy-the-commando",
+      "title": "Daffy – The Commando",
+      "aired": "1943-01-01",
+      "source": {
+        "iaIdentifier": "ltmm-publicdomain",
+        "iaFile": "Daffy - The Commando (1943).ia.mp4"
+      },
+      "license": {
+        "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "verified": "2026-07-29",
+        "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+        "basis": "CLAIMED",
+        "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "musicRights": "unverified"
+      },
+      "cceVolumes": "1970, 1971",
+      "tags": [
+        "1940s",
+        "cartoon"
+      ]
+    },
+    {
+      "id": "falling-hare",
+      "title": "Falling Hare",
+      "aired": "1943-01-01",
+      "source": {
+        "iaIdentifier": "ltmm-publicdomain",
+        "iaFile": "Falling Hare (1943).ia.mp4"
+      },
+      "license": {
+        "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "verified": "2026-07-29",
+        "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+        "basis": "CLAIMED",
+        "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "musicRights": "unverified"
+      },
+      "cceVolumes": "1970, 1971",
+      "tags": [
+        "1940s",
+        "cartoon"
+      ]
+    },
+    {
+      "id": "hop-and-go",
+      "title": "Hop and Go",
+      "aired": "1943-01-01",
+      "source": {
+        "iaIdentifier": "ltmm-publicdomain",
+        "iaFile": "Hop and Go (1943).mp4"
+      },
+      "license": {
+        "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "verified": "2026-07-29",
+        "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+        "basis": "CLAIMED",
+        "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "musicRights": "unverified"
+      },
+      "cceVolumes": "1970, 1971",
+      "tags": [
+        "1940s",
+        "cartoon"
+      ]
+    },
+    {
+      "id": "inki-and-the-minah-bird",
+      "title": "Inki and the Minah Bird",
+      "aired": "1943-01-01",
+      "source": {
+        "iaIdentifier": "ltmm-publicdomain",
+        "iaFile": "Inki and the Minah Bird (1943).ia.mp4"
+      },
+      "license": {
+        "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "verified": "2026-07-29",
+        "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+        "basis": "CLAIMED",
+        "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "musicRights": "unverified"
+      },
+      "cceVolumes": "1970, 1971",
+      "tags": [
+        "1940s",
+        "cartoon"
+      ]
+    },
+    {
+      "id": "pigs-in-a-polka",
+      "title": "Pigs in a Polka",
+      "aired": "1943-01-01",
+      "source": {
+        "iaIdentifier": "ltmm-publicdomain",
+        "iaFile": "Pigs in a Polka (1943).ia.mp4"
+      },
+      "license": {
+        "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "verified": "2026-07-29",
+        "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+        "basis": "CLAIMED",
+        "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "musicRights": "unverified"
+      },
+      "cceVolumes": "1970, 1971",
+      "tags": [
+        "1940s",
+        "cartoon"
+      ]
+    },
+    {
+      "id": "porky-pigs-feat",
+      "title": "Porky Pig's Feat",
+      "aired": "1943-01-01",
+      "source": {
+        "iaIdentifier": "ltmm-publicdomain",
+        "iaFile": "Porky Pig's Feat (1943).ia.mp4"
+      },
+      "license": {
+        "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "verified": "2026-07-29",
+        "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+        "basis": "CLAIMED",
+        "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "musicRights": "unverified"
+      },
+      "cceVolumes": "1970, 1971",
+      "tags": [
+        "1940s",
+        "cartoon"
+      ]
+    },
+    {
+      "id": "puss-n-booty",
+      "title": "Puss n' Booty",
+      "aired": "1943-01-01",
+      "source": {
+        "iaIdentifier": "ltmm-publicdomain",
+        "iaFile": "Puss N' Booty (1943).ia.mp4"
+      },
+      "license": {
+        "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "verified": "2026-07-29",
+        "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+        "basis": "CLAIMED",
+        "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "musicRights": "unverified"
+      },
+      "cceVolumes": "1970, 1971",
+      "tags": [
+        "1940s",
+        "cartoon"
+      ]
+    },
+    {
+      "id": "scrap-happy-daffy",
+      "title": "Scrap Happy Daffy",
+      "aired": "1943-01-01",
+      "source": {
+        "iaIdentifier": "ltmm-publicdomain",
+        "iaFile": "Scrap Happy Daffy (1943).ia.mp4"
+      },
+      "license": {
+        "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "verified": "2026-07-29",
+        "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+        "basis": "CLAIMED",
+        "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "musicRights": "unverified"
+      },
+      "cceVolumes": "1970, 1971",
+      "tags": [
+        "1940s",
+        "cartoon"
+      ]
+    },
+    {
+      "id": "the-fifth-column-mouse",
+      "title": "The Fifth-Column Mouse",
+      "aired": "1943-01-01",
+      "source": {
+        "iaIdentifier": "ltmm-publicdomain",
+        "iaFile": "The Fifth-Column Mouse (1943).ia.mp4"
+      },
+      "license": {
+        "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "verified": "2026-07-29",
+        "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+        "basis": "CLAIMED",
+        "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "musicRights": "unverified"
+      },
+      "cceVolumes": "1970, 1971",
+      "tags": [
+        "1940s",
+        "cartoon"
+      ]
+    },
+    {
+      "id": "to-duck-or-not-to-duck",
+      "title": "To Duck .... or Not to Duck",
+      "aired": "1943-01-01",
+      "source": {
+        "iaIdentifier": "ltmm-publicdomain",
+        "iaFile": "To Duck Or Not To Duck (1943).ia.mp4"
+      },
+      "license": {
+        "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "verified": "2026-07-29",
+        "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+        "basis": "CLAIMED",
+        "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "musicRights": "unverified"
+      },
+      "cceVolumes": "1970, 1971",
+      "tags": [
+        "1940s",
+        "cartoon"
+      ]
+    },
+    {
+      "id": "tokio-jokio",
+      "title": "Tokio Jokio",
+      "aired": "1943-01-01",
+      "source": {
+        "iaIdentifier": "ltmm-publicdomain",
+        "iaFile": "Tokio Jokio (1943).ia.mp4"
+      },
+      "license": {
+        "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "verified": "2026-07-29",
+        "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+        "basis": "CLAIMED",
+        "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "musicRights": "unverified"
+      },
+      "cceVolumes": "1970, 1971",
+      "contentWarning": [
+        "racial-caricature"
+      ],
+      "tags": [
+        "1940s",
+        "cartoon"
+      ]
+    },
+    {
+      "id": "wackiki-wabbit",
+      "title": "Wackiki Wabbit",
+      "aired": "1943-01-01",
+      "source": {
+        "iaIdentifier": "ltmm-publicdomain",
+        "iaFile": "Wackiki Wabbit (1943).ia.mp4"
+      },
+      "license": {
+        "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "verified": "2026-07-29",
+        "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+        "basis": "CLAIMED",
+        "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "musicRights": "unverified"
+      },
+      "cceVolumes": "1970, 1971",
+      "tags": [
+        "1940s",
+        "cartoon"
+      ]
+    },
+    {
+      "id": "yankee-doodle-daffy",
+      "title": "Yankee Doodle Daffy",
+      "aired": "1943-01-01",
+      "source": {
+        "iaIdentifier": "ltmm-publicdomain",
+        "iaFile": "Yankee Doodle Daffy (1943).ia.mp4"
+      },
+      "license": {
+        "url": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "verified": "2026-07-29",
+        "note": "Listed as public domain by: https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist). NOT independently verified — basis CLAIMED. Original print only; redrawn/colorized derivatives in the same IA item are excluded by the pack builder.",
+        "basis": "CLAIMED",
+        "claimedBy": "https://archive.org/details/ltmm-publicdomain (Looney Tunes Wiki PD list, sourced from Hurst's Film Superlist)",
+        "musicRights": "unverified"
+      },
+      "cceVolumes": "1970, 1971",
+      "tags": [
+        "1940s",
+        "cartoon"
+      ]
+    }
+  ]
+}

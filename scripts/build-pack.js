@@ -267,7 +267,26 @@ const RIGHTS_BASIS = {
   AGE: 'Published 1930 or earlier — confirm the release date. Deterministic.',
   NR:  'Copyright not renewed — REQUIRES a Catalog of Copyright Entries lookup, recorded in license.verifiedBy.',
   CC:  'Openly licensed, not public domain.',
+  CLAIMED: 'A credible source LISTS this as public domain; we have not verified it ourselves. ' +
+           'Ships to the download catalog, never to preload. Requires license.claimedBy naming the source.',
 };
+
+/**
+ * Bases that may ship inside the App Store binary.
+ *
+ * The asymmetry this encodes: a download-catalog entry is reversible — the
+ * catalog is server-side, we pull it in minutes, and the bytes come from the
+ * Internet Archive rather than from us. A PRELOADED item is not. It ships
+ * inside the binary, cannot be recalled remotely, needs an app-review cycle to
+ * remove, and a rights complaint routed through Apple can take down the whole
+ * app rather than the one file.
+ *
+ * So CLAIMED — "somebody credible lists this as PD, we haven't checked" — is
+ * deliberately allowed to ship one way and not the other. That is the whole
+ * point of the basis: it exists so unverified content can move NOW instead of
+ * waiting behind research, without betting the app on it.
+ */
+const PRELOADABLE_BASIS = new Set(['GOV', 'AGE', 'NR', 'CC']);
 
 /** Closed on purpose: an open vocabulary cannot be filtered against. */
 const CONTENT_WARNINGS = new Set([
@@ -282,12 +301,34 @@ const MUSIC_RIGHTS = new Set(['cleared', 'unverified', 'encumbered']);
  * the Wooden Soldiers" trap, where a missing notice on a reissue print made a
  * fully-copyrighted film look public domain for decades.
  */
-function checkProvenance(manifest) {
+function checkProvenance(manifest, opts = {}) {
   const errs = [];
   const label = (i) => `${i.id} (${i.title || '?'})`;
+  // Set when the output can't be recalled — i.e. a PRELOAD pack being built
+  // into the App Store binary. See PRELOADABLE_BASIS.
+  const preload = opts.preload === true;
 
   for (const i of manifest.items) {
     const lic = i.license || {};
+
+    // 0 · CLAIMED: unverified, ships to download only.
+    //
+    // The bargain is that we record WHO says it is public domain. Not research
+    // — just a URL. It is what makes the claim auditable when someone asks, and
+    // it is the row the research pass later upgrades to NR/AGE/GOV.
+    if (lic.basis === 'CLAIMED') {
+      if (!lic.claimedBy) {
+        errs.push(`${label(i)}: basis CLAIMED requires license.claimedBy naming the source that lists it as PD ` +
+                  `(a URL is enough) — "somebody said so" has to say who`);
+      }
+      if (preload) {
+        errs.push(`${label(i)}: basis CLAIMED cannot ship in a PRELOAD pack — it goes inside the App Store ` +
+                  `binary, where a takedown needs a review cycle and cannot be recalled remotely. ` +
+                  `Verify it (→ GOV/AGE/NR) or drop the PRELOAD marker and ship it as a download.`);
+      }
+    } else if (preload && lic.basis && !PRELOADABLE_BASIS.has(lic.basis)) {
+      errs.push(`${label(i)}: basis ${lic.basis} cannot ship in a PRELOAD pack`);
+    }
 
     // 1 · a claim needs a basis, a note, and a date. All three, always.
     if (!lic.verified) errs.push(`${label(i)}: no license.verified — needs a date after a real PD/renewal check`);
@@ -483,8 +524,13 @@ async function cmdCatalog() {
 
 async function cmdBuild(packId, opts) {
   const manifest = loadManifest(packId);
-  if (!opts.allowUnverified) checkProvenance(manifest);
+  // A PRELOAD marker means this pack's encodes get bundled into the App Store
+  // binary, so the gate tightens: CLAIMED items are fine in the catalog but
+  // must not end up somewhere we cannot recall them from.
+  const preload = fs.existsSync(path.join(PACKS_DIR, packId, 'PRELOAD'));
+  if (!opts.allowUnverified) checkProvenance(manifest, { preload });
   else console.warn('⚠️  --allow-unverified: provenance gate SKIPPED (dev only).');
+  if (preload) console.log('· PRELOAD pack — CLAIMED items are not permitted.');
 
   const distDir = path.join(PACKS_DIR, packId, 'dist');
   fs.mkdirSync(distDir, { recursive: true });

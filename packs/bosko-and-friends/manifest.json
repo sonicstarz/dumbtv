@@ -18,7 +18,7 @@
     "preset": "fast",
     "abitrate": "96k"
   },
-  "rightsNote": "AGE basis: US publications this old are public domain deterministically — the only risk is a wrong release date. CAVEAT ON THE 1931 TITLES: they clear by AGE on 2027-01-01; until then their PD status rests on documented non-renewal (NR). Original B&W prints only — the 1970s redrawn/colorized versions in the same IA item were renewed in 1994 and are separately copyrighted; the file selection explicitly excludes anything marked Redrawn or Colorized.",
+  "rightsNote": "AGE basis: US publications this old are public domain deterministically — the only risk is a wrong release date. CAVEAT ON THE 1931 TITLES: they clear by AGE on 2027-01-01; until then their PD status rests on documented non-renewal (NR) — searched 2026-07-29 against CCE 3rd Series Parts 12-13, renewal sections 1958 and 1959 both halves, no renewal found. Original B&W prints only — the 1970s redrawn/colorized versions in the same IA item were renewed in 1994 and are separately copyrighted; the file selection explicitly excludes anything marked Redrawn or Colorized.",
   "items": [
     {
       "id": "bosko-the-talk-ink-kid",
@@ -171,10 +171,11 @@
       },
       "license": {
         "url": "https://archive.org/details/ltmm-publicdomain",
-        "verified": "2026-07-26",
+        "verified": "2026-07-29",
         "note": "Published 1931. US public domain by AGE as of January 1, 2027 per the 95-year rule — VERIFY before ship if shipping in 2026: 1931 publications clear on 2027-01-01. Most of this block is ALSO documented non-renewed (NR). Original B&W only; redrawn/colorized versions excluded.",
         "basis": "NR",
-        "musicRights": "unverified"
+        "musicRights": "unverified",
+        "verifiedBy": "CCE 3rd Series, Parts 12-13 (Motion Pictures and Filmstrips), renewal sections 1958 Jan-Jun, 1958 Jul-Dec, 1959 Jan-Jun, 1959 Jul-Dec — NO RENEWAL FOUND. MOOT IN ANY CASE: the 95-year term expires 2026-12-31, so this clears by AGE on 2027-01-01 with no renewal question at all. Method: OCR full-text search of every relevant half-year renewal section, plus a visual alphabetical-neighbourhood check on the page scans (OCR can drop entries). Negative is substantive: the same volumes show the rights holders renewing sibling shorts in bulk. Best published evidence short of a Copyright Office Form 4 search report. Researched 2026-07-29."
       },
       "tags": [
         "1930s",
@@ -194,10 +195,11 @@
       },
       "license": {
         "url": "https://archive.org/details/ltmm-publicdomain",
-        "verified": "2026-07-26",
+        "verified": "2026-07-29",
         "note": "Published 1931. US public domain by AGE as of January 1, 2027 per the 95-year rule — VERIFY before ship if shipping in 2026: 1931 publications clear on 2027-01-01. Most of this block is ALSO documented non-renewed (NR). Original B&W only; redrawn/colorized versions excluded.",
         "basis": "NR",
-        "musicRights": "unverified"
+        "musicRights": "unverified",
+        "verifiedBy": "CCE 3rd Series, Parts 12-13 (Motion Pictures and Filmstrips), renewal sections 1958 Jan-Jun, 1958 Jul-Dec, 1959 Jan-Jun, 1959 Jul-Dec — NO RENEWAL FOUND. MOOT IN ANY CASE: the 95-year term expires 2026-12-31, so this clears by AGE on 2027-01-01 with no renewal question at all. Method: OCR full-text search of every relevant half-year renewal section, plus a visual alphabetical-neighbourhood check on the page scans (OCR can drop entries). Negative is substantive: the same volumes show the rights holders renewing sibling shorts in bulk. Best published evidence short of a Copyright Office Form 4 search report. Researched 2026-07-29."
       },
       "tags": [
         "1930s",
@@ -217,10 +219,11 @@
       },
       "license": {
         "url": "https://archive.org/details/ltmm-publicdomain",
-        "verified": "2026-07-26",
+        "verified": "2026-07-29",
         "note": "Published 1931. US public domain by AGE as of January 1, 2027 per the 95-year rule — VERIFY before ship if shipping in 2026: 1931 publications clear on 2027-01-01. Most of this block is ALSO documented non-renewed (NR). Original B&W only; redrawn/colorized versions excluded.",
         "basis": "NR",
-        "musicRights": "unverified"
+        "musicRights": "unverified",
+        "verifiedBy": "CCE 3rd Series, Parts 12-13 (Motion Pictures and Filmstrips), renewal sections 1958 Jan-Jun, 1958 Jul-Dec, 1959 Jan-Jun, 1959 Jul-Dec — NO RENEWAL FOUND. MOOT IN ANY CASE: the 95-year term expires 2026-12-31, so this clears by AGE on 2027-01-01 with no renewal question at all. Method: OCR full-text search of every relevant half-year renewal section, plus a visual alphabetical-neighbourhood check on the page scans (OCR can drop entries). Negative is substantive: the same volumes show the rights holders renewing sibling shorts in bulk. Best published evidence short of a Copyright Office Form 4 search report. Researched 2026-07-29."
       },
       "tags": [
         "1930s",
@@ -240,10 +243,11 @@
       },
       "license": {
         "url": "https://archive.org/details/ltmm-publicdomain",
-        "verified": "2026-07-26",
+        "verified": "2026-07-29",
         "note": "Published 1931. US public domain by AGE as of January 1, 2027 per the 95-year rule — VERIFY before ship if shipping in 2026: 1931 publications clear on 2027-01-01. Most of this block is ALSO documented non-renewed (NR). Original B&W only; redrawn/colorized versions excluded.",
         "basis": "NR",
-        "musicRights": "unverified"
+        "musicRights": "unverified",
+        "verifiedBy": "CCE 3rd Series, Parts 12-13 (Motion Pictures and Filmstrips), renewal sections 1958 Jan-Jun, 1958 Jul-Dec, 1959 Jan-Jun, 1959 Jul-Dec — NO RENEWAL FOUND. MOOT IN ANY CASE: the 95-year term expires 2026-12-31, so this clears by AGE on 2027-01-01 with no renewal question at all. Method: OCR full-text search of every relevant half-year renewal section, plus a visual alphabetical-neighbourhood check on the page scans (OCR can drop entries). Negative is substantive: the same volumes show the rights holders renewing sibling shorts in bulk. Best published evidence short of a Copyright Office Form 4 search report. Researched 2026-07-29."
       },
       "tags": [
         "1930s",
@@ -263,10 +267,11 @@
       },
       "license": {
         "url": "https://archive.org/details/ltmm-publicdomain",
-        "verified": "2026-07-26",
+        "verified": "2026-07-29",
         "note": "Published 1931. US public domain by AGE as of January 1, 2027 per the 95-year rule — VERIFY before ship if shipping in 2026: 1931 publications clear on 2027-01-01. Most of this block is ALSO documented non-renewed (NR). Original B&W only; redrawn/colorized versions excluded.",
         "basis": "NR",
-        "musicRights": "unverified"
+        "musicRights": "unverified",
+        "verifiedBy": "CCE 3rd Series, Parts 12-13 (Motion Pictures and Filmstrips), renewal sections 1958 Jan-Jun, 1958 Jul-Dec, 1959 Jan-Jun, 1959 Jul-Dec — NO RENEWAL FOUND. MOOT IN ANY CASE: the 95-year term expires 2026-12-31, so this clears by AGE on 2027-01-01 with no renewal question at all. Method: OCR full-text search of every relevant half-year renewal section, plus a visual alphabetical-neighbourhood check on the page scans (OCR can drop entries). Negative is substantive: the same volumes show the rights holders renewing sibling shorts in bulk. Best published evidence short of a Copyright Office Form 4 search report. Researched 2026-07-29."
       },
       "tags": [
         "1930s",
@@ -286,10 +291,11 @@
       },
       "license": {
         "url": "https://archive.org/details/ltmm-publicdomain",
-        "verified": "2026-07-26",
+        "verified": "2026-07-29",
         "note": "Published 1931. US public domain by AGE as of January 1, 2027 per the 95-year rule — VERIFY before ship if shipping in 2026: 1931 publications clear on 2027-01-01. Most of this block is ALSO documented non-renewed (NR). Original B&W only; redrawn/colorized versions excluded.",
         "basis": "NR",
-        "musicRights": "unverified"
+        "musicRights": "unverified",
+        "verifiedBy": "CCE 3rd Series, Parts 12-13 (Motion Pictures and Filmstrips), renewal sections 1958 Jan-Jun, 1958 Jul-Dec, 1959 Jan-Jun, 1959 Jul-Dec — NO RENEWAL FOUND. MOOT IN ANY CASE: the 95-year term expires 2026-12-31, so this clears by AGE on 2027-01-01 with no renewal question at all. Method: OCR full-text search of every relevant half-year renewal section, plus a visual alphabetical-neighbourhood check on the page scans (OCR can drop entries). Negative is substantive: the same volumes show the rights holders renewing sibling shorts in bulk. Best published evidence short of a Copyright Office Form 4 search report. Researched 2026-07-29."
       },
       "tags": [
         "1930s",
@@ -309,10 +315,11 @@
       },
       "license": {
         "url": "https://archive.org/details/ltmm-publicdomain",
-        "verified": "2026-07-26",
+        "verified": "2026-07-29",
         "note": "Published 1931. US public domain by AGE as of January 1, 2027 per the 95-year rule — VERIFY before ship if shipping in 2026: 1931 publications clear on 2027-01-01. Most of this block is ALSO documented non-renewed (NR). Original B&W only; redrawn/colorized versions excluded.",
         "basis": "NR",
-        "musicRights": "unverified"
+        "musicRights": "unverified",
+        "verifiedBy": "CCE 3rd Series, Parts 12-13 (Motion Pictures and Filmstrips), renewal sections 1958 Jan-Jun, 1958 Jul-Dec, 1959 Jan-Jun, 1959 Jul-Dec — NO RENEWAL FOUND. MOOT IN ANY CASE: the 95-year term expires 2026-12-31, so this clears by AGE on 2027-01-01 with no renewal question at all. Method: OCR full-text search of every relevant half-year renewal section, plus a visual alphabetical-neighbourhood check on the page scans (OCR can drop entries). Negative is substantive: the same volumes show the rights holders renewing sibling shorts in bulk. Best published evidence short of a Copyright Office Form 4 search report. Researched 2026-07-29."
       },
       "tags": [
         "1930s",
@@ -332,10 +339,11 @@
       },
       "license": {
         "url": "https://archive.org/details/LadyPlayYourMandolin1931HughHarmanRudolfIsing",
-        "verified": "2026-07-26",
+        "verified": "2026-07-29",
         "note": "Published 1931 — the first Merrie Melodie. PD today on documented non-renewal (NR); clears deterministically by AGE on 2027-01-01. Standalone IA item, public-domain marked, original B&W print.",
         "basis": "NR",
-        "musicRights": "unverified"
+        "musicRights": "unverified",
+        "verifiedBy": "CCE 3rd Series, Parts 12-13 (Motion Pictures and Filmstrips), renewal sections 1958 Jan-Jun, 1958 Jul-Dec, 1959 Jan-Jun, 1959 Jul-Dec — NO RENEWAL FOUND. MOOT IN ANY CASE: the 95-year term expires 2026-12-31, so this clears by AGE on 2027-01-01 with no renewal question at all. Method: OCR full-text search of every relevant half-year renewal section, plus a visual alphabetical-neighbourhood check on the page scans (OCR can drop entries). Negative is substantive: the same volumes show the rights holders renewing sibling shorts in bulk. Best published evidence short of a Copyright Office Form 4 search report. Researched 2026-07-29."
       },
       "tags": [
         "1930s",
@@ -355,10 +363,11 @@
       },
       "license": {
         "url": "https://archive.org/details/ltmm-publicdomain",
-        "verified": "2026-07-26",
+        "verified": "2026-07-29",
         "note": "Published 1931. US public domain by AGE as of January 1, 2027 per the 95-year rule — VERIFY before ship if shipping in 2026: 1931 publications clear on 2027-01-01. Most of this block is ALSO documented non-renewed (NR). Original B&W only; redrawn/colorized versions excluded.",
         "basis": "NR",
-        "musicRights": "unverified"
+        "musicRights": "unverified",
+        "verifiedBy": "CCE 3rd Series, Parts 12-13 (Motion Pictures and Filmstrips), renewal sections 1958 Jan-Jun, 1958 Jul-Dec, 1959 Jan-Jun, 1959 Jul-Dec — NO RENEWAL FOUND. MOOT IN ANY CASE: the 95-year term expires 2026-12-31, so this clears by AGE on 2027-01-01 with no renewal question at all. Method: OCR full-text search of every relevant half-year renewal section, plus a visual alphabetical-neighbourhood check on the page scans (OCR can drop entries). Negative is substantive: the same volumes show the rights holders renewing sibling shorts in bulk. Best published evidence short of a Copyright Office Form 4 search report. Researched 2026-07-29."
       },
       "tags": [
         "1930s",
@@ -378,10 +387,11 @@
       },
       "license": {
         "url": "https://archive.org/details/ltmm-publicdomain",
-        "verified": "2026-07-26",
+        "verified": "2026-07-29",
         "note": "Published 1931. US public domain by AGE as of January 1, 2027 per the 95-year rule — VERIFY before ship if shipping in 2026: 1931 publications clear on 2027-01-01. Most of this block is ALSO documented non-renewed (NR). Original B&W only; redrawn/colorized versions excluded.",
         "basis": "NR",
-        "musicRights": "unverified"
+        "musicRights": "unverified",
+        "verifiedBy": "CCE 3rd Series, Parts 12-13 (Motion Pictures and Filmstrips), renewal sections 1958 Jan-Jun, 1958 Jul-Dec, 1959 Jan-Jun, 1959 Jul-Dec — NO RENEWAL FOUND. MOOT IN ANY CASE: the 95-year term expires 2026-12-31, so this clears by AGE on 2027-01-01 with no renewal question at all. Method: OCR full-text search of every relevant half-year renewal section, plus a visual alphabetical-neighbourhood check on the page scans (OCR can drop entries). Negative is substantive: the same volumes show the rights holders renewing sibling shorts in bulk. Best published evidence short of a Copyright Office Form 4 search report. Researched 2026-07-29."
       },
       "tags": [
         "1930s",
@@ -401,10 +411,11 @@
       },
       "license": {
         "url": "https://archive.org/details/ltmm-publicdomain",
-        "verified": "2026-07-26",
+        "verified": "2026-07-29",
         "note": "Published 1931. US public domain by AGE as of January 1, 2027 per the 95-year rule — VERIFY before ship if shipping in 2026: 1931 publications clear on 2027-01-01. Most of this block is ALSO documented non-renewed (NR). Original B&W only; redrawn/colorized versions excluded.",
         "basis": "NR",
-        "musicRights": "unverified"
+        "musicRights": "unverified",
+        "verifiedBy": "CCE 3rd Series, Parts 12-13 (Motion Pictures and Filmstrips), renewal sections 1958 Jan-Jun, 1958 Jul-Dec, 1959 Jan-Jun, 1959 Jul-Dec — NO RENEWAL FOUND. MOOT IN ANY CASE: the 95-year term expires 2026-12-31, so this clears by AGE on 2027-01-01 with no renewal question at all. Method: OCR full-text search of every relevant half-year renewal section, plus a visual alphabetical-neighbourhood check on the page scans (OCR can drop entries). Negative is substantive: the same volumes show the rights holders renewing sibling shorts in bulk. Best published evidence short of a Copyright Office Form 4 search report. Researched 2026-07-29."
       },
       "tags": [
         "1930s",
@@ -424,10 +435,11 @@
       },
       "license": {
         "url": "https://archive.org/details/ltmm-publicdomain",
-        "verified": "2026-07-26",
+        "verified": "2026-07-29",
         "note": "Published 1931. US public domain by AGE as of January 1, 2027 per the 95-year rule — VERIFY before ship if shipping in 2026: 1931 publications clear on 2027-01-01. Most of this block is ALSO documented non-renewed (NR). Original B&W only; redrawn/colorized versions excluded.",
         "basis": "NR",
-        "musicRights": "unverified"
+        "musicRights": "unverified",
+        "verifiedBy": "CCE 3rd Series, Parts 12-13 (Motion Pictures and Filmstrips), renewal sections 1958 Jan-Jun, 1958 Jul-Dec, 1959 Jan-Jun, 1959 Jul-Dec — NO RENEWAL FOUND. MOOT IN ANY CASE: the 95-year term expires 2026-12-31, so this clears by AGE on 2027-01-01 with no renewal question at all. Method: OCR full-text search of every relevant half-year renewal section, plus a visual alphabetical-neighbourhood check on the page scans (OCR can drop entries). Negative is substantive: the same volumes show the rights holders renewing sibling shorts in bulk. Best published evidence short of a Copyright Office Form 4 search report. Researched 2026-07-29."
       },
       "tags": [
         "1930s",
@@ -447,10 +459,11 @@
       },
       "license": {
         "url": "https://archive.org/details/ltmm-publicdomain",
-        "verified": "2026-07-26",
+        "verified": "2026-07-29",
         "note": "Published 1931. US public domain by AGE as of January 1, 2027 per the 95-year rule — VERIFY before ship if shipping in 2026: 1931 publications clear on 2027-01-01. Most of this block is ALSO documented non-renewed (NR). Original B&W only; redrawn/colorized versions excluded.",
         "basis": "NR",
-        "musicRights": "unverified"
+        "musicRights": "unverified",
+        "verifiedBy": "CCE 3rd Series, Parts 12-13 (Motion Pictures and Filmstrips), renewal sections 1958 Jan-Jun, 1958 Jul-Dec, 1959 Jan-Jun, 1959 Jul-Dec — NO RENEWAL FOUND. MOOT IN ANY CASE: the 95-year term expires 2026-12-31, so this clears by AGE on 2027-01-01 with no renewal question at all. Method: OCR full-text search of every relevant half-year renewal section, plus a visual alphabetical-neighbourhood check on the page scans (OCR can drop entries). Negative is substantive: the same volumes show the rights holders renewing sibling shorts in bulk. Best published evidence short of a Copyright Office Form 4 search report. Researched 2026-07-29."
       },
       "tags": [
         "1930s",
@@ -470,10 +483,11 @@
       },
       "license": {
         "url": "https://archive.org/details/ltmm-publicdomain",
-        "verified": "2026-07-26",
+        "verified": "2026-07-29",
         "note": "Published 1931. US public domain by AGE as of January 1, 2027 per the 95-year rule — VERIFY before ship if shipping in 2026: 1931 publications clear on 2027-01-01. Most of this block is ALSO documented non-renewed (NR). Original B&W only; redrawn/colorized versions excluded.",
         "basis": "NR",
-        "musicRights": "unverified"
+        "musicRights": "unverified",
+        "verifiedBy": "CCE 3rd Series, Parts 12-13 (Motion Pictures and Filmstrips), renewal sections 1958 Jan-Jun, 1958 Jul-Dec, 1959 Jan-Jun, 1959 Jul-Dec — NO RENEWAL FOUND. MOOT IN ANY CASE: the 95-year term expires 2026-12-31, so this clears by AGE on 2027-01-01 with no renewal question at all. Method: OCR full-text search of every relevant half-year renewal section, plus a visual alphabetical-neighbourhood check on the page scans (OCR can drop entries). Negative is substantive: the same volumes show the rights holders renewing sibling shorts in bulk. Best published evidence short of a Copyright Office Form 4 search report. Researched 2026-07-29."
       },
       "tags": [
         "1930s",
@@ -493,10 +507,11 @@
       },
       "license": {
         "url": "https://archive.org/details/ltmm-publicdomain",
-        "verified": "2026-07-26",
+        "verified": "2026-07-29",
         "note": "Published 1931. US public domain by AGE as of January 1, 2027 per the 95-year rule — VERIFY before ship if shipping in 2026: 1931 publications clear on 2027-01-01. Most of this block is ALSO documented non-renewed (NR). Original B&W only; redrawn/colorized versions excluded.",
         "basis": "NR",
-        "musicRights": "unverified"
+        "musicRights": "unverified",
+        "verifiedBy": "CCE 3rd Series, Parts 12-13 (Motion Pictures and Filmstrips), renewal sections 1958 Jan-Jun, 1958 Jul-Dec, 1959 Jan-Jun, 1959 Jul-Dec — NO RENEWAL FOUND. MOOT IN ANY CASE: the 95-year term expires 2026-12-31, so this clears by AGE on 2027-01-01 with no renewal question at all. Method: OCR full-text search of every relevant half-year renewal section, plus a visual alphabetical-neighbourhood check on the page scans (OCR can drop entries). Negative is substantive: the same volumes show the rights holders renewing sibling shorts in bulk. Best published evidence short of a Copyright Office Form 4 search report. Researched 2026-07-29."
       },
       "tags": [
         "1930s",
@@ -516,10 +531,11 @@
       },
       "license": {
         "url": "https://archive.org/details/ltmm-publicdomain",
-        "verified": "2026-07-26",
+        "verified": "2026-07-29",
         "note": "Published 1931. US public domain by AGE as of January 1, 2027 per the 95-year rule — VERIFY before ship if shipping in 2026: 1931 publications clear on 2027-01-01. Most of this block is ALSO documented non-renewed (NR). Original B&W only; redrawn/colorized versions excluded.",
         "basis": "NR",
-        "musicRights": "unverified"
+        "musicRights": "unverified",
+        "verifiedBy": "CCE 3rd Series, Parts 12-13 (Motion Pictures and Filmstrips), renewal sections 1958 Jan-Jun, 1958 Jul-Dec, 1959 Jan-Jun, 1959 Jul-Dec — NO RENEWAL FOUND. MOOT IN ANY CASE: the 95-year term expires 2026-12-31, so this clears by AGE on 2027-01-01 with no renewal question at all. Method: OCR full-text search of every relevant half-year renewal section, plus a visual alphabetical-neighbourhood check on the page scans (OCR can drop entries). Negative is substantive: the same volumes show the rights holders renewing sibling shorts in bulk. Best published evidence short of a Copyright Office Form 4 search report. Researched 2026-07-29."
       },
       "tags": [
         "1930s",

@@ -2,35 +2,6 @@
   "version": 1,
   "packs": [
     {
-      "id": "ad-break",
-      "name": "AD BREAK",
-      "kind": "ads",
-      "description": "Period commercials & PSAs for the retro ad-pod system. NOTE: stub — expand with true 30–60s spots (this seed is longer sponsored ads).",
-      "channel": null,
-      "itemCount": 1,
-      "runtimeMs": 181880,
-      "downloadBytes": 12983304,
-      "items": [
-        {
-          "id": "ford-wonderful-new-world-1960",
-          "title": "Wonderful New World of Fords (1960)",
-          "show": null,
-          "season": null,
-          "episode": null,
-          "aired": null,
-          "durationMs": 181880,
-          "file": "ford-wonderful-new-world-1960.mp4",
-          "url": "https://archive.org/download/Wonderfu1960/Wonderfu1960_512kb.mp4",
-          "bytes": 12983304,
-          "license": {
-            "url": "http://creativecommons.org/licenses/publicdomain/",
-            "verified": "2026-07-26",
-            "note": "Prelinger-collection sponsored spot; IA item carries a public-domain license mark."
-          }
-        }
-      ]
-    },
-    {
       "id": "bosko-and-friends",
       "name": "BOSKO & FRIENDS",
       "kind": "shows",
@@ -61,7 +32,9 @@
           "license": {
             "url": "https://archive.org/details/ltmm-publicdomain",
             "verified": "2026-07-26",
-            "note": "Published 1929. US public domain by AGE — published more than 95 years ago (1929 + 95 ≤ 2026), the deterministic basis: no renewal question, no reissue trap. Original black-and-white version only; the 1970s 'redrawn and colorized' versions in the same IA item carry their own 1990s-renewed copyright and are deliberately NOT used. IA item carries a public-domain mark."
+            "note": "Published 1929. US public domain by AGE — published more than 95 years ago (1929 + 95 ≤ 2026), the deterministic basis: no renewal question, no reissue trap. Original black-and-white version only; the 1970s 'redrawn and colorized' versions in the same IA item carry their own 1990s-renewed copyright and are deliberately NOT used. IA item carries a public-domain mark.",
+            "basis": "AGE",
+            "musicRights": "unverified"
           }
         },
         {
@@ -78,7 +51,9 @@
           "license": {
             "url": "https://archive.org/details/ltmm-publicdomain",
             "verified": "2026-07-26",
-            "note": "Published 1930. US public domain by AGE — published more than 95 years ago (1930 + 95 ≤ 2026), the deterministic basis: no renewal question, no reissue trap. Original black-and-white version only; the 1970s 'redrawn and colorized' versions in the same IA item carry their own 1990s-renewed copyright and are deliberately NOT used. IA item carries a public-domain mark."
+            "note": "Published 1930. US public domain by AGE — published more than 95 years ago (1930 + 95 ≤ 2026), the deterministic basis: no renewal question, no reissue trap. Original black-and-white version only; the 1970s 'redrawn and colorized' versions in the same IA item carry their own 1990s-renewed copyright and are deliberately NOT used. IA item carries a public-domain mark.",
+            "basis": "AGE",
+            "musicRights": "unverified"
           }
         },
         {
@@ -95,7 +70,9 @@
           "license": {
             "url": "https://archive.org/details/ltmm-publicdomain",
             "verified": "2026-07-26",
-            "note": "Published 1930. US public domain by AGE — published more than 95 years ago (1930 + 95 ≤ 2026), the deterministic basis: no renewal question, no reissue trap. Original black-and-white version only; the 1970s 'redrawn and colorized' versions in the same IA item carry their own 1990s-renewed copyright and are deliberately NOT used. IA item carries a public-domain mark."
+            "note": "Published 1930. US public domain by AGE — published more than 95 years ago (1930 + 95 ≤ 2026), the deterministic basis: no renewal question, no reissue trap. Original black-and-white version only; the 1970s 'redrawn and colorized' versions in the same IA item carry their own 1990s-renewed copyright and are deliberately NOT used. IA item carries a public-domain mark.",
+            "basis": "AGE",
+            "musicRights": "unverified"
           }
         },
         {
@@ -112,7 +89,9 @@
           "license": {
             "url": "https://archive.org/details/ltmm-publicdomain",
             "verified": "2026-07-26",
-            "note": "Published 1930. US public domain by AGE — published more than 95 years ago (1930 + 95 ≤ 2026), the deterministic basis: no renewal question, no reissue trap. Original black-and-white version only; the 1970s 'redrawn and colorized' versions in the same IA item carry their own 1990s-renewed copyright and are deliberately NOT used. IA item carries a public-domain mark."
+            "note": "Published 1930. US public domain by AGE — published more than 95 years ago (1930 + 95 ≤ 2026), the deterministic basis: no renewal question, no reissue trap. Original black-and-white version only; the 1970s 'redrawn and colorized' versions in the same IA item carry their own 1990s-renewed copyright and are deliberately NOT used. IA item carries a public-domain mark.",
+            "basis": "AGE",
+            "musicRights": "unverified"
           }
         },
         {
@@ -129,7 +108,9 @@
           "license": {
             "url": "https://archive.org/details/ltmm-publicdomain",
             "verified": "2026-07-26",
-            "note": "Published 1930. US public domain by AGE — published more than 95 years ago (1930 + 95 ≤ 2026), the deterministic basis: no renewal question, no reissue trap. Original black-and-white version only; the 1970s 'redrawn and colorized' versions in the same IA item carry their own 1990s-renewed copyright and are deliberately NOT used. IA item carries a public-domain mark."
+            "note": "Published 1930. US public domain by AGE — published more than 95 years ago (1930 + 95 ≤ 2026), the deterministic basis: no renewal question, no reissue trap. Original black-and-white version only; the 1970s 'redrawn and colorized' versions in the same IA item carry their own 1990s-renewed copyright and are deliberately NOT used. IA item carries a public-domain mark.",
+            "basis": "AGE",
+            "musicRights": "unverified"
           }
         },
         {
@@ -146,7 +127,9 @@
           "license": {
             "url": "https://archive.org/details/ltmm-publicdomain",
             "verified": "2026-07-26",
-            "note": "Published 1930. US public domain by AGE — published more than 95 years ago (1930 + 95 ≤ 2026), the deterministic basis: no renewal question, no reissue trap. Original black-and-white version only; the 1970s 'redrawn and colorized' versions in the same IA item carry their own 1990s-renewed copyright and are deliberately NOT used. IA item carries a public-domain mark."
+            "note": "Published 1930. US public domain by AGE — published more than 95 years ago (1930 + 95 ≤ 2026), the deterministic basis: no renewal question, no reissue trap. Original black-and-white version only; the 1970s 'redrawn and colorized' versions in the same IA item carry their own 1990s-renewed copyright and are deliberately NOT used. IA item carries a public-domain mark.",
+            "basis": "AGE",
+            "musicRights": "unverified"
           }
         },
         {
@@ -162,8 +145,11 @@
           "bytes": 128694944,
           "license": {
             "url": "https://archive.org/details/ltmm-publicdomain",
-            "verified": "2026-07-26",
-            "note": "Published 1931. US public domain by AGE as of January 1, 2027 per the 95-year rule — VERIFY before ship if shipping in 2026: 1931 publications clear on 2027-01-01. Most of this block is ALSO documented non-renewed (NR). Original B&W only; redrawn/colorized versions excluded."
+            "verified": "2026-07-29",
+            "note": "Published 1931. US public domain by AGE as of January 1, 2027 per the 95-year rule — VERIFY before ship if shipping in 2026: 1931 publications clear on 2027-01-01. Most of this block is ALSO documented non-renewed (NR). Original B&W only; redrawn/colorized versions excluded.",
+            "basis": "NR",
+            "musicRights": "unverified",
+            "verifiedBy": "CCE 3rd Series, Parts 12-13 (Motion Pictures and Filmstrips), renewal sections 1958 Jan-Jun, 1958 Jul-Dec, 1959 Jan-Jun, 1959 Jul-Dec — NO RENEWAL FOUND. MOOT IN ANY CASE: the 95-year term expires 2026-12-31, so this clears by AGE on 2027-01-01 with no renewal question at all. Method: OCR full-text search of every relevant half-year renewal section, plus a visual alphabetical-neighbourhood check on the page scans (OCR can drop entries). Negative is substantive: the same volumes show the rights holders renewing sibling shorts in bulk. Best published evidence short of a Copyright Office Form 4 search report. Researched 2026-07-29."
           }
         },
         {
@@ -179,8 +165,11 @@
           "bytes": 86250391,
           "license": {
             "url": "https://archive.org/details/ltmm-publicdomain",
-            "verified": "2026-07-26",
-            "note": "Published 1931. US public domain by AGE as of January 1, 2027 per the 95-year rule — VERIFY before ship if shipping in 2026: 1931 publications clear on 2027-01-01. Most of this block is ALSO documented non-renewed (NR). Original B&W only; redrawn/colorized versions excluded."
+            "verified": "2026-07-29",
+            "note": "Published 1931. US public domain by AGE as of January 1, 2027 per the 95-year rule — VERIFY before ship if shipping in 2026: 1931 publications clear on 2027-01-01. Most of this block is ALSO documented non-renewed (NR). Original B&W only; redrawn/colorized versions excluded.",
+            "basis": "NR",
+            "musicRights": "unverified",
+            "verifiedBy": "CCE 3rd Series, Parts 12-13 (Motion Pictures and Filmstrips), renewal sections 1958 Jan-Jun, 1958 Jul-Dec, 1959 Jan-Jun, 1959 Jul-Dec — NO RENEWAL FOUND. MOOT IN ANY CASE: the 95-year term expires 2026-12-31, so this clears by AGE on 2027-01-01 with no renewal question at all. Method: OCR full-text search of every relevant half-year renewal section, plus a visual alphabetical-neighbourhood check on the page scans (OCR can drop entries). Negative is substantive: the same volumes show the rights holders renewing sibling shorts in bulk. Best published evidence short of a Copyright Office Form 4 search report. Researched 2026-07-29."
           }
         },
         {
@@ -196,8 +185,11 @@
           "bytes": 75130508,
           "license": {
             "url": "https://archive.org/details/ltmm-publicdomain",
-            "verified": "2026-07-26",
-            "note": "Published 1931. US public domain by AGE as of January 1, 2027 per the 95-year rule — VERIFY before ship if shipping in 2026: 1931 publications clear on 2027-01-01. Most of this block is ALSO documented non-renewed (NR). Original B&W only; redrawn/colorized versions excluded."
+            "verified": "2026-07-29",
+            "note": "Published 1931. US public domain by AGE as of January 1, 2027 per the 95-year rule — VERIFY before ship if shipping in 2026: 1931 publications clear on 2027-01-01. Most of this block is ALSO documented non-renewed (NR). Original B&W only; redrawn/colorized versions excluded.",
+            "basis": "NR",
+            "musicRights": "unverified",
+            "verifiedBy": "CCE 3rd Series, Parts 12-13 (Motion Pictures and Filmstrips), renewal sections 1958 Jan-Jun, 1958 Jul-Dec, 1959 Jan-Jun, 1959 Jul-Dec — NO RENEWAL FOUND. MOOT IN ANY CASE: the 95-year term expires 2026-12-31, so this clears by AGE on 2027-01-01 with no renewal question at all. Method: OCR full-text search of every relevant half-year renewal section, plus a visual alphabetical-neighbourhood check on the page scans (OCR can drop entries). Negative is substantive: the same volumes show the rights holders renewing sibling shorts in bulk. Best published evidence short of a Copyright Office Form 4 search report. Researched 2026-07-29."
           }
         },
         {
@@ -213,8 +205,11 @@
           "bytes": 41210167,
           "license": {
             "url": "https://archive.org/details/ltmm-publicdomain",
-            "verified": "2026-07-26",
-            "note": "Published 1931. US public domain by AGE as of January 1, 2027 per the 95-year rule — VERIFY before ship if shipping in 2026: 1931 publications clear on 2027-01-01. Most of this block is ALSO documented non-renewed (NR). Original B&W only; redrawn/colorized versions excluded."
+            "verified": "2026-07-29",
+            "note": "Published 1931. US public domain by AGE as of January 1, 2027 per the 95-year rule — VERIFY before ship if shipping in 2026: 1931 publications clear on 2027-01-01. Most of this block is ALSO documented non-renewed (NR). Original B&W only; redrawn/colorized versions excluded.",
+            "basis": "NR",
+            "musicRights": "unverified",
+            "verifiedBy": "CCE 3rd Series, Parts 12-13 (Motion Pictures and Filmstrips), renewal sections 1958 Jan-Jun, 1958 Jul-Dec, 1959 Jan-Jun, 1959 Jul-Dec — NO RENEWAL FOUND. MOOT IN ANY CASE: the 95-year term expires 2026-12-31, so this clears by AGE on 2027-01-01 with no renewal question at all. Method: OCR full-text search of every relevant half-year renewal section, plus a visual alphabetical-neighbourhood check on the page scans (OCR can drop entries). Negative is substantive: the same volumes show the rights holders renewing sibling shorts in bulk. Best published evidence short of a Copyright Office Form 4 search report. Researched 2026-07-29."
           }
         },
         {
@@ -230,8 +225,11 @@
           "bytes": 75633607,
           "license": {
             "url": "https://archive.org/details/ltmm-publicdomain",
-            "verified": "2026-07-26",
-            "note": "Published 1931. US public domain by AGE as of January 1, 2027 per the 95-year rule — VERIFY before ship if shipping in 2026: 1931 publications clear on 2027-01-01. Most of this block is ALSO documented non-renewed (NR). Original B&W only; redrawn/colorized versions excluded."
+            "verified": "2026-07-29",
+            "note": "Published 1931. US public domain by AGE as of January 1, 2027 per the 95-year rule — VERIFY before ship if shipping in 2026: 1931 publications clear on 2027-01-01. Most of this block is ALSO documented non-renewed (NR). Original B&W only; redrawn/colorized versions excluded.",
+            "basis": "NR",
+            "musicRights": "unverified",
+            "verifiedBy": "CCE 3rd Series, Parts 12-13 (Motion Pictures and Filmstrips), renewal sections 1958 Jan-Jun, 1958 Jul-Dec, 1959 Jan-Jun, 1959 Jul-Dec — NO RENEWAL FOUND. MOOT IN ANY CASE: the 95-year term expires 2026-12-31, so this clears by AGE on 2027-01-01 with no renewal question at all. Method: OCR full-text search of every relevant half-year renewal section, plus a visual alphabetical-neighbourhood check on the page scans (OCR can drop entries). Negative is substantive: the same volumes show the rights holders renewing sibling shorts in bulk. Best published evidence short of a Copyright Office Form 4 search report. Researched 2026-07-29."
           }
         },
         {
@@ -247,8 +245,11 @@
           "bytes": 66071302,
           "license": {
             "url": "https://archive.org/details/ltmm-publicdomain",
-            "verified": "2026-07-26",
-            "note": "Published 1931. US public domain by AGE as of January 1, 2027 per the 95-year rule — VERIFY before ship if shipping in 2026: 1931 publications clear on 2027-01-01. Most of this block is ALSO documented non-renewed (NR). Original B&W only; redrawn/colorized versions excluded."
+            "verified": "2026-07-29",
+            "note": "Published 1931. US public domain by AGE as of January 1, 2027 per the 95-year rule — VERIFY before ship if shipping in 2026: 1931 publications clear on 2027-01-01. Most of this block is ALSO documented non-renewed (NR). Original B&W only; redrawn/colorized versions excluded.",
+            "basis": "NR",
+            "musicRights": "unverified",
+            "verifiedBy": "CCE 3rd Series, Parts 12-13 (Motion Pictures and Filmstrips), renewal sections 1958 Jan-Jun, 1958 Jul-Dec, 1959 Jan-Jun, 1959 Jul-Dec — NO RENEWAL FOUND. MOOT IN ANY CASE: the 95-year term expires 2026-12-31, so this clears by AGE on 2027-01-01 with no renewal question at all. Method: OCR full-text search of every relevant half-year renewal section, plus a visual alphabetical-neighbourhood check on the page scans (OCR can drop entries). Negative is substantive: the same volumes show the rights holders renewing sibling shorts in bulk. Best published evidence short of a Copyright Office Form 4 search report. Researched 2026-07-29."
           }
         },
         {
@@ -264,8 +265,11 @@
           "bytes": 81619711,
           "license": {
             "url": "https://archive.org/details/ltmm-publicdomain",
-            "verified": "2026-07-26",
-            "note": "Published 1931. US public domain by AGE as of January 1, 2027 per the 95-year rule — VERIFY before ship if shipping in 2026: 1931 publications clear on 2027-01-01. Most of this block is ALSO documented non-renewed (NR). Original B&W only; redrawn/colorized versions excluded."
+            "verified": "2026-07-29",
+            "note": "Published 1931. US public domain by AGE as of January 1, 2027 per the 95-year rule — VERIFY before ship if shipping in 2026: 1931 publications clear on 2027-01-01. Most of this block is ALSO documented non-renewed (NR). Original B&W only; redrawn/colorized versions excluded.",
+            "basis": "NR",
+            "musicRights": "unverified",
+            "verifiedBy": "CCE 3rd Series, Parts 12-13 (Motion Pictures and Filmstrips), renewal sections 1958 Jan-Jun, 1958 Jul-Dec, 1959 Jan-Jun, 1959 Jul-Dec — NO RENEWAL FOUND. MOOT IN ANY CASE: the 95-year term expires 2026-12-31, so this clears by AGE on 2027-01-01 with no renewal question at all. Method: OCR full-text search of every relevant half-year renewal section, plus a visual alphabetical-neighbourhood check on the page scans (OCR can drop entries). Negative is substantive: the same volumes show the rights holders renewing sibling shorts in bulk. Best published evidence short of a Copyright Office Form 4 search report. Researched 2026-07-29."
           }
         },
         {
@@ -281,8 +285,11 @@
           "bytes": 45344387,
           "license": {
             "url": "https://archive.org/details/LadyPlayYourMandolin1931HughHarmanRudolfIsing",
-            "verified": "2026-07-26",
-            "note": "Published 1931 — the first Merrie Melodie. PD today on documented non-renewal (NR); clears deterministically by AGE on 2027-01-01. Standalone IA item, public-domain marked, original B&W print."
+            "verified": "2026-07-29",
+            "note": "Published 1931 — the first Merrie Melodie. PD today on documented non-renewal (NR); clears deterministically by AGE on 2027-01-01. Standalone IA item, public-domain marked, original B&W print.",
+            "basis": "NR",
+            "musicRights": "unverified",
+            "verifiedBy": "CCE 3rd Series, Parts 12-13 (Motion Pictures and Filmstrips), renewal sections 1958 Jan-Jun, 1958 Jul-Dec, 1959 Jan-Jun, 1959 Jul-Dec — NO RENEWAL FOUND. MOOT IN ANY CASE: the 95-year term expires 2026-12-31, so this clears by AGE on 2027-01-01 with no renewal question at all. Method: OCR full-text search of every relevant half-year renewal section, plus a visual alphabetical-neighbourhood check on the page scans (OCR can drop entries). Negative is substantive: the same volumes show the rights holders renewing sibling shorts in bulk. Best published evidence short of a Copyright Office Form 4 search report. Researched 2026-07-29."
           }
         },
         {
@@ -298,8 +305,11 @@
           "bytes": 39744487,
           "license": {
             "url": "https://archive.org/details/ltmm-publicdomain",
-            "verified": "2026-07-26",
-            "note": "Published 1931. US public domain by AGE as of January 1, 2027 per the 95-year rule — VERIFY before ship if shipping in 2026: 1931 publications clear on 2027-01-01. Most of this block is ALSO documented non-renewed (NR). Original B&W only; redrawn/colorized versions excluded."
+            "verified": "2026-07-29",
+            "note": "Published 1931. US public domain by AGE as of January 1, 2027 per the 95-year rule — VERIFY before ship if shipping in 2026: 1931 publications clear on 2027-01-01. Most of this block is ALSO documented non-renewed (NR). Original B&W only; redrawn/colorized versions excluded.",
+            "basis": "NR",
+            "musicRights": "unverified",
+            "verifiedBy": "CCE 3rd Series, Parts 12-13 (Motion Pictures and Filmstrips), renewal sections 1958 Jan-Jun, 1958 Jul-Dec, 1959 Jan-Jun, 1959 Jul-Dec — NO RENEWAL FOUND. MOOT IN ANY CASE: the 95-year term expires 2026-12-31, so this clears by AGE on 2027-01-01 with no renewal question at all. Method: OCR full-text search of every relevant half-year renewal section, plus a visual alphabetical-neighbourhood check on the page scans (OCR can drop entries). Negative is substantive: the same volumes show the rights holders renewing sibling shorts in bulk. Best published evidence short of a Copyright Office Form 4 search report. Researched 2026-07-29."
           }
         },
         {
@@ -315,8 +325,11 @@
           "bytes": 145868292,
           "license": {
             "url": "https://archive.org/details/ltmm-publicdomain",
-            "verified": "2026-07-26",
-            "note": "Published 1931. US public domain by AGE as of January 1, 2027 per the 95-year rule — VERIFY before ship if shipping in 2026: 1931 publications clear on 2027-01-01. Most of this block is ALSO documented non-renewed (NR). Original B&W only; redrawn/colorized versions excluded."
+            "verified": "2026-07-29",
+            "note": "Published 1931. US public domain by AGE as of January 1, 2027 per the 95-year rule — VERIFY before ship if shipping in 2026: 1931 publications clear on 2027-01-01. Most of this block is ALSO documented non-renewed (NR). Original B&W only; redrawn/colorized versions excluded.",
+            "basis": "NR",
+            "musicRights": "unverified",
+            "verifiedBy": "CCE 3rd Series, Parts 12-13 (Motion Pictures and Filmstrips), renewal sections 1958 Jan-Jun, 1958 Jul-Dec, 1959 Jan-Jun, 1959 Jul-Dec — NO RENEWAL FOUND. MOOT IN ANY CASE: the 95-year term expires 2026-12-31, so this clears by AGE on 2027-01-01 with no renewal question at all. Method: OCR full-text search of every relevant half-year renewal section, plus a visual alphabetical-neighbourhood check on the page scans (OCR can drop entries). Negative is substantive: the same volumes show the rights holders renewing sibling shorts in bulk. Best published evidence short of a Copyright Office Form 4 search report. Researched 2026-07-29."
           }
         },
         {
@@ -332,8 +345,11 @@
           "bytes": 75175090,
           "license": {
             "url": "https://archive.org/details/ltmm-publicdomain",
-            "verified": "2026-07-26",
-            "note": "Published 1931. US public domain by AGE as of January 1, 2027 per the 95-year rule — VERIFY before ship if shipping in 2026: 1931 publications clear on 2027-01-01. Most of this block is ALSO documented non-renewed (NR). Original B&W only; redrawn/colorized versions excluded."
+            "verified": "2026-07-29",
+            "note": "Published 1931. US public domain by AGE as of January 1, 2027 per the 95-year rule — VERIFY before ship if shipping in 2026: 1931 publications clear on 2027-01-01. Most of this block is ALSO documented non-renewed (NR). Original B&W only; redrawn/colorized versions excluded.",
+            "basis": "NR",
+            "musicRights": "unverified",
+            "verifiedBy": "CCE 3rd Series, Parts 12-13 (Motion Pictures and Filmstrips), renewal sections 1958 Jan-Jun, 1958 Jul-Dec, 1959 Jan-Jun, 1959 Jul-Dec — NO RENEWAL FOUND. MOOT IN ANY CASE: the 95-year term expires 2026-12-31, so this clears by AGE on 2027-01-01 with no renewal question at all. Method: OCR full-text search of every relevant half-year renewal section, plus a visual alphabetical-neighbourhood check on the page scans (OCR can drop entries). Negative is substantive: the same volumes show the rights holders renewing sibling shorts in bulk. Best published evidence short of a Copyright Office Form 4 search report. Researched 2026-07-29."
           }
         },
         {
@@ -349,8 +365,11 @@
           "bytes": 145478069,
           "license": {
             "url": "https://archive.org/details/ltmm-publicdomain",
-            "verified": "2026-07-26",
-            "note": "Published 1931. US public domain by AGE as of January 1, 2027 per the 95-year rule — VERIFY before ship if shipping in 2026: 1931 publications clear on 2027-01-01. Most of this block is ALSO documented non-renewed (NR). Original B&W only; redrawn/colorized versions excluded."
+            "verified": "2026-07-29",
+            "note": "Published 1931. US public domain by AGE as of January 1, 2027 per the 95-year rule — VERIFY before ship if shipping in 2026: 1931 publications clear on 2027-01-01. Most of this block is ALSO documented non-renewed (NR). Original B&W only; redrawn/colorized versions excluded.",
+            "basis": "NR",
+            "musicRights": "unverified",
+            "verifiedBy": "CCE 3rd Series, Parts 12-13 (Motion Pictures and Filmstrips), renewal sections 1958 Jan-Jun, 1958 Jul-Dec, 1959 Jan-Jun, 1959 Jul-Dec — NO RENEWAL FOUND. MOOT IN ANY CASE: the 95-year term expires 2026-12-31, so this clears by AGE on 2027-01-01 with no renewal question at all. Method: OCR full-text search of every relevant half-year renewal section, plus a visual alphabetical-neighbourhood check on the page scans (OCR can drop entries). Negative is substantive: the same volumes show the rights holders renewing sibling shorts in bulk. Best published evidence short of a Copyright Office Form 4 search report. Researched 2026-07-29."
           }
         },
         {
@@ -366,8 +385,11 @@
           "bytes": 110506897,
           "license": {
             "url": "https://archive.org/details/ltmm-publicdomain",
-            "verified": "2026-07-26",
-            "note": "Published 1931. US public domain by AGE as of January 1, 2027 per the 95-year rule — VERIFY before ship if shipping in 2026: 1931 publications clear on 2027-01-01. Most of this block is ALSO documented non-renewed (NR). Original B&W only; redrawn/colorized versions excluded."
+            "verified": "2026-07-29",
+            "note": "Published 1931. US public domain by AGE as of January 1, 2027 per the 95-year rule — VERIFY before ship if shipping in 2026: 1931 publications clear on 2027-01-01. Most of this block is ALSO documented non-renewed (NR). Original B&W only; redrawn/colorized versions excluded.",
+            "basis": "NR",
+            "musicRights": "unverified",
+            "verifiedBy": "CCE 3rd Series, Parts 12-13 (Motion Pictures and Filmstrips), renewal sections 1958 Jan-Jun, 1958 Jul-Dec, 1959 Jan-Jun, 1959 Jul-Dec — NO RENEWAL FOUND. MOOT IN ANY CASE: the 95-year term expires 2026-12-31, so this clears by AGE on 2027-01-01 with no renewal question at all. Method: OCR full-text search of every relevant half-year renewal section, plus a visual alphabetical-neighbourhood check on the page scans (OCR can drop entries). Negative is substantive: the same volumes show the rights holders renewing sibling shorts in bulk. Best published evidence short of a Copyright Office Form 4 search report. Researched 2026-07-29."
           }
         },
         {
@@ -383,8 +405,11 @@
           "bytes": 68997949,
           "license": {
             "url": "https://archive.org/details/ltmm-publicdomain",
-            "verified": "2026-07-26",
-            "note": "Published 1931. US public domain by AGE as of January 1, 2027 per the 95-year rule — VERIFY before ship if shipping in 2026: 1931 publications clear on 2027-01-01. Most of this block is ALSO documented non-renewed (NR). Original B&W only; redrawn/colorized versions excluded."
+            "verified": "2026-07-29",
+            "note": "Published 1931. US public domain by AGE as of January 1, 2027 per the 95-year rule — VERIFY before ship if shipping in 2026: 1931 publications clear on 2027-01-01. Most of this block is ALSO documented non-renewed (NR). Original B&W only; redrawn/colorized versions excluded.",
+            "basis": "NR",
+            "musicRights": "unverified",
+            "verifiedBy": "CCE 3rd Series, Parts 12-13 (Motion Pictures and Filmstrips), renewal sections 1958 Jan-Jun, 1958 Jul-Dec, 1959 Jan-Jun, 1959 Jul-Dec — NO RENEWAL FOUND. MOOT IN ANY CASE: the 95-year term expires 2026-12-31, so this clears by AGE on 2027-01-01 with no renewal question at all. Method: OCR full-text search of every relevant half-year renewal section, plus a visual alphabetical-neighbourhood check on the page scans (OCR can drop entries). Negative is substantive: the same volumes show the rights holders renewing sibling shorts in bulk. Best published evidence short of a Copyright Office Form 4 search report. Researched 2026-07-29."
           }
         },
         {
@@ -400,8 +425,11 @@
           "bytes": 65720783,
           "license": {
             "url": "https://archive.org/details/ltmm-publicdomain",
-            "verified": "2026-07-26",
-            "note": "Published 1931. US public domain by AGE as of January 1, 2027 per the 95-year rule — VERIFY before ship if shipping in 2026: 1931 publications clear on 2027-01-01. Most of this block is ALSO documented non-renewed (NR). Original B&W only; redrawn/colorized versions excluded."
+            "verified": "2026-07-29",
+            "note": "Published 1931. US public domain by AGE as of January 1, 2027 per the 95-year rule — VERIFY before ship if shipping in 2026: 1931 publications clear on 2027-01-01. Most of this block is ALSO documented non-renewed (NR). Original B&W only; redrawn/colorized versions excluded.",
+            "basis": "NR",
+            "musicRights": "unverified",
+            "verifiedBy": "CCE 3rd Series, Parts 12-13 (Motion Pictures and Filmstrips), renewal sections 1958 Jan-Jun, 1958 Jul-Dec, 1959 Jan-Jun, 1959 Jul-Dec — NO RENEWAL FOUND. MOOT IN ANY CASE: the 95-year term expires 2026-12-31, so this clears by AGE on 2027-01-01 with no renewal question at all. Method: OCR full-text search of every relevant half-year renewal section, plus a visual alphabetical-neighbourhood check on the page scans (OCR can drop entries). Negative is substantive: the same volumes show the rights holders renewing sibling shorts in bulk. Best published evidence short of a Copyright Office Form 4 search report. Researched 2026-07-29."
           }
         },
         {
@@ -417,8 +445,11 @@
           "bytes": 69236557,
           "license": {
             "url": "https://archive.org/details/ltmm-publicdomain",
-            "verified": "2026-07-26",
-            "note": "Published 1931. US public domain by AGE as of January 1, 2027 per the 95-year rule — VERIFY before ship if shipping in 2026: 1931 publications clear on 2027-01-01. Most of this block is ALSO documented non-renewed (NR). Original B&W only; redrawn/colorized versions excluded."
+            "verified": "2026-07-29",
+            "note": "Published 1931. US public domain by AGE as of January 1, 2027 per the 95-year rule — VERIFY before ship if shipping in 2026: 1931 publications clear on 2027-01-01. Most of this block is ALSO documented non-renewed (NR). Original B&W only; redrawn/colorized versions excluded.",
+            "basis": "NR",
+            "musicRights": "unverified",
+            "verifiedBy": "CCE 3rd Series, Parts 12-13 (Motion Pictures and Filmstrips), renewal sections 1958 Jan-Jun, 1958 Jul-Dec, 1959 Jan-Jun, 1959 Jul-Dec — NO RENEWAL FOUND. MOOT IN ANY CASE: the 95-year term expires 2026-12-31, so this clears by AGE on 2027-01-01 with no renewal question at all. Method: OCR full-text search of every relevant half-year renewal section, plus a visual alphabetical-neighbourhood check on the page scans (OCR can drop entries). Negative is substantive: the same volumes show the rights holders renewing sibling shorts in bulk. Best published evidence short of a Copyright Office Form 4 search report. Researched 2026-07-29."
           }
         }
       ]
@@ -452,7 +483,9 @@
           "license": {
             "url": "https://archive.org/details/PlaneCrazy_201511",
             "verified": "2026-07-26",
-            "note": "1928 work → US public domain Jan 2024. IA item PD-marked. TRADEMARK CAUTION: the films are PD; Mickey Mouse remains a Disney trademark — never use Disney characters in dumbTV marketing. RE-SOURCED 2026-07-26: the original IA item (plane-crazy-1928) went dark — 404, apparently a takedown sweep of Disney-adjacent items; a second copy (plane-crazy-1928_202406) vanished in the same wave. The film's PD-by-age status (1928 + 95) is unaffected; only the hosting item changed. New source is PD-marked on IA."
+            "note": "1928 work → US public domain Jan 2024. IA item PD-marked. TRADEMARK CAUTION: the films are PD; Mickey Mouse remains a Disney trademark — never use Disney characters in dumbTV marketing. RE-SOURCED 2026-07-26: the original IA item (plane-crazy-1928) went dark — 404, apparently a takedown sweep of Disney-adjacent items; a second copy (plane-crazy-1928_202406) vanished in the same wave. The film's PD-by-age status (1928 + 95) is unaffected; only the hosting item changed. New source is PD-marked on IA.",
+            "basis": "AGE",
+            "musicRights": "unverified"
           }
         },
         {
@@ -469,7 +502,9 @@
           "license": {
             "url": "https://creativecommons.org/publicdomain/mark/1.0/",
             "verified": "2026-07-26",
-            "note": "1928 work → US PD Jan 2024. IA item PD-marked. Same trademark caution as Plane Crazy."
+            "note": "1928 work → US PD Jan 2024. IA item PD-marked. Same trademark caution as Plane Crazy.",
+            "basis": "AGE",
+            "musicRights": "unverified"
           }
         },
         {
@@ -486,7 +521,9 @@
           "license": {
             "url": "https://creativecommons.org/publicdomain/mark/1.0/",
             "verified": "2026-07-26",
-            "note": "1929 Silly Symphony → US PD Jan 2025. IA item PD-marked."
+            "note": "1929 Silly Symphony → US PD Jan 2025. IA item PD-marked.",
+            "basis": "AGE",
+            "musicRights": "unverified"
           }
         }
       ]
@@ -519,8 +556,11 @@
           "bytes": 70368877,
           "license": {
             "url": "https://creativecommons.org/publicdomain/mark/1.0/",
-            "verified": "2026-07-26",
-            "note": "1936 Technicolor two-reeler; copyright not renewed → US public domain. IA item carries a PD mark. Regular B&W Popeye shorts are NOT PD — only these three color specials."
+            "verified": "2026-07-29",
+            "note": "1936 Technicolor two-reeler; copyright not renewed → US public domain. IA item carries a PD mark. Regular B&W Popeye shorts are NOT PD — only these three color specials.",
+            "basis": "NR",
+            "musicRights": "unverified",
+            "verifiedBy": "CCE 3rd Series, Parts 12-13 (Motion Pictures and Filmstrips), renewal sections 1963 Jul-Dec, 1964 Jan-Jun, 1964 Jul-Dec — NO RENEWAL FOUND. Pages examined: 1963 Jul-Dec p.125, 1964 Jan-Jun p.61, 1964 Jul-Dec p.122. Method: OCR full-text search of every relevant half-year renewal section, plus a visual alphabetical-neighbourhood check on the page scans (OCR can drop entries). Negative is substantive: the same volumes show the rights holders renewing sibling shorts in bulk. Best published evidence short of a Copyright Office Form 4 search report. Researched 2026-07-29."
           }
         },
         {
@@ -536,8 +576,11 @@
           "bytes": 1250073820,
           "license": {
             "url": "https://creativecommons.org/publicdomain/mark/1.0/",
-            "verified": "2026-07-26",
-            "note": "1937 Technicolor two-reeler; not renewed → US PD. IA item PD-marked. NOTE: source is a 1.25 GB HD scan — fine for the build pipeline (re-encodes to 480p), too heavy for direct-download; prefer built-pack delivery."
+            "verified": "2026-07-29",
+            "note": "1937 Technicolor two-reeler; not renewed → US PD. IA item PD-marked. NOTE: source is a 1.25 GB HD scan — fine for the build pipeline (re-encodes to 480p), too heavy for direct-download; prefer built-pack delivery.",
+            "basis": "NR",
+            "musicRights": "unverified",
+            "verifiedBy": "CCE 3rd Series, Parts 12-13 (Motion Pictures and Filmstrips), renewal sections 1964 Jul-Dec, 1965 Jan-Jun, 1965 Jul-Dec — NO RENEWAL FOUND. Pages examined: 1964 Jul-Dec p.122, 1965 Jan-Jun p.61, 1965 Jul-Dec p.124. Method: OCR full-text search of every relevant half-year renewal section, plus a visual alphabetical-neighbourhood check on the page scans (OCR can drop entries). Negative is substantive: the same volumes show the rights holders renewing sibling shorts in bulk. Best published evidence short of a Copyright Office Form 4 search report. Researched 2026-07-29."
           }
         },
         {
@@ -553,76 +596,11 @@
           "bytes": 1619713895,
           "license": {
             "url": "http://creativecommons.org/publicdomain/mark/1.0/",
-            "verified": "2026-07-26",
-            "note": "1939 Technicolor two-reeler; not renewed → US PD. IA item PD-marked. Source is HD (~1.6 GB) — built-pack delivery preferred."
-          }
-        }
-      ]
-    },
-    {
-      "id": "saturday-morning",
-      "name": "SATURDAY MORNING",
-      "kind": "shows",
-      "description": "Public-domain golden-age cartoons — Betty Boop and friends.",
-      "channel": {
-        "number": 7,
-        "name": "SATURDAY MORNING",
-        "ordering": "shuffle",
-        "seed": 17007
-      },
-      "itemCount": 3,
-      "runtimeMs": 1248390,
-      "downloadBytes": 91627937,
-      "items": [
-        {
-          "id": "bb-minnie-the-moocher",
-          "title": "Minnie the Moocher",
-          "show": "Betty Boop",
-          "season": 1,
-          "episode": 1,
-          "aired": "1932-03-11",
-          "durationMs": 466490,
-          "file": "bb-minnie-the-moocher.mp4",
-          "url": "https://archive.org/download/bb_minnie_the_moocher/bb_minnie_the_moocher_512kb.mp4",
-          "bytes": 34262668,
-          "license": {
-            "url": "https://archive.org/details/bb_minnie_the_moocher",
-            "verified": "2026-07-26",
-            "note": "Fleischer/Paramount Betty Boop short; copyright not renewed → US public domain. IA item carries a public-domain mark."
-          }
-        },
-        {
-          "id": "bb-old-man-of-the-mountain",
-          "title": "The Old Man of the Mountain",
-          "show": "Betty Boop",
-          "season": 1,
-          "episode": 2,
-          "aired": "1933-08-04",
-          "durationMs": 412600,
-          "file": "bb-old-man-of-the-mountain.mp4",
-          "url": "https://archive.org/download/bb_old_man_of_the_mountain/bb_old_man_of_the_mountain_512kb.mp4",
-          "bytes": 29991350,
-          "license": {
-            "url": "https://archive.org/details/bb_old_man_of_the_mountain",
-            "verified": "2026-07-26",
-            "note": "Fleischer/Paramount Betty Boop short; copyright not renewed → US public domain. IA item carries a public-domain mark."
-          }
-        },
-        {
-          "id": "bb-house-cleaning-blues",
-          "title": "House Cleaning Blues",
-          "show": "Betty Boop",
-          "season": 1,
-          "episode": 3,
-          "aired": "1937-05-14",
-          "durationMs": 369300,
-          "file": "bb-house-cleaning-blues.mp4",
-          "url": "https://archive.org/download/bb_house_cleaning_blues/bb_house_cleaning_blues_512kb.mp4",
-          "bytes": 27373919,
-          "license": {
-            "url": "https://archive.org/details/bb_house_cleaning_blues",
-            "verified": "2026-07-26",
-            "note": "Fleischer/Paramount Betty Boop short; copyright not renewed → US public domain. IA item carries a CC public-domain license."
+            "verified": "2026-07-29",
+            "note": "1939 Technicolor two-reeler; not renewed → US PD. IA item PD-marked. Source is HD (~1.6 GB) — built-pack delivery preferred.",
+            "basis": "NR",
+            "musicRights": "unverified",
+            "verifiedBy": "CCE 3rd Series, Parts 12-13 (Motion Pictures and Filmstrips), renewal sections 1966 Jul-Dec, 1967 Jan-Jun, 1967 Jul-Dec — NO RENEWAL FOUND. Aladdin checked in the A run: 1966 Jul-Dec p.89, 1967 Jan-Jun p.43, 1967 Jul-Dec p.107. Method: OCR full-text search of every relevant half-year renewal section, plus a visual alphabetical-neighbourhood check on the page scans (OCR can drop entries). Negative is substantive: the same volumes show the rights holders renewing sibling shorts in bulk. Best published evidence short of a Copyright Office Form 4 search report. Researched 2026-07-29."
           }
         }
       ]
@@ -658,7 +636,9 @@
           "license": {
             "url": "https://archive.org/details/private-snafu-collection",
             "verified": "2026-07-26",
-            "note": "Produced 1943 for the US Army (Army–Navy Screen Magazine) by the Warner Bros. cartoon unit under government contract — Chuck Jones/Frank Tashlin directing, Ted Geisel (Dr. Seuss) writing, Mel Blanc voicing. US government film, released without copyright notice and never copyrighted. Basis: GOV (highest confidence — no renewal to check, no reissue trap). Source: IA public-domain-marked collection; no commercial-restoration provenance advertised. NARA Signal Corps scans (111-M-*) exist on IA as alternates for Rumors, Censored, Malaria Mike, and Going Home."
+            "note": "Produced 1943 for the US Army (Army–Navy Screen Magazine) by the Warner Bros. cartoon unit under government contract — Chuck Jones/Frank Tashlin directing, Ted Geisel (Dr. Seuss) writing, Mel Blanc voicing. US government film, released without copyright notice and never copyrighted. Basis: GOV (highest confidence — no renewal to check, no reissue trap). Source: IA public-domain-marked collection; no commercial-restoration provenance advertised. NARA Signal Corps scans (111-M-*) exist on IA as alternates for Rumors, Censored, Malaria Mike, and Going Home.",
+            "basis": "GOV",
+            "musicRights": "cleared"
           }
         },
         {
@@ -675,7 +655,9 @@
           "license": {
             "url": "https://archive.org/details/private-snafu-collection",
             "verified": "2026-07-26",
-            "note": "Produced 1943 for the US Army (Army–Navy Screen Magazine) by the Warner Bros. cartoon unit under government contract — Chuck Jones/Frank Tashlin directing, Ted Geisel (Dr. Seuss) writing, Mel Blanc voicing. US government film, released without copyright notice and never copyrighted. Basis: GOV (highest confidence — no renewal to check, no reissue trap). Source: IA public-domain-marked collection; no commercial-restoration provenance advertised. NARA Signal Corps scans (111-M-*) exist on IA as alternates for Rumors, Censored, Malaria Mike, and Going Home."
+            "note": "Produced 1943 for the US Army (Army–Navy Screen Magazine) by the Warner Bros. cartoon unit under government contract — Chuck Jones/Frank Tashlin directing, Ted Geisel (Dr. Seuss) writing, Mel Blanc voicing. US government film, released without copyright notice and never copyrighted. Basis: GOV (highest confidence — no renewal to check, no reissue trap). Source: IA public-domain-marked collection; no commercial-restoration provenance advertised. NARA Signal Corps scans (111-M-*) exist on IA as alternates for Rumors, Censored, Malaria Mike, and Going Home.",
+            "basis": "GOV",
+            "musicRights": "cleared"
           }
         },
         {
@@ -692,7 +674,9 @@
           "license": {
             "url": "https://archive.org/details/private-snafu-collection",
             "verified": "2026-07-26",
-            "note": "Produced 1943 for the US Army (Army–Navy Screen Magazine) by the Warner Bros. cartoon unit under government contract — Chuck Jones/Frank Tashlin directing, Ted Geisel (Dr. Seuss) writing, Mel Blanc voicing. US government film, released without copyright notice and never copyrighted. Basis: GOV (highest confidence — no renewal to check, no reissue trap). Source: IA public-domain-marked collection; no commercial-restoration provenance advertised. NARA Signal Corps scans (111-M-*) exist on IA as alternates for Rumors, Censored, Malaria Mike, and Going Home."
+            "note": "Produced 1943 for the US Army (Army–Navy Screen Magazine) by the Warner Bros. cartoon unit under government contract — Chuck Jones/Frank Tashlin directing, Ted Geisel (Dr. Seuss) writing, Mel Blanc voicing. US government film, released without copyright notice and never copyrighted. Basis: GOV (highest confidence — no renewal to check, no reissue trap). Source: IA public-domain-marked collection; no commercial-restoration provenance advertised. NARA Signal Corps scans (111-M-*) exist on IA as alternates for Rumors, Censored, Malaria Mike, and Going Home.",
+            "basis": "GOV",
+            "musicRights": "cleared"
           }
         },
         {
@@ -709,7 +693,9 @@
           "license": {
             "url": "https://archive.org/details/private-snafu-collection",
             "verified": "2026-07-26",
-            "note": "Produced 1943 for the US Army (Army–Navy Screen Magazine) by the Warner Bros. cartoon unit under government contract — Chuck Jones/Frank Tashlin directing, Ted Geisel (Dr. Seuss) writing, Mel Blanc voicing. US government film, released without copyright notice and never copyrighted. Basis: GOV (highest confidence — no renewal to check, no reissue trap). Source: IA public-domain-marked collection; no commercial-restoration provenance advertised. NARA Signal Corps scans (111-M-*) exist on IA as alternates for Rumors, Censored, Malaria Mike, and Going Home."
+            "note": "Produced 1943 for the US Army (Army–Navy Screen Magazine) by the Warner Bros. cartoon unit under government contract — Chuck Jones/Frank Tashlin directing, Ted Geisel (Dr. Seuss) writing, Mel Blanc voicing. US government film, released without copyright notice and never copyrighted. Basis: GOV (highest confidence — no renewal to check, no reissue trap). Source: IA public-domain-marked collection; no commercial-restoration provenance advertised. NARA Signal Corps scans (111-M-*) exist on IA as alternates for Rumors, Censored, Malaria Mike, and Going Home.",
+            "basis": "GOV",
+            "musicRights": "cleared"
           }
         },
         {
@@ -726,7 +712,9 @@
           "license": {
             "url": "https://archive.org/details/private-snafu-collection",
             "verified": "2026-07-26",
-            "note": "Produced 1943 for the US Army (Army–Navy Screen Magazine) by the Warner Bros. cartoon unit under government contract — Chuck Jones/Frank Tashlin directing, Ted Geisel (Dr. Seuss) writing, Mel Blanc voicing. US government film, released without copyright notice and never copyrighted. Basis: GOV (highest confidence — no renewal to check, no reissue trap). Source: IA public-domain-marked collection; no commercial-restoration provenance advertised. NARA Signal Corps scans (111-M-*) exist on IA as alternates for Rumors, Censored, Malaria Mike, and Going Home."
+            "note": "Produced 1943 for the US Army (Army–Navy Screen Magazine) by the Warner Bros. cartoon unit under government contract — Chuck Jones/Frank Tashlin directing, Ted Geisel (Dr. Seuss) writing, Mel Blanc voicing. US government film, released without copyright notice and never copyrighted. Basis: GOV (highest confidence — no renewal to check, no reissue trap). Source: IA public-domain-marked collection; no commercial-restoration provenance advertised. NARA Signal Corps scans (111-M-*) exist on IA as alternates for Rumors, Censored, Malaria Mike, and Going Home.",
+            "basis": "GOV",
+            "musicRights": "cleared"
           }
         },
         {
@@ -743,7 +731,9 @@
           "license": {
             "url": "https://archive.org/details/private-snafu-collection",
             "verified": "2026-07-26",
-            "note": "Produced 1943 for the US Army (Army–Navy Screen Magazine) by the Warner Bros. cartoon unit under government contract — Chuck Jones/Frank Tashlin directing, Ted Geisel (Dr. Seuss) writing, Mel Blanc voicing. US government film, released without copyright notice and never copyrighted. Basis: GOV (highest confidence — no renewal to check, no reissue trap). Source: IA public-domain-marked collection; no commercial-restoration provenance advertised. NARA Signal Corps scans (111-M-*) exist on IA as alternates for Rumors, Censored, Malaria Mike, and Going Home."
+            "note": "Produced 1943 for the US Army (Army–Navy Screen Magazine) by the Warner Bros. cartoon unit under government contract — Chuck Jones/Frank Tashlin directing, Ted Geisel (Dr. Seuss) writing, Mel Blanc voicing. US government film, released without copyright notice and never copyrighted. Basis: GOV (highest confidence — no renewal to check, no reissue trap). Source: IA public-domain-marked collection; no commercial-restoration provenance advertised. NARA Signal Corps scans (111-M-*) exist on IA as alternates for Rumors, Censored, Malaria Mike, and Going Home.",
+            "basis": "GOV",
+            "musicRights": "cleared"
           }
         },
         {
@@ -760,7 +750,9 @@
           "license": {
             "url": "https://archive.org/details/private-snafu-collection",
             "verified": "2026-07-26",
-            "note": "Produced 1943 for the US Army (Army–Navy Screen Magazine) by the Warner Bros. cartoon unit under government contract — Chuck Jones/Frank Tashlin directing, Ted Geisel (Dr. Seuss) writing, Mel Blanc voicing. US government film, released without copyright notice and never copyrighted. Basis: GOV (highest confidence — no renewal to check, no reissue trap). Source: IA public-domain-marked collection; no commercial-restoration provenance advertised. NARA Signal Corps scans (111-M-*) exist on IA as alternates for Rumors, Censored, Malaria Mike, and Going Home."
+            "note": "Produced 1943 for the US Army (Army–Navy Screen Magazine) by the Warner Bros. cartoon unit under government contract — Chuck Jones/Frank Tashlin directing, Ted Geisel (Dr. Seuss) writing, Mel Blanc voicing. US government film, released without copyright notice and never copyrighted. Basis: GOV (highest confidence — no renewal to check, no reissue trap). Source: IA public-domain-marked collection; no commercial-restoration provenance advertised. NARA Signal Corps scans (111-M-*) exist on IA as alternates for Rumors, Censored, Malaria Mike, and Going Home.",
+            "basis": "GOV",
+            "musicRights": "cleared"
           }
         },
         {
@@ -777,7 +769,9 @@
           "license": {
             "url": "https://archive.org/details/private-snafu-collection",
             "verified": "2026-07-26",
-            "note": "Produced 1943 for the US Army (Army–Navy Screen Magazine) by the Warner Bros. cartoon unit under government contract — Chuck Jones/Frank Tashlin directing, Ted Geisel (Dr. Seuss) writing, Mel Blanc voicing. US government film, released without copyright notice and never copyrighted. Basis: GOV (highest confidence — no renewal to check, no reissue trap). Source: IA public-domain-marked collection; no commercial-restoration provenance advertised. NARA Signal Corps scans (111-M-*) exist on IA as alternates for Rumors, Censored, Malaria Mike, and Going Home."
+            "note": "Produced 1943 for the US Army (Army–Navy Screen Magazine) by the Warner Bros. cartoon unit under government contract — Chuck Jones/Frank Tashlin directing, Ted Geisel (Dr. Seuss) writing, Mel Blanc voicing. US government film, released without copyright notice and never copyrighted. Basis: GOV (highest confidence — no renewal to check, no reissue trap). Source: IA public-domain-marked collection; no commercial-restoration provenance advertised. NARA Signal Corps scans (111-M-*) exist on IA as alternates for Rumors, Censored, Malaria Mike, and Going Home.",
+            "basis": "GOV",
+            "musicRights": "cleared"
           }
         },
         {
@@ -794,7 +788,9 @@
           "license": {
             "url": "https://archive.org/details/private-snafu-collection",
             "verified": "2026-07-26",
-            "note": "Produced 1944 for the US Army (Army–Navy Screen Magazine) by the Warner Bros. cartoon unit under government contract — Chuck Jones/Frank Tashlin directing, Ted Geisel (Dr. Seuss) writing, Mel Blanc voicing. US government film, released without copyright notice and never copyrighted. Basis: GOV (highest confidence — no renewal to check, no reissue trap). Source: IA public-domain-marked collection; no commercial-restoration provenance advertised. NARA Signal Corps scans (111-M-*) exist on IA as alternates for Rumors, Censored, Malaria Mike, and Going Home."
+            "note": "Produced 1944 for the US Army (Army–Navy Screen Magazine) by the Warner Bros. cartoon unit under government contract — Chuck Jones/Frank Tashlin directing, Ted Geisel (Dr. Seuss) writing, Mel Blanc voicing. US government film, released without copyright notice and never copyrighted. Basis: GOV (highest confidence — no renewal to check, no reissue trap). Source: IA public-domain-marked collection; no commercial-restoration provenance advertised. NARA Signal Corps scans (111-M-*) exist on IA as alternates for Rumors, Censored, Malaria Mike, and Going Home.",
+            "basis": "GOV",
+            "musicRights": "cleared"
           }
         },
         {
@@ -811,7 +807,9 @@
           "license": {
             "url": "https://archive.org/details/private-snafu-collection",
             "verified": "2026-07-26",
-            "note": "Produced 1944 for the US Army (Army–Navy Screen Magazine) by the Warner Bros. cartoon unit under government contract — Chuck Jones/Frank Tashlin directing, Ted Geisel (Dr. Seuss) writing, Mel Blanc voicing. US government film, released without copyright notice and never copyrighted. Basis: GOV (highest confidence — no renewal to check, no reissue trap). Source: IA public-domain-marked collection; no commercial-restoration provenance advertised. NARA Signal Corps scans (111-M-*) exist on IA as alternates for Rumors, Censored, Malaria Mike, and Going Home."
+            "note": "Produced 1944 for the US Army (Army–Navy Screen Magazine) by the Warner Bros. cartoon unit under government contract — Chuck Jones/Frank Tashlin directing, Ted Geisel (Dr. Seuss) writing, Mel Blanc voicing. US government film, released without copyright notice and never copyrighted. Basis: GOV (highest confidence — no renewal to check, no reissue trap). Source: IA public-domain-marked collection; no commercial-restoration provenance advertised. NARA Signal Corps scans (111-M-*) exist on IA as alternates for Rumors, Censored, Malaria Mike, and Going Home.",
+            "basis": "GOV",
+            "musicRights": "cleared"
           }
         },
         {
@@ -828,7 +826,9 @@
           "license": {
             "url": "https://archive.org/details/private-snafu-collection",
             "verified": "2026-07-26",
-            "note": "Produced 1944 for the US Army (Army–Navy Screen Magazine) by the Warner Bros. cartoon unit under government contract — Chuck Jones/Frank Tashlin directing, Ted Geisel (Dr. Seuss) writing, Mel Blanc voicing. US government film, released without copyright notice and never copyrighted. Basis: GOV (highest confidence — no renewal to check, no reissue trap). Source: IA public-domain-marked collection; no commercial-restoration provenance advertised. NARA Signal Corps scans (111-M-*) exist on IA as alternates for Rumors, Censored, Malaria Mike, and Going Home."
+            "note": "Produced 1944 for the US Army (Army–Navy Screen Magazine) by the Warner Bros. cartoon unit under government contract — Chuck Jones/Frank Tashlin directing, Ted Geisel (Dr. Seuss) writing, Mel Blanc voicing. US government film, released without copyright notice and never copyrighted. Basis: GOV (highest confidence — no renewal to check, no reissue trap). Source: IA public-domain-marked collection; no commercial-restoration provenance advertised. NARA Signal Corps scans (111-M-*) exist on IA as alternates for Rumors, Censored, Malaria Mike, and Going Home.",
+            "basis": "GOV",
+            "musicRights": "cleared"
           }
         },
         {
@@ -845,7 +845,9 @@
           "license": {
             "url": "https://archive.org/details/private-snafu-collection",
             "verified": "2026-07-26",
-            "note": "Produced 1944 for the US Army (Army–Navy Screen Magazine) by the Warner Bros. cartoon unit under government contract — Chuck Jones/Frank Tashlin directing, Ted Geisel (Dr. Seuss) writing, Mel Blanc voicing. US government film, released without copyright notice and never copyrighted. Basis: GOV (highest confidence — no renewal to check, no reissue trap). Source: IA public-domain-marked collection; no commercial-restoration provenance advertised. NARA Signal Corps scans (111-M-*) exist on IA as alternates for Rumors, Censored, Malaria Mike, and Going Home."
+            "note": "Produced 1944 for the US Army (Army–Navy Screen Magazine) by the Warner Bros. cartoon unit under government contract — Chuck Jones/Frank Tashlin directing, Ted Geisel (Dr. Seuss) writing, Mel Blanc voicing. US government film, released without copyright notice and never copyrighted. Basis: GOV (highest confidence — no renewal to check, no reissue trap). Source: IA public-domain-marked collection; no commercial-restoration provenance advertised. NARA Signal Corps scans (111-M-*) exist on IA as alternates for Rumors, Censored, Malaria Mike, and Going Home.",
+            "basis": "GOV",
+            "musicRights": "cleared"
           }
         },
         {
@@ -862,7 +864,9 @@
           "license": {
             "url": "https://archive.org/details/private-snafu-collection",
             "verified": "2026-07-26",
-            "note": "Produced 1944 for the US Army (Army–Navy Screen Magazine) by the Warner Bros. cartoon unit under government contract — Chuck Jones/Frank Tashlin directing, Ted Geisel (Dr. Seuss) writing, Mel Blanc voicing. US government film, released without copyright notice and never copyrighted. Basis: GOV (highest confidence — no renewal to check, no reissue trap). Source: IA public-domain-marked collection; no commercial-restoration provenance advertised. NARA Signal Corps scans (111-M-*) exist on IA as alternates for Rumors, Censored, Malaria Mike, and Going Home."
+            "note": "Produced 1944 for the US Army (Army–Navy Screen Magazine) by the Warner Bros. cartoon unit under government contract — Chuck Jones/Frank Tashlin directing, Ted Geisel (Dr. Seuss) writing, Mel Blanc voicing. US government film, released without copyright notice and never copyrighted. Basis: GOV (highest confidence — no renewal to check, no reissue trap). Source: IA public-domain-marked collection; no commercial-restoration provenance advertised. NARA Signal Corps scans (111-M-*) exist on IA as alternates for Rumors, Censored, Malaria Mike, and Going Home.",
+            "basis": "GOV",
+            "musicRights": "cleared"
           }
         },
         {
@@ -879,7 +883,9 @@
           "license": {
             "url": "https://archive.org/details/private-snafu-collection",
             "verified": "2026-07-26",
-            "note": "Produced 1944 for the US Army (Army–Navy Screen Magazine) by the Warner Bros. cartoon unit under government contract — Chuck Jones/Frank Tashlin directing, Ted Geisel (Dr. Seuss) writing, Mel Blanc voicing. US government film, released without copyright notice and never copyrighted. Basis: GOV (highest confidence — no renewal to check, no reissue trap). Source: IA public-domain-marked collection; no commercial-restoration provenance advertised. NARA Signal Corps scans (111-M-*) exist on IA as alternates for Rumors, Censored, Malaria Mike, and Going Home."
+            "note": "Produced 1944 for the US Army (Army–Navy Screen Magazine) by the Warner Bros. cartoon unit under government contract — Chuck Jones/Frank Tashlin directing, Ted Geisel (Dr. Seuss) writing, Mel Blanc voicing. US government film, released without copyright notice and never copyrighted. Basis: GOV (highest confidence — no renewal to check, no reissue trap). Source: IA public-domain-marked collection; no commercial-restoration provenance advertised. NARA Signal Corps scans (111-M-*) exist on IA as alternates for Rumors, Censored, Malaria Mike, and Going Home.",
+            "basis": "GOV",
+            "musicRights": "cleared"
           }
         },
         {
@@ -896,7 +902,9 @@
           "license": {
             "url": "https://archive.org/details/private-snafu-collection",
             "verified": "2026-07-26",
-            "note": "Produced 1944 for the US Army (Army–Navy Screen Magazine) by the Warner Bros. cartoon unit under government contract — Chuck Jones/Frank Tashlin directing, Ted Geisel (Dr. Seuss) writing, Mel Blanc voicing. US government film, released without copyright notice and never copyrighted. Basis: GOV (highest confidence — no renewal to check, no reissue trap). Source: IA public-domain-marked collection; no commercial-restoration provenance advertised. NARA Signal Corps scans (111-M-*) exist on IA as alternates for Rumors, Censored, Malaria Mike, and Going Home."
+            "note": "Produced 1944 for the US Army (Army–Navy Screen Magazine) by the Warner Bros. cartoon unit under government contract — Chuck Jones/Frank Tashlin directing, Ted Geisel (Dr. Seuss) writing, Mel Blanc voicing. US government film, released without copyright notice and never copyrighted. Basis: GOV (highest confidence — no renewal to check, no reissue trap). Source: IA public-domain-marked collection; no commercial-restoration provenance advertised. NARA Signal Corps scans (111-M-*) exist on IA as alternates for Rumors, Censored, Malaria Mike, and Going Home.",
+            "basis": "GOV",
+            "musicRights": "cleared"
           }
         },
         {
@@ -913,7 +921,9 @@
           "license": {
             "url": "https://archive.org/details/private-snafu-collection",
             "verified": "2026-07-26",
-            "note": "Produced 1944 for the US Army (Army–Navy Screen Magazine) by the Warner Bros. cartoon unit under government contract — Chuck Jones/Frank Tashlin directing, Ted Geisel (Dr. Seuss) writing, Mel Blanc voicing. US government film, released without copyright notice and never copyrighted. Basis: GOV (highest confidence — no renewal to check, no reissue trap). Source: IA public-domain-marked collection; no commercial-restoration provenance advertised. NARA Signal Corps scans (111-M-*) exist on IA as alternates for Rumors, Censored, Malaria Mike, and Going Home."
+            "note": "Produced 1944 for the US Army (Army–Navy Screen Magazine) by the Warner Bros. cartoon unit under government contract — Chuck Jones/Frank Tashlin directing, Ted Geisel (Dr. Seuss) writing, Mel Blanc voicing. US government film, released without copyright notice and never copyrighted. Basis: GOV (highest confidence — no renewal to check, no reissue trap). Source: IA public-domain-marked collection; no commercial-restoration provenance advertised. NARA Signal Corps scans (111-M-*) exist on IA as alternates for Rumors, Censored, Malaria Mike, and Going Home.",
+            "basis": "GOV",
+            "musicRights": "cleared"
           }
         },
         {
@@ -930,7 +940,9 @@
           "license": {
             "url": "https://archive.org/details/private-snafu-collection",
             "verified": "2026-07-26",
-            "note": "Produced 1944 for the US Army (Army–Navy Screen Magazine) by the Warner Bros. cartoon unit under government contract — Chuck Jones/Frank Tashlin directing, Ted Geisel (Dr. Seuss) writing, Mel Blanc voicing. US government film, released without copyright notice and never copyrighted. Basis: GOV (highest confidence — no renewal to check, no reissue trap). Source: IA public-domain-marked collection; no commercial-restoration provenance advertised. NARA Signal Corps scans (111-M-*) exist on IA as alternates for Rumors, Censored, Malaria Mike, and Going Home."
+            "note": "Produced 1944 for the US Army (Army–Navy Screen Magazine) by the Warner Bros. cartoon unit under government contract — Chuck Jones/Frank Tashlin directing, Ted Geisel (Dr. Seuss) writing, Mel Blanc voicing. US government film, released without copyright notice and never copyrighted. Basis: GOV (highest confidence — no renewal to check, no reissue trap). Source: IA public-domain-marked collection; no commercial-restoration provenance advertised. NARA Signal Corps scans (111-M-*) exist on IA as alternates for Rumors, Censored, Malaria Mike, and Going Home.",
+            "basis": "GOV",
+            "musicRights": "cleared"
           }
         },
         {
@@ -947,7 +959,9 @@
           "license": {
             "url": "https://archive.org/details/private-snafu-collection",
             "verified": "2026-07-26",
-            "note": "Produced 1944 for the US Army (Army–Navy Screen Magazine) by the Warner Bros. cartoon unit under government contract — Chuck Jones/Frank Tashlin directing, Ted Geisel (Dr. Seuss) writing, Mel Blanc voicing. US government film, released without copyright notice and never copyrighted. Basis: GOV (highest confidence — no renewal to check, no reissue trap). Source: IA public-domain-marked collection; no commercial-restoration provenance advertised. NARA Signal Corps scans (111-M-*) exist on IA as alternates for Rumors, Censored, Malaria Mike, and Going Home."
+            "note": "Produced 1944 for the US Army (Army–Navy Screen Magazine) by the Warner Bros. cartoon unit under government contract — Chuck Jones/Frank Tashlin directing, Ted Geisel (Dr. Seuss) writing, Mel Blanc voicing. US government film, released without copyright notice and never copyrighted. Basis: GOV (highest confidence — no renewal to check, no reissue trap). Source: IA public-domain-marked collection; no commercial-restoration provenance advertised. NARA Signal Corps scans (111-M-*) exist on IA as alternates for Rumors, Censored, Malaria Mike, and Going Home.",
+            "basis": "GOV",
+            "musicRights": "cleared"
           }
         },
         {
@@ -964,7 +978,9 @@
           "license": {
             "url": "https://archive.org/details/private-snafu-collection",
             "verified": "2026-07-26",
-            "note": "Produced 1944 for the US Army (Army–Navy Screen Magazine) by the Warner Bros. cartoon unit under government contract — Chuck Jones/Frank Tashlin directing, Ted Geisel (Dr. Seuss) writing, Mel Blanc voicing. US government film, released without copyright notice and never copyrighted. Basis: GOV (highest confidence — no renewal to check, no reissue trap). Source: IA public-domain-marked collection; no commercial-restoration provenance advertised. NARA Signal Corps scans (111-M-*) exist on IA as alternates for Rumors, Censored, Malaria Mike, and Going Home."
+            "note": "Produced 1944 for the US Army (Army–Navy Screen Magazine) by the Warner Bros. cartoon unit under government contract — Chuck Jones/Frank Tashlin directing, Ted Geisel (Dr. Seuss) writing, Mel Blanc voicing. US government film, released without copyright notice and never copyrighted. Basis: GOV (highest confidence — no renewal to check, no reissue trap). Source: IA public-domain-marked collection; no commercial-restoration provenance advertised. NARA Signal Corps scans (111-M-*) exist on IA as alternates for Rumors, Censored, Malaria Mike, and Going Home.",
+            "basis": "GOV",
+            "musicRights": "cleared"
           }
         },
         {
@@ -981,7 +997,9 @@
           "license": {
             "url": "https://archive.org/details/private-snafu-collection",
             "verified": "2026-07-26",
-            "note": "Produced 1944 for the US Army (Army–Navy Screen Magazine) by the Warner Bros. cartoon unit under government contract — Chuck Jones/Frank Tashlin directing, Ted Geisel (Dr. Seuss) writing, Mel Blanc voicing. US government film, released without copyright notice and never copyrighted. Basis: GOV (highest confidence — no renewal to check, no reissue trap). Source: IA public-domain-marked collection; no commercial-restoration provenance advertised. NARA Signal Corps scans (111-M-*) exist on IA as alternates for Rumors, Censored, Malaria Mike, and Going Home."
+            "note": "Produced 1944 for the US Army (Army–Navy Screen Magazine) by the Warner Bros. cartoon unit under government contract — Chuck Jones/Frank Tashlin directing, Ted Geisel (Dr. Seuss) writing, Mel Blanc voicing. US government film, released without copyright notice and never copyrighted. Basis: GOV (highest confidence — no renewal to check, no reissue trap). Source: IA public-domain-marked collection; no commercial-restoration provenance advertised. NARA Signal Corps scans (111-M-*) exist on IA as alternates for Rumors, Censored, Malaria Mike, and Going Home.",
+            "basis": "GOV",
+            "musicRights": "cleared"
           }
         },
         {
@@ -998,7 +1016,9 @@
           "license": {
             "url": "https://archive.org/details/private-snafu-collection",
             "verified": "2026-07-26",
-            "note": "Produced 1945 for the US Army (Army–Navy Screen Magazine) by the Warner Bros. cartoon unit under government contract — Chuck Jones/Frank Tashlin directing, Ted Geisel (Dr. Seuss) writing, Mel Blanc voicing. US government film, released without copyright notice and never copyrighted. Basis: GOV (highest confidence — no renewal to check, no reissue trap). Source: IA public-domain-marked collection; no commercial-restoration provenance advertised. NARA Signal Corps scans (111-M-*) exist on IA as alternates for Rumors, Censored, Malaria Mike, and Going Home."
+            "note": "Produced 1945 for the US Army (Army–Navy Screen Magazine) by the Warner Bros. cartoon unit under government contract — Chuck Jones/Frank Tashlin directing, Ted Geisel (Dr. Seuss) writing, Mel Blanc voicing. US government film, released without copyright notice and never copyrighted. Basis: GOV (highest confidence — no renewal to check, no reissue trap). Source: IA public-domain-marked collection; no commercial-restoration provenance advertised. NARA Signal Corps scans (111-M-*) exist on IA as alternates for Rumors, Censored, Malaria Mike, and Going Home.",
+            "basis": "GOV",
+            "musicRights": "cleared"
           }
         },
         {
@@ -1015,7 +1035,9 @@
           "license": {
             "url": "https://archive.org/details/private-snafu-collection",
             "verified": "2026-07-26",
-            "note": "Produced 1945 for the US Army (Army–Navy Screen Magazine) by the Warner Bros. cartoon unit under government contract — Chuck Jones/Frank Tashlin directing, Ted Geisel (Dr. Seuss) writing, Mel Blanc voicing. US government film, released without copyright notice and never copyrighted. Basis: GOV (highest confidence — no renewal to check, no reissue trap). Source: IA public-domain-marked collection; no commercial-restoration provenance advertised. NARA Signal Corps scans (111-M-*) exist on IA as alternates for Rumors, Censored, Malaria Mike, and Going Home."
+            "note": "Produced 1945 for the US Army (Army–Navy Screen Magazine) by the Warner Bros. cartoon unit under government contract — Chuck Jones/Frank Tashlin directing, Ted Geisel (Dr. Seuss) writing, Mel Blanc voicing. US government film, released without copyright notice and never copyrighted. Basis: GOV (highest confidence — no renewal to check, no reissue trap). Source: IA public-domain-marked collection; no commercial-restoration provenance advertised. NARA Signal Corps scans (111-M-*) exist on IA as alternates for Rumors, Censored, Malaria Mike, and Going Home.",
+            "basis": "GOV",
+            "musicRights": "cleared"
           }
         },
         {
@@ -1032,7 +1054,9 @@
           "license": {
             "url": "https://archive.org/details/private-snafu-collection",
             "verified": "2026-07-26",
-            "note": "Produced 1945 for the US Army (Army–Navy Screen Magazine) by the Warner Bros. cartoon unit under government contract — Chuck Jones/Frank Tashlin directing, Ted Geisel (Dr. Seuss) writing, Mel Blanc voicing. US government film, released without copyright notice and never copyrighted. Basis: GOV (highest confidence — no renewal to check, no reissue trap). Source: IA public-domain-marked collection; no commercial-restoration provenance advertised. NARA Signal Corps scans (111-M-*) exist on IA as alternates for Rumors, Censored, Malaria Mike, and Going Home."
+            "note": "Produced 1945 for the US Army (Army–Navy Screen Magazine) by the Warner Bros. cartoon unit under government contract — Chuck Jones/Frank Tashlin directing, Ted Geisel (Dr. Seuss) writing, Mel Blanc voicing. US government film, released without copyright notice and never copyrighted. Basis: GOV (highest confidence — no renewal to check, no reissue trap). Source: IA public-domain-marked collection; no commercial-restoration provenance advertised. NARA Signal Corps scans (111-M-*) exist on IA as alternates for Rumors, Censored, Malaria Mike, and Going Home.",
+            "basis": "GOV",
+            "musicRights": "cleared"
           }
         },
         {
@@ -1049,7 +1073,9 @@
           "license": {
             "url": "https://archive.org/details/private-snafu-collection",
             "verified": "2026-07-26",
-            "note": "Produced 1945 for the US Army (Army–Navy Screen Magazine) by the Warner Bros. cartoon unit under government contract — Chuck Jones/Frank Tashlin directing, Ted Geisel (Dr. Seuss) writing, Mel Blanc voicing. US government film, released without copyright notice and never copyrighted. Basis: GOV (highest confidence — no renewal to check, no reissue trap). Source: IA public-domain-marked collection; no commercial-restoration provenance advertised. NARA Signal Corps scans (111-M-*) exist on IA as alternates for Rumors, Censored, Malaria Mike, and Going Home."
+            "note": "Produced 1945 for the US Army (Army–Navy Screen Magazine) by the Warner Bros. cartoon unit under government contract — Chuck Jones/Frank Tashlin directing, Ted Geisel (Dr. Seuss) writing, Mel Blanc voicing. US government film, released without copyright notice and never copyrighted. Basis: GOV (highest confidence — no renewal to check, no reissue trap). Source: IA public-domain-marked collection; no commercial-restoration provenance advertised. NARA Signal Corps scans (111-M-*) exist on IA as alternates for Rumors, Censored, Malaria Mike, and Going Home.",
+            "basis": "GOV",
+            "musicRights": "cleared"
           }
         },
         {
@@ -1066,7 +1092,9 @@
           "license": {
             "url": "https://archive.org/details/private-snafu-collection",
             "verified": "2026-07-26",
-            "note": "Produced 1945 for the US Army (Army–Navy Screen Magazine) by the Warner Bros. cartoon unit under government contract — Chuck Jones/Frank Tashlin directing, Ted Geisel (Dr. Seuss) writing, Mel Blanc voicing. US government film, released without copyright notice and never copyrighted. Basis: GOV (highest confidence — no renewal to check, no reissue trap). Source: IA public-domain-marked collection; no commercial-restoration provenance advertised. NARA Signal Corps scans (111-M-*) exist on IA as alternates for Rumors, Censored, Malaria Mike, and Going Home."
+            "note": "Produced 1945 for the US Army (Army–Navy Screen Magazine) by the Warner Bros. cartoon unit under government contract — Chuck Jones/Frank Tashlin directing, Ted Geisel (Dr. Seuss) writing, Mel Blanc voicing. US government film, released without copyright notice and never copyrighted. Basis: GOV (highest confidence — no renewal to check, no reissue trap). Source: IA public-domain-marked collection; no commercial-restoration provenance advertised. NARA Signal Corps scans (111-M-*) exist on IA as alternates for Rumors, Censored, Malaria Mike, and Going Home.",
+            "basis": "GOV",
+            "musicRights": "cleared"
           }
         },
         {
@@ -1083,7 +1111,9 @@
           "license": {
             "url": "https://archive.org/details/private-snafu-collection",
             "verified": "2026-07-26",
-            "note": "Produced 1945 for the US Army (Army–Navy Screen Magazine) by the Warner Bros. cartoon unit under government contract — Chuck Jones/Frank Tashlin directing, Ted Geisel (Dr. Seuss) writing, Mel Blanc voicing. US government film, released without copyright notice and never copyrighted. Basis: GOV (highest confidence — no renewal to check, no reissue trap). Source: IA public-domain-marked collection; no commercial-restoration provenance advertised. NARA Signal Corps scans (111-M-*) exist on IA as alternates for Rumors, Censored, Malaria Mike, and Going Home."
+            "note": "Produced 1945 for the US Army (Army–Navy Screen Magazine) by the Warner Bros. cartoon unit under government contract — Chuck Jones/Frank Tashlin directing, Ted Geisel (Dr. Seuss) writing, Mel Blanc voicing. US government film, released without copyright notice and never copyrighted. Basis: GOV (highest confidence — no renewal to check, no reissue trap). Source: IA public-domain-marked collection; no commercial-restoration provenance advertised. NARA Signal Corps scans (111-M-*) exist on IA as alternates for Rumors, Censored, Malaria Mike, and Going Home.",
+            "basis": "GOV",
+            "musicRights": "cleared"
           }
         },
         {
@@ -1100,7 +1130,9 @@
           "license": {
             "url": "https://archive.org/details/mr-hook",
             "verified": "2026-07-26",
-            "note": "Mr. Hook series, produced 1945 for the US Navy's incentive/training program. US government work, never copyrighted. Basis: GOV. IA item carries a public-domain mark."
+            "note": "Mr. Hook series, produced 1945 for the US Navy's incentive/training program. US government work, never copyrighted. Basis: GOV. IA item carries a public-domain mark.",
+            "basis": "GOV",
+            "musicRights": "cleared"
           }
         },
         {
@@ -1117,7 +1149,9 @@
           "license": {
             "url": "https://archive.org/details/mr-hook",
             "verified": "2026-07-26",
-            "note": "Mr. Hook series, produced 1945 for the US Navy's incentive/training program. US government work, never copyrighted. Basis: GOV. IA item carries a public-domain mark."
+            "note": "Mr. Hook series, produced 1945 for the US Navy's incentive/training program. US government work, never copyrighted. Basis: GOV. IA item carries a public-domain mark.",
+            "basis": "GOV",
+            "musicRights": "cleared"
           }
         },
         {
@@ -1134,7 +1168,9 @@
           "license": {
             "url": "https://archive.org/details/mr-hook",
             "verified": "2026-07-26",
-            "note": "Mr. Hook series, produced 1945 for the US Navy's incentive/training program. US government work, never copyrighted. Basis: GOV. IA item carries a public-domain mark."
+            "note": "Mr. Hook series, produced 1945 for the US Navy's incentive/training program. US government work, never copyrighted. Basis: GOV. IA item carries a public-domain mark.",
+            "basis": "GOV",
+            "musicRights": "cleared"
           }
         },
         {
@@ -1151,7 +1187,9 @@
           "license": {
             "url": "https://archive.org/details/any-bonds-today-1942",
             "verified": "2026-07-26",
-            "note": "1942 Defense Bond drive short made by the Warner Bros. cartoon unit for the US Treasury; distributed as a government bond-promotion film and universally documented PD (GOV basis; no renewal was ever filed either). IA item PD-marked."
+            "note": "1942 Defense Bond drive short made by the Warner Bros. cartoon unit for the US Treasury; distributed as a government bond-promotion film and universally documented PD (GOV basis; no renewal was ever filed either). IA item PD-marked.",
+            "basis": "GOV",
+            "musicRights": "cleared"
           },
           "contentNote": "Contains a blackface caricature segment (Al Jolson parody) — period context required."
         },
@@ -1169,7 +1207,9 @@
           "license": {
             "url": "https://archive.org/details/so-much-for-so-little-1949",
             "verified": "2026-07-26",
-            "note": "Made by Warner Bros. for the Federal Security Agency / US Public Health Service (1949); Academy Award winner, Documentary Short. US government work, never copyrighted. Basis: GOV. IA item PD-marked."
+            "note": "Made by Warner Bros. for the Federal Security Agency / US Public Health Service (1949); Academy Award winner, Documentary Short. US government work, never copyrighted. Basis: GOV. IA item PD-marked.",
+            "basis": "GOV",
+            "musicRights": "cleared"
           }
         },
         {
@@ -1186,7 +1226,9 @@
           "license": {
             "url": "https://archive.org/details/a-hitch-in-time-1955",
             "verified": "2026-07-26",
-            "note": "Made by Warner Bros. for the US Army (1955, Chuck Jones). US government work, never copyrighted. Basis: GOV. IA item PD-marked."
+            "note": "Made by Warner Bros. for the US Army (1955, Chuck Jones). US government work, never copyrighted. Basis: GOV. IA item PD-marked.",
+            "basis": "GOV",
+            "musicRights": "cleared"
           }
         }
       ]
@@ -1221,7 +1263,9 @@
           "license": {
             "url": "https://images.nasa.gov/details/KSC-1960s-MH-NAS01-0001-Apollo_Saturn_V_Crawler,_VAB_Pad_Film_To_Tape",
             "verified": "2026-07-26",
-            "note": "1960s Kennedy Space Center film-to-tape transfer of Apollo/Saturn V ground operations. NASA-produced US-government work → not subject to US copyright. Served from NASA's own image library. No insignia/seal use; presented as historical record."
+            "note": "1960s Kennedy Space Center film-to-tape transfer of Apollo/Saturn V ground operations. NASA-produced US-government work → not subject to US copyright. Served from NASA's own image library. No insignia/seal use; presented as historical record.",
+            "basis": "GOV",
+            "musicRights": "cleared"
           }
         },
         {
@@ -1238,7 +1282,9 @@
           "license": {
             "url": "https://images.nasa.gov/details/Ultimate Saturn V Launch w Enhanced Sound",
             "verified": "2026-07-26",
-            "note": "NASA-published Saturn V launch footage with restored audio. US-government work → not subject to US copyright. Audio is NASA's own restoration of the launch recording, not licensed music."
+            "note": "NASA-published Saturn V launch footage with restored audio. US-government work → not subject to US copyright. Audio is NASA's own restoration of the launch recording, not licensed music.",
+            "basis": "GOV",
+            "musicRights": "cleared"
           }
         },
         {
@@ -1255,7 +1301,9 @@
           "license": {
             "url": "https://images.nasa.gov/details/KSC-20090716-MH-NAS01-0001-Apollo_11_Restored_Moonwalk-HM_795",
             "verified": "2026-07-26",
-            "note": "NASA's own 2009 restoration of the Apollo 11 EVA broadcast. US-government work → not subject to US copyright. Armstrong and Aldrin are identifiable; used as historical record only, never in advertising."
+            "note": "NASA's own 2009 restoration of the Apollo 11 EVA broadcast. US-government work → not subject to US copyright. Armstrong and Aldrin are identifiable; used as historical record only, never in advertising.",
+            "basis": "GOV",
+            "musicRights": "cleared"
           }
         },
         {
@@ -1272,7 +1320,9 @@
           "license": {
             "url": "https://images.nasa.gov/details/KSC-19990712-MH-NAS01-0001-The_Apollo_11_Mission-B_3351",
             "verified": "2026-07-26",
-            "note": "NASA mission documentary covering Apollo 11 end to end. US-government work → not subject to US copyright. Served from NASA's own image library."
+            "note": "NASA mission documentary covering Apollo 11 end to end. US-government work → not subject to US copyright. Served from NASA's own image library.",
+            "basis": "GOV",
+            "musicRights": "cleared"
           }
         },
         {
@@ -1289,7 +1339,9 @@
           "license": {
             "url": "https://images.nasa.gov/details/NHQ_2021_0708_NASA's Final Space Shuttle Launch 10th Anniversary Replay",
             "verified": "2026-07-26",
-            "note": "NASA's replay of the STS-135 launch broadcast (Atlantis, the final shuttle flight). US-government work → not subject to US copyright. NASA-produced commentary only; no third-party music."
+            "note": "NASA's replay of the STS-135 launch broadcast (Atlantis, the final shuttle flight). US-government work → not subject to US copyright. NASA-produced commentary only; no third-party music.",
+            "basis": "GOV",
+            "musicRights": "cleared"
           }
         }
       ]
@@ -1322,8 +1374,11 @@
           "bytes": 208252732,
           "license": {
             "url": "https://en.wikipedia.org/wiki/Superman_(1940s_animated_film_series)#Copyright_status",
-            "verified": "2026-07-26",
-            "note": "National Comics failed to renew the shorts (late 1960s) → US public domain. Character/trademark is WB/DC — play the films, never use Superman for dumbTV marketing."
+            "verified": "2026-07-29",
+            "note": "National Comics failed to renew the shorts (late 1960s) → US public domain. Character/trademark is WB/DC — play the films, never use Superman for dumbTV marketing.",
+            "basis": "NR",
+            "musicRights": "unverified",
+            "verifiedBy": "CCE 3rd Series, Parts 12-13 (Motion Pictures and Filmstrips), renewal sections 1968 Jan-Jun, 1968 Jul-Dec, 1969 Jan-Jun, 1969 Jul-Dec — NO RENEWAL FOUND. Neighbourhood confirmed on scans: 1968 Jul-Dec p.110 (Sunset in Wyoming → Swing It, Soldier); 1969 Jan-Jun p.43 (Sunday Punch → Surprised Parties). Method: OCR full-text search of every relevant half-year renewal section, plus a visual alphabetical-neighbourhood check on the page scans (OCR can drop entries). Negative is substantive: the same volumes show the rights holders renewing sibling shorts in bulk. Best published evidence short of a Copyright Office Form 4 search report. Researched 2026-07-29."
           }
         },
         {
@@ -1339,8 +1394,11 @@
           "bytes": 207212345,
           "license": {
             "url": "https://en.wikipedia.org/wiki/Superman_(1940s_animated_film_series)#Copyright_status",
-            "verified": "2026-07-26",
-            "note": "National Comics failed to renew the shorts (late 1960s) → US public domain. Character/trademark is WB/DC — play the films, never use Superman for dumbTV marketing."
+            "verified": "2026-07-29",
+            "note": "National Comics failed to renew the shorts (late 1960s) → US public domain. Character/trademark is WB/DC — play the films, never use Superman for dumbTV marketing.",
+            "basis": "NR",
+            "musicRights": "unverified",
+            "verifiedBy": "CCE 3rd Series, Parts 12-13 (Motion Pictures and Filmstrips), renewal sections 1968 Jan-Jun, 1968 Jul-Dec, 1969 Jan-Jun, 1969 Jul-Dec — NO RENEWAL FOUND. Neighbourhood confirmed on scans: 1968 Jul-Dec p.110 (Sunset in Wyoming → Swing It, Soldier); 1969 Jan-Jun p.43 (Sunday Punch → Surprised Parties). Method: OCR full-text search of every relevant half-year renewal section, plus a visual alphabetical-neighbourhood check on the page scans (OCR can drop entries). Negative is substantive: the same volumes show the rights holders renewing sibling shorts in bulk. Best published evidence short of a Copyright Office Form 4 search report. Researched 2026-07-29."
           }
         },
         {
@@ -1356,8 +1414,11 @@
           "bytes": 145849894,
           "license": {
             "url": "https://en.wikipedia.org/wiki/Superman_(1940s_animated_film_series)#Copyright_status",
-            "verified": "2026-07-26",
-            "note": "National Comics failed to renew the shorts (late 1960s) → US public domain. Character/trademark is WB/DC — play the films, never use Superman for dumbTV marketing."
+            "verified": "2026-07-29",
+            "note": "National Comics failed to renew the shorts (late 1960s) → US public domain. Character/trademark is WB/DC — play the films, never use Superman for dumbTV marketing.",
+            "basis": "NR",
+            "musicRights": "unverified",
+            "verifiedBy": "CCE 3rd Series, Parts 12-13 (Motion Pictures and Filmstrips), renewal sections 1969 Jan-Jun, 1969 Jul-Dec, 1970 Jan-Jun, 1970 Jul-Dec — NO RENEWAL FOUND. Neighbourhood confirmed on scans: 1969 Jul-Dec p.114 (Strictly in the Groove → Sweet Spirits of Nighter); 1970 Jan-Jun p.54 (The Sundown Kid → Super Mouse in Pandora's Box); 1970 Jul-Dec p.125 (Submarine Signal → Super Mouse in Down With Cats). Method: OCR full-text search of every relevant half-year renewal section, plus a visual alphabetical-neighbourhood check on the page scans (OCR can drop entries). Negative is substantive: the same volumes show the rights holders renewing sibling shorts in bulk. Best published evidence short of a Copyright Office Form 4 search report. Researched 2026-07-29."
           }
         },
         {
@@ -1373,8 +1434,11 @@
           "bytes": 198711706,
           "license": {
             "url": "https://en.wikipedia.org/wiki/Superman_(1940s_animated_film_series)#Copyright_status",
-            "verified": "2026-07-26",
-            "note": "National Comics failed to renew the shorts (late 1960s) → US public domain. Character/trademark is WB/DC — play the films, never use Superman for dumbTV marketing."
+            "verified": "2026-07-29",
+            "note": "National Comics failed to renew the shorts (late 1960s) → US public domain. Character/trademark is WB/DC — play the films, never use Superman for dumbTV marketing.",
+            "basis": "NR",
+            "musicRights": "unverified",
+            "verifiedBy": "CCE 3rd Series, Parts 12-13 (Motion Pictures and Filmstrips), renewal sections 1969 Jan-Jun, 1969 Jul-Dec, 1970 Jan-Jun, 1970 Jul-Dec — NO RENEWAL FOUND. Neighbourhood confirmed on scans: 1969 Jul-Dec p.114 (Strictly in the Groove → Sweet Spirits of Nighter); 1970 Jan-Jun p.54 (The Sundown Kid → Super Mouse in Pandora's Box); 1970 Jul-Dec p.125 (Submarine Signal → Super Mouse in Down With Cats). Method: OCR full-text search of every relevant half-year renewal section, plus a visual alphabetical-neighbourhood check on the page scans (OCR can drop entries). Negative is substantive: the same volumes show the rights holders renewing sibling shorts in bulk. Best published evidence short of a Copyright Office Form 4 search report. Researched 2026-07-29."
           }
         },
         {
@@ -1390,8 +1454,11 @@
           "bytes": 156918961,
           "license": {
             "url": "https://en.wikipedia.org/wiki/Superman_(1940s_animated_film_series)#Copyright_status",
-            "verified": "2026-07-26",
-            "note": "National Comics failed to renew the shorts (late 1960s) → US public domain. Character/trademark is WB/DC — play the films, never use Superman for dumbTV marketing."
+            "verified": "2026-07-29",
+            "note": "National Comics failed to renew the shorts (late 1960s) → US public domain. Character/trademark is WB/DC — play the films, never use Superman for dumbTV marketing.",
+            "basis": "NR",
+            "musicRights": "unverified",
+            "verifiedBy": "CCE 3rd Series, Parts 12-13 (Motion Pictures and Filmstrips), renewal sections 1969 Jan-Jun, 1969 Jul-Dec, 1970 Jan-Jun, 1970 Jul-Dec — NO RENEWAL FOUND. Neighbourhood confirmed on scans: 1969 Jul-Dec p.114 (Strictly in the Groove → Sweet Spirits of Nighter); 1970 Jan-Jun p.54 (The Sundown Kid → Super Mouse in Pandora's Box); 1970 Jul-Dec p.125 (Submarine Signal → Super Mouse in Down With Cats). Method: OCR full-text search of every relevant half-year renewal section, plus a visual alphabetical-neighbourhood check on the page scans (OCR can drop entries). Negative is substantive: the same volumes show the rights holders renewing sibling shorts in bulk. Best published evidence short of a Copyright Office Form 4 search report. Researched 2026-07-29."
           }
         },
         {
@@ -1407,8 +1474,11 @@
           "bytes": 137526868,
           "license": {
             "url": "https://en.wikipedia.org/wiki/Superman_(1940s_animated_film_series)#Copyright_status",
-            "verified": "2026-07-26",
-            "note": "National Comics failed to renew the shorts (late 1960s) → US public domain. Character/trademark is WB/DC — play the films, never use Superman for dumbTV marketing."
+            "verified": "2026-07-29",
+            "note": "National Comics failed to renew the shorts (late 1960s) → US public domain. Character/trademark is WB/DC — play the films, never use Superman for dumbTV marketing.",
+            "basis": "NR",
+            "musicRights": "unverified",
+            "verifiedBy": "CCE 3rd Series, Parts 12-13 (Motion Pictures and Filmstrips), renewal sections 1969 Jan-Jun, 1969 Jul-Dec, 1970 Jan-Jun, 1970 Jul-Dec — NO RENEWAL FOUND. Neighbourhood confirmed on scans: 1969 Jul-Dec p.114 (Strictly in the Groove → Sweet Spirits of Nighter); 1970 Jan-Jun p.54 (The Sundown Kid → Super Mouse in Pandora's Box); 1970 Jul-Dec p.125 (Submarine Signal → Super Mouse in Down With Cats). Method: OCR full-text search of every relevant half-year renewal section, plus a visual alphabetical-neighbourhood check on the page scans (OCR can drop entries). Negative is substantive: the same volumes show the rights holders renewing sibling shorts in bulk. Best published evidence short of a Copyright Office Form 4 search report. Researched 2026-07-29."
           }
         },
         {
@@ -1424,8 +1494,11 @@
           "bytes": 169142171,
           "license": {
             "url": "https://en.wikipedia.org/wiki/Superman_(1940s_animated_film_series)#Copyright_status",
-            "verified": "2026-07-26",
-            "note": "National Comics failed to renew the shorts (late 1960s) → US public domain. Character/trademark is WB/DC — play the films, never use Superman for dumbTV marketing."
+            "verified": "2026-07-29",
+            "note": "National Comics failed to renew the shorts (late 1960s) → US public domain. Character/trademark is WB/DC — play the films, never use Superman for dumbTV marketing.",
+            "basis": "NR",
+            "musicRights": "unverified",
+            "verifiedBy": "CCE 3rd Series, Parts 12-13 (Motion Pictures and Filmstrips), renewal sections 1969 Jan-Jun, 1969 Jul-Dec, 1970 Jan-Jun, 1970 Jul-Dec — NO RENEWAL FOUND. Neighbourhood confirmed on scans: 1969 Jul-Dec p.114 (Strictly in the Groove → Sweet Spirits of Nighter); 1970 Jan-Jun p.54 (The Sundown Kid → Super Mouse in Pandora's Box); 1970 Jul-Dec p.125 (Submarine Signal → Super Mouse in Down With Cats). Method: OCR full-text search of every relevant half-year renewal section, plus a visual alphabetical-neighbourhood check on the page scans (OCR can drop entries). Negative is substantive: the same volumes show the rights holders renewing sibling shorts in bulk. Best published evidence short of a Copyright Office Form 4 search report. Researched 2026-07-29."
           }
         },
         {
@@ -1441,8 +1514,11 @@
           "bytes": 198368693,
           "license": {
             "url": "https://en.wikipedia.org/wiki/Superman_(1940s_animated_film_series)#Copyright_status",
-            "verified": "2026-07-26",
-            "note": "National Comics failed to renew the shorts (late 1960s) → US public domain. Character/trademark is WB/DC — play the films, never use Superman for dumbTV marketing."
+            "verified": "2026-07-29",
+            "note": "National Comics failed to renew the shorts (late 1960s) → US public domain. Character/trademark is WB/DC — play the films, never use Superman for dumbTV marketing.",
+            "basis": "NR",
+            "musicRights": "unverified",
+            "verifiedBy": "CCE 3rd Series, Parts 12-13 (Motion Pictures and Filmstrips), renewal sections 1969 Jan-Jun, 1969 Jul-Dec, 1970 Jan-Jun, 1970 Jul-Dec — NO RENEWAL FOUND. Neighbourhood confirmed on scans: 1969 Jul-Dec p.114 (Strictly in the Groove → Sweet Spirits of Nighter); 1970 Jan-Jun p.54 (The Sundown Kid → Super Mouse in Pandora's Box); 1970 Jul-Dec p.125 (Submarine Signal → Super Mouse in Down With Cats). Method: OCR full-text search of every relevant half-year renewal section, plus a visual alphabetical-neighbourhood check on the page scans (OCR can drop entries). Negative is substantive: the same volumes show the rights holders renewing sibling shorts in bulk. Best published evidence short of a Copyright Office Form 4 search report. Researched 2026-07-29."
           }
         },
         {
@@ -1458,8 +1534,11 @@
           "bytes": 145888010,
           "license": {
             "url": "https://en.wikipedia.org/wiki/Superman_(1940s_animated_film_series)#Copyright_status",
-            "verified": "2026-07-26",
-            "note": "National Comics failed to renew the shorts (late 1960s) → US public domain. Character/trademark is WB/DC — play the films, never use Superman for dumbTV marketing."
+            "verified": "2026-07-29",
+            "note": "National Comics failed to renew the shorts (late 1960s) → US public domain. Character/trademark is WB/DC — play the films, never use Superman for dumbTV marketing.",
+            "basis": "NR",
+            "musicRights": "unverified",
+            "verifiedBy": "CCE 3rd Series, Parts 12-13 (Motion Pictures and Filmstrips), renewal sections 1969 Jan-Jun, 1969 Jul-Dec, 1970 Jan-Jun, 1970 Jul-Dec — NO RENEWAL FOUND. Neighbourhood confirmed on scans: 1969 Jul-Dec p.114 (Strictly in the Groove → Sweet Spirits of Nighter); 1970 Jan-Jun p.54 (The Sundown Kid → Super Mouse in Pandora's Box); 1970 Jul-Dec p.125 (Submarine Signal → Super Mouse in Down With Cats). Method: OCR full-text search of every relevant half-year renewal section, plus a visual alphabetical-neighbourhood check on the page scans (OCR can drop entries). Negative is substantive: the same volumes show the rights holders renewing sibling shorts in bulk. Best published evidence short of a Copyright Office Form 4 search report. Researched 2026-07-29."
           }
         },
         {
@@ -1475,8 +1554,11 @@
           "bytes": 151872769,
           "license": {
             "url": "https://en.wikipedia.org/wiki/Superman_(1940s_animated_film_series)#Copyright_status",
-            "verified": "2026-07-26",
-            "note": "National Comics failed to renew the shorts (late 1960s) → US public domain. Character/trademark is WB/DC — play the films, never use Superman for dumbTV marketing."
+            "verified": "2026-07-29",
+            "note": "National Comics failed to renew the shorts (late 1960s) → US public domain. Character/trademark is WB/DC — play the films, never use Superman for dumbTV marketing.",
+            "basis": "NR",
+            "musicRights": "unverified",
+            "verifiedBy": "CCE 3rd Series, Parts 12-13 (Motion Pictures and Filmstrips), renewal sections 1969 Jan-Jun, 1969 Jul-Dec, 1970 Jan-Jun, 1970 Jul-Dec — NO RENEWAL FOUND. Neighbourhood confirmed on scans: 1969 Jul-Dec p.114 (Strictly in the Groove → Sweet Spirits of Nighter); 1970 Jan-Jun p.54 (The Sundown Kid → Super Mouse in Pandora's Box); 1970 Jul-Dec p.125 (Submarine Signal → Super Mouse in Down With Cats). Method: OCR full-text search of every relevant half-year renewal section, plus a visual alphabetical-neighbourhood check on the page scans (OCR can drop entries). Negative is substantive: the same volumes show the rights holders renewing sibling shorts in bulk. Best published evidence short of a Copyright Office Form 4 search report. Researched 2026-07-29."
           },
           "contentNote": "Wartime anti-Japanese caricature throughout — presented as history."
         },
@@ -1493,8 +1575,11 @@
           "bytes": 135890799,
           "license": {
             "url": "https://en.wikipedia.org/wiki/Superman_(1940s_animated_film_series)#Copyright_status",
-            "verified": "2026-07-26",
-            "note": "National Comics failed to renew the shorts (late 1960s) → US public domain. Character/trademark is WB/DC — play the films, never use Superman for dumbTV marketing."
+            "verified": "2026-07-29",
+            "note": "National Comics failed to renew the shorts (late 1960s) → US public domain. Character/trademark is WB/DC — play the films, never use Superman for dumbTV marketing.",
+            "basis": "NR",
+            "musicRights": "unverified",
+            "verifiedBy": "CCE 3rd Series, Parts 12-13 (Motion Pictures and Filmstrips), renewal sections 1969 Jan-Jun, 1969 Jul-Dec, 1970 Jan-Jun, 1970 Jul-Dec — NO RENEWAL FOUND. Neighbourhood confirmed on scans: 1969 Jul-Dec p.114 (Strictly in the Groove → Sweet Spirits of Nighter); 1970 Jan-Jun p.54 (The Sundown Kid → Super Mouse in Pandora's Box); 1970 Jul-Dec p.125 (Submarine Signal → Super Mouse in Down With Cats). Method: OCR full-text search of every relevant half-year renewal section, plus a visual alphabetical-neighbourhood check on the page scans (OCR can drop entries). Negative is substantive: the same volumes show the rights holders renewing sibling shorts in bulk. Best published evidence short of a Copyright Office Form 4 search report. Researched 2026-07-29."
           }
         },
         {
@@ -1510,8 +1595,11 @@
           "bytes": 133294641,
           "license": {
             "url": "https://en.wikipedia.org/wiki/Superman_(1940s_animated_film_series)#Copyright_status",
-            "verified": "2026-07-26",
-            "note": "National Comics failed to renew the shorts (late 1960s) → US public domain. Character/trademark is WB/DC — play the films, never use Superman for dumbTV marketing."
+            "verified": "2026-07-29",
+            "note": "National Comics failed to renew the shorts (late 1960s) → US public domain. Character/trademark is WB/DC — play the films, never use Superman for dumbTV marketing.",
+            "basis": "NR",
+            "musicRights": "unverified",
+            "verifiedBy": "CCE 3rd Series, Parts 12-13 (Motion Pictures and Filmstrips), renewal sections 1969 Jan-Jun, 1969 Jul-Dec, 1970 Jan-Jun, 1970 Jul-Dec — NO RENEWAL FOUND. Neighbourhood confirmed on scans: 1969 Jul-Dec p.114 (Strictly in the Groove → Sweet Spirits of Nighter); 1970 Jan-Jun p.54 (The Sundown Kid → Super Mouse in Pandora's Box); 1970 Jul-Dec p.125 (Submarine Signal → Super Mouse in Down With Cats). Method: OCR full-text search of every relevant half-year renewal section, plus a visual alphabetical-neighbourhood check on the page scans (OCR can drop entries). Negative is substantive: the same volumes show the rights holders renewing sibling shorts in bulk. Best published evidence short of a Copyright Office Form 4 search report. Researched 2026-07-29."
           },
           "contentNote": "Wartime anti-Japanese caricature — presented as history."
         },
@@ -1528,8 +1616,11 @@
           "bytes": 126649641,
           "license": {
             "url": "https://en.wikipedia.org/wiki/Superman_(1940s_animated_film_series)#Copyright_status",
-            "verified": "2026-07-26",
-            "note": "National Comics failed to renew the shorts (late 1960s) → US public domain. Character/trademark is WB/DC — play the films, never use Superman for dumbTV marketing."
+            "verified": "2026-07-29",
+            "note": "National Comics failed to renew the shorts (late 1960s) → US public domain. Character/trademark is WB/DC — play the films, never use Superman for dumbTV marketing.",
+            "basis": "NR",
+            "musicRights": "unverified",
+            "verifiedBy": "CCE 3rd Series, Parts 12-13 (Motion Pictures and Filmstrips), renewal sections 1969 Jan-Jun, 1969 Jul-Dec, 1970 Jan-Jun, 1970 Jul-Dec — NO RENEWAL FOUND. Neighbourhood confirmed on scans: 1969 Jul-Dec p.114 (Strictly in the Groove → Sweet Spirits of Nighter); 1970 Jan-Jun p.54 (The Sundown Kid → Super Mouse in Pandora's Box); 1970 Jul-Dec p.125 (Submarine Signal → Super Mouse in Down With Cats). Method: OCR full-text search of every relevant half-year renewal section, plus a visual alphabetical-neighbourhood check on the page scans (OCR can drop entries). Negative is substantive: the same volumes show the rights holders renewing sibling shorts in bulk. Best published evidence short of a Copyright Office Form 4 search report. Researched 2026-07-29."
           }
         },
         {
@@ -1545,8 +1636,11 @@
           "bytes": 120885805,
           "license": {
             "url": "https://en.wikipedia.org/wiki/Superman_(1940s_animated_film_series)#Copyright_status",
-            "verified": "2026-07-26",
-            "note": "National Comics failed to renew the shorts (late 1960s) → US public domain. Character/trademark is WB/DC — play the films, never use Superman for dumbTV marketing."
+            "verified": "2026-07-29",
+            "note": "National Comics failed to renew the shorts (late 1960s) → US public domain. Character/trademark is WB/DC — play the films, never use Superman for dumbTV marketing.",
+            "basis": "NR",
+            "musicRights": "unverified",
+            "verifiedBy": "CCE 3rd Series, Parts 12-13 (Motion Pictures and Filmstrips), renewal sections 1970 Jan-Jun, 1970 Jul-Dec, 1971 Jan-Jun, 1971 Jul-Dec — NO RENEWAL FOUND. Neighbourhood confirmed on scans: 1971 Jan-Jun p.66 (The Sultan's Daughter → Super Rabbit); 1971 Jul-Dec p.154 (Sundown Valley → Swing Out the Blues). Method: OCR full-text search of every relevant half-year renewal section, plus a visual alphabetical-neighbourhood check on the page scans (OCR can drop entries). Negative is substantive: the same volumes show the rights holders renewing sibling shorts in bulk. Best published evidence short of a Copyright Office Form 4 search report. Researched 2026-07-29."
           }
         },
         {
@@ -1562,8 +1656,11 @@
           "bytes": 141659505,
           "license": {
             "url": "https://en.wikipedia.org/wiki/Superman_(1940s_animated_film_series)#Copyright_status",
-            "verified": "2026-07-26",
-            "note": "National Comics failed to renew the shorts (late 1960s) → US public domain. Character/trademark is WB/DC — play the films, never use Superman for dumbTV marketing."
+            "verified": "2026-07-29",
+            "note": "National Comics failed to renew the shorts (late 1960s) → US public domain. Character/trademark is WB/DC — play the films, never use Superman for dumbTV marketing.",
+            "basis": "NR",
+            "musicRights": "unverified",
+            "verifiedBy": "CCE 3rd Series, Parts 12-13 (Motion Pictures and Filmstrips), renewal sections 1970 Jan-Jun, 1970 Jul-Dec, 1971 Jan-Jun, 1971 Jul-Dec — NO RENEWAL FOUND. Neighbourhood confirmed on scans: 1971 Jan-Jun p.66 (The Sultan's Daughter → Super Rabbit); 1971 Jul-Dec p.154 (Sundown Valley → Swing Out the Blues). Method: OCR full-text search of every relevant half-year renewal section, plus a visual alphabetical-neighbourhood check on the page scans (OCR can drop entries). Negative is substantive: the same volumes show the rights holders renewing sibling shorts in bulk. Best published evidence short of a Copyright Office Form 4 search report. Researched 2026-07-29."
           },
           "contentNote": "Racial caricature (African characters) — presented as history."
         },
@@ -1580,8 +1677,11 @@
           "bytes": 125153342,
           "license": {
             "url": "https://en.wikipedia.org/wiki/Superman_(1940s_animated_film_series)#Copyright_status",
-            "verified": "2026-07-26",
-            "note": "National Comics failed to renew the shorts (late 1960s) → US public domain. Character/trademark is WB/DC — play the films, never use Superman for dumbTV marketing."
+            "verified": "2026-07-29",
+            "note": "National Comics failed to renew the shorts (late 1960s) → US public domain. Character/trademark is WB/DC — play the films, never use Superman for dumbTV marketing.",
+            "basis": "NR",
+            "musicRights": "unverified",
+            "verifiedBy": "CCE 3rd Series, Parts 12-13 (Motion Pictures and Filmstrips), renewal sections 1970 Jan-Jun, 1970 Jul-Dec, 1971 Jan-Jun, 1971 Jul-Dec — NO RENEWAL FOUND. Neighbourhood confirmed on scans: 1971 Jan-Jun p.66 (The Sultan's Daughter → Super Rabbit); 1971 Jul-Dec p.154 (Sundown Valley → Swing Out the Blues). Method: OCR full-text search of every relevant half-year renewal section, plus a visual alphabetical-neighbourhood check on the page scans (OCR can drop entries). Negative is substantive: the same volumes show the rights holders renewing sibling shorts in bulk. Best published evidence short of a Copyright Office Form 4 search report. Researched 2026-07-29."
           }
         },
         {
@@ -1597,8 +1697,11 @@
           "bytes": 145433493,
           "license": {
             "url": "https://en.wikipedia.org/wiki/Superman_(1940s_animated_film_series)#Copyright_status",
-            "verified": "2026-07-26",
-            "note": "National Comics failed to renew the shorts (late 1960s) → US public domain. Character/trademark is WB/DC — play the films, never use Superman for dumbTV marketing."
+            "verified": "2026-07-29",
+            "note": "National Comics failed to renew the shorts (late 1960s) → US public domain. Character/trademark is WB/DC — play the films, never use Superman for dumbTV marketing.",
+            "basis": "NR",
+            "musicRights": "unverified",
+            "verifiedBy": "CCE 3rd Series, Parts 12-13 (Motion Pictures and Filmstrips), renewal sections 1970 Jan-Jun, 1970 Jul-Dec, 1971 Jan-Jun, 1971 Jul-Dec — NO RENEWAL FOUND. Neighbourhood confirmed on scans: 1971 Jan-Jun p.66 (The Sultan's Daughter → Super Rabbit); 1971 Jul-Dec p.154 (Sundown Valley → Swing Out the Blues). Method: OCR full-text search of every relevant half-year renewal section, plus a visual alphabetical-neighbourhood check on the page scans (OCR can drop entries). Negative is substantive: the same volumes show the rights holders renewing sibling shorts in bulk. Best published evidence short of a Copyright Office Form 4 search report. Researched 2026-07-29."
           }
         }
       ]

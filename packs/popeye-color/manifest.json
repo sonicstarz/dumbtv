@@ -30,10 +30,11 @@
       },
       "license": {
         "url": "https://creativecommons.org/publicdomain/mark/1.0/",
-        "verified": "2026-07-26",
+        "verified": "2026-07-29",
         "note": "1936 Technicolor two-reeler; copyright not renewed → US public domain. IA item carries a PD mark. Regular B&W Popeye shorts are NOT PD — only these three color specials.",
         "basis": "NR",
-        "musicRights": "unverified"
+        "musicRights": "unverified",
+        "verifiedBy": "CCE 3rd Series, Parts 12-13 (Motion Pictures and Filmstrips), renewal sections 1963 Jul-Dec, 1964 Jan-Jun, 1964 Jul-Dec — NO RENEWAL FOUND. Pages examined: 1963 Jul-Dec p.125, 1964 Jan-Jun p.61, 1964 Jul-Dec p.122. Method: OCR full-text search of every relevant half-year renewal section, plus a visual alphabetical-neighbourhood check on the page scans (OCR can drop entries). Negative is substantive: the same volumes show the rights holders renewing sibling shorts in bulk. Best published evidence short of a Copyright Office Form 4 search report. Researched 2026-07-29."
       },
       "tags": [
         "1930s",
@@ -53,10 +54,11 @@
       },
       "license": {
         "url": "https://creativecommons.org/publicdomain/mark/1.0/",
-        "verified": "2026-07-26",
+        "verified": "2026-07-29",
         "note": "1937 Technicolor two-reeler; not renewed → US PD. IA item PD-marked. NOTE: source is a 1.25 GB HD scan — fine for the build pipeline (re-encodes to 480p), too heavy for direct-download; prefer built-pack delivery.",
         "basis": "NR",
-        "musicRights": "unverified"
+        "musicRights": "unverified",
+        "verifiedBy": "CCE 3rd Series, Parts 12-13 (Motion Pictures and Filmstrips), renewal sections 1964 Jul-Dec, 1965 Jan-Jun, 1965 Jul-Dec — NO RENEWAL FOUND. Pages examined: 1964 Jul-Dec p.122, 1965 Jan-Jun p.61, 1965 Jul-Dec p.124. Method: OCR full-text search of every relevant half-year renewal section, plus a visual alphabetical-neighbourhood check on the page scans (OCR can drop entries). Negative is substantive: the same volumes show the rights holders renewing sibling shorts in bulk. Best published evidence short of a Copyright Office Form 4 search report. Researched 2026-07-29."
       },
       "tags": [
         "1930s",
@@ -76,10 +78,11 @@
       },
       "license": {
         "url": "http://creativecommons.org/publicdomain/mark/1.0/",
-        "verified": "2026-07-26",
+        "verified": "2026-07-29",
         "note": "1939 Technicolor two-reeler; not renewed → US PD. IA item PD-marked. Source is HD (~1.6 GB) — built-pack delivery preferred.",
         "basis": "NR",
-        "musicRights": "unverified"
+        "musicRights": "unverified",
+        "verifiedBy": "CCE 3rd Series, Parts 12-13 (Motion Pictures and Filmstrips), renewal sections 1966 Jul-Dec, 1967 Jan-Jun, 1967 Jul-Dec — NO RENEWAL FOUND. Aladdin checked in the A run: 1966 Jul-Dec p.89, 1967 Jan-Jun p.43, 1967 Jul-Dec p.107. Method: OCR full-text search of every relevant half-year renewal section, plus a visual alphabetical-neighbourhood check on the page scans (OCR can drop entries). Negative is substantive: the same volumes show the rights holders renewing sibling shorts in bulk. Best published evidence short of a Copyright Office Form 4 search report. Researched 2026-07-29."
       },
       "tags": [
         "1930s",
@@ -91,5 +94,6 @@
   "rightsBasisSummary": [
     "NR"
   ],
-  "partialSeries": false
+  "partialSeries": false,
+  "rightsNote": "FILM COPYRIGHT: not renewed. Verified 2026-07-29 against CCE 3rd Series Parts 12-13 — Sindbad (1936) in 1963 Jul-Dec / 1964 both halves, Ali Baba (1937) in 1964 Jul-Dec / 1965 both halves, Aladdin (1939) in 1966 Jul-Dec / 1967 both halves — by OCR full-text search plus neighbourhood checks on the scans. The negative is substantive: United Artists Associated and United Artists Television were renewing the Popeye ONE-reelers throughout these same volumes (What, No Spinach?, MP6500 -> R316550, 31 May 1963; The Spinach Roadster in 1964; Scrap the Japs, L11702 -> R474660, 11 Dec 1969), and these three two-reel specials are not among them. This is the best published evidence short of a formal Copyright Office search report (Form 4). Every CCE renewal page carries the Office's own footer noting the printed entries alone may not reflect the complete record, and pre-1978 renewals are not in the online database. SEPARATE AND LIVE: non-renewal clears the FILM only. The Popeye CHARACTERS have their own live chain of title (King Features / Hearst, whose renewals DO appear in these same volumes) plus trademark rights. A distinct question, unresolved here, for counsel before publication. Play the films; keep Popeye out of dumbTV marketing, artwork and store copy. ALSO: only these three colour two-reelers are PD. The regular B&W Popeye shorts are NOT."
 }

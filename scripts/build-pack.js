@@ -402,9 +402,21 @@ async function cmdCatalog() {
   const ids = fs.readdirSync(PACKS_DIR).filter((d) =>
     fs.existsSync(path.join(PACKS_DIR, d, 'manifest.json')));
   const packs = [];
+  const blocked = [];
   for (const id of ids) {
     const m = loadManifest(id);
-    checkProvenance(m); // only ship PD-verified packs in the catalog
+    // Only PD-verified packs go in the catalog. A pack that fails the gate is
+    // EXCLUDED and logged — not a crash. Aborting the whole catalog for one
+    // unverified pack makes nothing safer; it just also withholds the packs
+    // that DID clear. Same rule as a darkened item below: exclude, say so
+    // loudly, keep going. `verify` stays strict — that is where you find out.
+    try {
+      checkProvenance(m);
+    } catch (e) {
+      blocked.push(id);
+      console.warn(`\n⛔ ${id}: EXCLUDED from catalog — fails the provenance gate.\n${e.message}`);
+      continue;
+    }
     const items = [];
     const dark = [];
     for (const it of m.items) {
@@ -460,6 +472,12 @@ async function cmdCatalog() {
   for (const p of packs) {
     console.log(`  ${p.id.padEnd(18)} ${String(p.itemCount).padStart(2)} items  ` +
       `${String(Math.round(p.runtimeMs / 60000)).padStart(3)}m  ${(p.downloadBytes / 1e6).toFixed(0)}MB  [${p.kind}]`);
+  }
+  // Repeated at the end because the per-pack warning scrolls off behind a wall
+  // of progress dots in CI, and a pack going missing must never be quiet.
+  if (blocked.length) {
+    console.warn(`\n⛔ ${blocked.length} pack(s) NOT in the catalog: ${blocked.join(', ')}`);
+    console.warn(`   Run: node scripts/build-pack.js verify <packId>`);
   }
 }
 

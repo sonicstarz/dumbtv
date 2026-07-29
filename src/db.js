@@ -151,6 +151,19 @@ CREATE TABLE IF NOT EXISTS airings (
   PRIMARY KEY (channel_id, rating_key)
 );
 
+-- Tags (R8) — what a piece of media IS, so a rule can select by it. A TABLE
+-- rather than a CSV column because these are queried across the library, not
+-- read per-channel the way channels.ad_tags is. The source column records who
+-- said so: user tags survive a rescan, pack and derived ones are refreshed.
+-- See src/media/tags.js.
+CREATE TABLE IF NOT EXISTS media_tags (
+  rating_key TEXT NOT NULL,
+  tag        TEXT NOT NULL,
+  source     TEXT NOT NULL DEFAULT 'user',
+  PRIMARY KEY (rating_key, tag, source)
+);
+CREATE INDEX IF NOT EXISTS idx_media_tags_tag ON media_tags(tag);
+
 -- Episodes (or movies) the user has filtered out of a channel's rotation.
 -- The media stays cached; it's just skipped when the playlist is built.
 CREATE TABLE IF NOT EXISTS channel_excludes (
@@ -199,6 +212,11 @@ addColumnIfMissing('schedule_rules', 'cadence_compress', 'REAL NOT NULL DEFAULT 
 // channel should not need re-dating each autumn. Off = the original one-shot
 // absolute range, so nothing existing changes behaviour.
 addColumnIfMissing('schedule_rules', 'effective_annual', 'INTEGER NOT NULL DEFAULT 0');
+// Dayparting (R1): a recurring rule may draw from a TAG-FILTERED subset instead
+// of one rating_key — "cartoons 06:00-12:00" on a channel that plays other
+// things at night. NULL keeps the original single-source behaviour.
+addColumnIfMissing('schedule_rules', 'select_tags', 'TEXT');
+addColumnIfMissing('schedule_rules', 'select_mode', "TEXT NOT NULL DEFAULT 'any'");
 // Vibe (L-V1): the per-channel CRT/VHS look, stored as a self-contained JSON
 // document rather than a spread of columns — see src/vibe.js for why. NULL
 // means "inherit the global default", which is itself a setting.

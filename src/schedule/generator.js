@@ -336,14 +336,25 @@ const overlaps = (a, b) => a.start < b.end && b.start < a.end;
 
 // ---- rotation iterator (shared across every gap in one build) --------------
 
-function makeRotationIterator(channel) {
+/**
+ * R1 · A DAYPART is a recurring rule that draws from a tag-filtered subset
+ * rather than the channel's whole library — "cartoons in the morning, movies at
+ * night" on ONE channel. The scheduling half already existed (a recurring rule
+ * reserves its window); all that was missing was letting the fill draw from a
+ * narrower pool, which is why R8 tags had to land first.
+ *
+ * Each daypart carries its own cursor in schedule_rules.cursor — the column the
+ * rotation rule has always used — so the morning block resumes where IT left
+ * off, not where the evening block did.
+ */
+function makeRotationIterator(channel, opts = {}) {
   // Default: walk the ordered playlist with a monotonic cursor (deterministic,
   // wraps at the end). With a repeat cooldown, switch to least-recently-aired
   // selection instead — it maximises the gap before any item airs again, seeded
   // from persisted airings so the spacing also holds across builds.
   const cooldownMs = (channel.cooldown_days || 0) * DAY;
-  const base = buildPlaylist(channel, 0);
-  let cursor = channel.cursor || 0;
+  const base = buildPlaylist(channel, 0, opts);
+  let cursor = opts.cursor ?? channel.cursor ?? 0;
   let cachedCycle = -1;
   let cachedList = base;
   function refresh() {
@@ -351,7 +362,7 @@ function makeRotationIterator(channel) {
     const cycle = Math.floor(cursor / cachedList.length);
     if (cycle !== cachedCycle) {
       cachedCycle = cycle;
-      cachedList = channel.ordering_mode === 'shuffle' ? buildPlaylist(channel, cycle) : base;
+      cachedList = channel.ordering_mode === 'shuffle' ? buildPlaylist(channel, cycle, opts) : base;
     }
   }
   const lastAired = new Map();
@@ -439,17 +450,17 @@ function pushSpan(ctx, kind, start, end, title, subtitle, ruleId, assetId = null
  * and for recurring blocks — filling a reserved 3-hour Saturday and an unclaimed
  * Tuesday afternoon are the same operation with different bounds.
  */
-function fillWindow(ctx, ruleId, start, end, cut = false) {
+function fillWindow(ctx, ruleId, start, end, cut = false, iter = ctx.iter) {
   let t = start;
   let guard = 0;
   while (t < end && guard++ < 50000) {
-    const item = ctx.iter.pickAt(t);
-    if (!item || !item.duration_ms) { ctx.iter.note(item, t); continue; }
+    const item = iter.pickAt(t);
+    if (!item || !item.duration_ms) { iter.note(item, t); continue; }
     if (t + item.duration_ms > end) {
       // Won't fit before the hard end. protect (default) leaves it for later and
       // pads filler; cutin airs it anyway and hard-cuts at the boundary.
       if (cut && item.rating_key) {
-        ctx.iter.note(item, end);
+        iter.note(item, end);
         pushProgram(ctx, { ...item, duration_ms: end - t }, t, t, ruleId);
         t = end;
       }
@@ -458,7 +469,7 @@ function fillWindow(ctx, ruleId, start, end, cut = false) {
     const blockStart = t;
     const programEnd = t + item.duration_ms;
     pushProgram(ctx, item, t, blockStart, ruleId);
-    ctx.iter.note(item, programEnd);
+    iter.note(item, programEnd);
     t = programEnd;
     const { items, blockEnd } = buildBreak(ctx.channel, ctx.pool, `${ctx.channel.id}:${blockStart}`, programEnd, blockStart, end);
     for (const bi of items) {
@@ -472,13 +483,19 @@ function fillWindow(ctx, ruleId, start, end, cut = false) {
   return end;
 }
 
-function fillRange(ctx, ruleId, start, end, cut = false) {
+function fillRange(ctx, ruleId, start, end, cut = false, iter = ctx.iter) {
   if (start >= end) return end;
-  if (ctx.iter.empty) {
-    pushSpan(ctx, 'offair', start, end, 'No content selected', 'Add shows or movies to this channel', ruleId);
+  if (iter.empty) {
+    // A daypart whose tags match nothing is a real, reportable state — say so
+    // rather than silently falling back to the channel's whole library, which
+    // would look like the filter had been ignored.
+    const msg = iter === ctx.iter
+      ? ['No content selected', 'Add shows or movies to this channel']
+      : ['Nothing matches', 'No content on this channel matches this block'];
+    pushSpan(ctx, 'offair', start, end, msg[0], msg[1], ruleId);
     return end;
   }
-  return fillWindow(ctx, ruleId, start, end, cut);
+  return fillWindow(ctx, ruleId, start, end, cut, iter);
 }
 
 function emitReservation(ctx, res, until) {
@@ -522,8 +539,10 @@ function emitReservation(ctx, res, until) {
     }
     return;
   }
-  // recurring: fill the reserved block with rotation content.
-  fillRange(ctx, rule.id, res.start, end);
+  // recurring: fill the reserved block. A daypart (select_tags) draws from its
+  // own tag-filtered pool and its own cursor; a plain recurring rule shares the
+  // channel's rotation exactly as before.
+  fillRange(ctx, rule.id, res.start, end, false, ctx.iterFor(rule));
 }
 
 const insertProgramV2 = db.prepare(`
@@ -570,6 +589,24 @@ function buildChannelPrograms(channel, from, until) {
     pool: adPool(channel),
     iter: makeRotationIterator(channel),
     airingBump: new Map(),
+    // R1: one iterator per daypart, built on first use and reused for every
+    // occurrence of that rule in this pass — so Tuesday morning continues from
+    // where Monday morning stopped rather than restarting each day.
+    dayparts: new Map(),
+  };
+
+  /** The iterator a rule should draw from: its own if it selects by tag. */
+  ctx.iterFor = (rule) => {
+    if (!rule || !rule.select_tags) return ctx.iter;
+    if (!ctx.dayparts.has(rule.id)) {
+      const tags = String(rule.select_tags).split(',').map((t) => t.trim()).filter(Boolean);
+      ctx.dayparts.set(rule.id, makeRotationIterator(channel, {
+        tags,
+        tagMode: rule.select_mode === 'all' ? 'all' : 'any',
+        cursor: rule.cursor || 0,
+      }));
+    }
+    return ctx.dayparts.get(rule.id);
   };
 
   let t = from;
@@ -593,7 +630,11 @@ function buildChannelPrograms(channel, from, until) {
     ri++;
   }
 
-  return { rows: ctx.rows, conflicts, cursor: ctx.iter.cursor(), airingBump: ctx.airingBump, through: t, rotationRuleId: rotationRule.id };
+  const daypartCursors = [...ctx.dayparts.entries()].map(([id, it]) => [id, it.cursor()]);
+  return {
+    rows: ctx.rows, conflicts, cursor: ctx.iter.cursor(), airingBump: ctx.airingBump,
+    through: t, rotationRuleId: rotationRule.id, daypartCursors,
+  };
 }
 
 export function generateChannel(channelId, until = Date.now() + config.scheduleWindowDays * DAY) {
@@ -630,6 +671,10 @@ export function generateChannel(channelId, until = Date.now() + config.scheduleW
       .run(built.cursor, built.through, channel.id);
     if (built.rotationRuleId) {
       db.prepare('UPDATE schedule_rules SET cursor = ? WHERE id = ?').run(built.cursor, built.rotationRuleId);
+    }
+    // Each daypart keeps its own place in its own subset (R1).
+    for (const [ruleId, cur] of built.daypartCursors || []) {
+      db.prepare('UPDATE schedule_rules SET cursor = ? WHERE id = ?').run(cur, ruleId);
     }
     const upAiring = db.prepare(`
       INSERT INTO airings (channel_id, rating_key, count, last_aired)

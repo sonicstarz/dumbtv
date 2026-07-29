@@ -616,6 +616,7 @@ export default async function api(fastify) {
     'name', 'kind', 'priority', 'enabled', 'days_of_week', 'start_time', 'duration_min',
     'starts_at_utc', 'source_type', 'rating_key', 'ordering_mode', 'effective_from',
     'effective_to', 'ad_policy', 'airdate_mode', 'cadence_compress', 'effective_annual',
+    'select_tags', 'select_mode',
   ];
 
   fastify.get('/api/channels/:id/rules', async (req) => ({
@@ -631,10 +632,10 @@ export default async function api(fastify) {
       INSERT INTO schedule_rules
         (channel_id, name, kind, priority, enabled, days_of_week, start_time, duration_min,
          starts_at_utc, source_type, rating_key, ordering_mode, effective_from, effective_to,
-         ad_policy, airdate_mode, cadence_compress, effective_annual)
+         ad_policy, airdate_mode, cadence_compress, effective_annual, select_tags, select_mode)
       VALUES (@channelId,@name,@kind,@priority,1,@daysOfWeek,@startTime,@durationMin,
               @startsAtUtc,@sourceType,@ratingKey,@orderingMode,@effectiveFrom,@effectiveTo,
-              @adPolicy,@airdateMode,@cadenceCompress,@effectiveAnnual)
+              @adPolicy,@airdateMode,@cadenceCompress,@effectiveAnnual,@selectTags,@selectMode)
     `).run({
       channelId: Number(req.params.id), name: b.name || null, kind: b.kind, priority,
       daysOfWeek: b.daysOfWeek || null, startTime: b.startTime || null, durationMin: b.durationMin ?? null,
@@ -643,6 +644,8 @@ export default async function api(fastify) {
       effectiveTo: b.effectiveTo || null, adPolicy: b.adPolicy ? JSON.stringify(b.adPolicy) : null,
       airdateMode: b.airdateMode || null, cadenceCompress: b.cadenceCompress ?? 1,
       effectiveAnnual: b.effectiveAnnual ? 1 : 0,
+      selectTags: Array.isArray(b.selectTags) ? b.selectTags.join(',') : (b.selectTags || null),
+      selectMode: b.selectMode === 'all' ? 'all' : 'any',
     });
     return { id: info.lastInsertRowid };
   });
@@ -658,6 +661,9 @@ export default async function api(fastify) {
       ad_policy: b.adPolicy === undefined ? undefined : (b.adPolicy ? JSON.stringify(b.adPolicy) : null),
       airdate_mode: b.airdateMode, cadence_compress: b.cadenceCompress,
       effective_annual: b.effectiveAnnual === undefined ? undefined : (b.effectiveAnnual ? 1 : 0),
+      select_tags: b.selectTags === undefined ? undefined
+        : (Array.isArray(b.selectTags) ? b.selectTags.join(',') : (b.selectTags || null)),
+      select_mode: b.selectMode === undefined ? undefined : (b.selectMode === 'all' ? 'all' : 'any'),
     };
     const sets = [], vals = [];
     for (const f of RULE_FIELDS) {

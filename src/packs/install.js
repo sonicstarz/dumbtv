@@ -19,6 +19,7 @@ import { db, getSetting, setSetting } from '../db.js';
 import { config } from '../config.js';
 import { assertSafePackFile } from './safe-file.js';
 import { hashString } from '../util/rng.js';
+import { setTags } from '../media/tags.js';
 import { regenerateChannel } from '../schedule/generator.js';
 
 const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
@@ -127,6 +128,13 @@ export const installPack = db.transaction((distDir, { origin = 'downloaded' } = 
         aired: it.aired ?? null, durationMs: it.durationMs,
         partKey: packPartKey(pack.id, it.file), updatedAt: now,
       });
+      // R8: a curated pack declares what its items ARE, so dayparting works on
+      // the preload lineup with no user effort. Written under the 'pack'
+      // source, so reinstalling refreshes these and touches nothing the user
+      // applied by hand.
+      if (Array.isArray(it.tags)) {
+        setTags(`${packRatingKey(pack.id)}:${it.id}`, it.tags, 'pack');
+      }
     }
     // Reconcile: drop pack media no longer in the manifest so a partial→full
     // upgrade has an exact count and no stale rows linger.

@@ -858,6 +858,81 @@ console.log('\nSign-off');
       .get(tinyCh, anthem).n === 0);
 }
 
+// ---- tags + dayparting (R8 / R1) -------------------------------------------
+// A daypart is a recurring rule that draws from a TAG-FILTERED subset instead
+// of the channel's whole library — "cartoons in the morning" on a channel that
+// plays other things at night. The scheduling half already existed; what was
+// missing was letting the fill draw from a narrower pool.
+console.log('\nTags and dayparting');
+{
+  const { setTags, tagsFor, keysMatchingTags } = await import('../src/media/tags.js');
+
+  // Provenance: a pack reinstall refreshes its own tags and must not touch
+  // anything applied by hand.
+  setTags('show-xmen-e1', ['cartoon', 'action'], 'pack');
+  setTags('show-xmen-e1', ['favourite'], 'user');
+  setTags('show-xmen-e1', ['cartoon'], 'pack');           // reinstall
+  check('tags: a pack refresh keeps hand-applied tags',
+    tagsFor('show-xmen-e1').join(',') === 'cartoon,favourite', tagsFor('show-xmen-e1').join(','));
+  check('tags: an empty selection means NO filter, not "nothing"',
+    keysMatchingTags([]) === null);
+
+  const dpCh = db.prepare(
+    `INSERT INTO channels (number,name,ordering_mode,shuffle_seed,created_at,ads_enabled)
+     VALUES (?,?,'sequential',?,?,0)`
+  ).run(84, 'DAYPART', 99, Date.now()).lastInsertRowid;
+  addSource.run(dpCh, 'show-xmen', 'show', 'X-Men Evolution');
+  addSource.run(dpCh, 'show-spidey', 'show', 'Spider-Man');
+  // Tag one show only; the daypart should show nothing else in its band.
+  for (let i = 1; i <= 26; i++) setTags(`show-xmen-e${i}`, ['morningtoon'], 'pack');
+  db.prepare(`INSERT INTO schedule_rules
+      (channel_id,name,kind,priority,enabled,days_of_week,start_time,duration_min,select_tags,select_mode)
+    VALUES (?,?,'recurring',600,1,'0,1,2,3,4,5,6','06:00',360,'morningtoon','any')`)
+    .run(dpCh, 'Morning cartoons');
+  generateChannel(dpCh, Date.now() + 3 * 24 * HOUR);
+
+  const dpRows = db.prepare(
+    "SELECT start_utc, rating_key FROM programs WHERE channel_id=? AND kind='episode' ORDER BY start_utc"
+  ).all(dpCh);
+  const inBand = (r) => { const h = new Date(r.start_utc).getHours(); return h >= 6 && h < 12; };
+  const band = dpRows.filter(inBand);
+  const outside = dpRows.filter((r) => !inBand(r));
+
+  check('daypart: the band is filled', band.length > 0, `(${band.length})`);
+  check('daypart: ONLY tagged content airs inside it',
+    band.every((r) => r.rating_key.startsWith('show-xmen')),
+    `(${band.filter((r) => !r.rating_key.startsWith('show-xmen')).length} intruders)`);
+  check('daypart: untagged content still airs outside it',
+    outside.some((r) => r.rating_key.startsWith('show-spidey')));
+
+  // Its own cursor, in the column the rotation rule has always used — so
+  // Tuesday morning continues from where Monday morning stopped.
+  const days = [...new Set(band.map((r) => new Date(r.start_utc).toDateString()))];
+  const d1 = band.filter((r) => new Date(r.start_utc).toDateString() === days[0]);
+  const d2 = band.filter((r) => new Date(r.start_utc).toDateString() === days[1]);
+  check('daypart: a later day continues rather than restarting',
+    days.length > 1 && d2[0] && d2[0].rating_key !== d1[0].rating_key,
+    `(${d1[0]?.rating_key} → ${d2[0]?.rating_key})`);
+
+  // A daypart whose tags match nothing must SAY so, not silently fall back to
+  // the whole library — that would look like the filter had been ignored.
+  const emptyCh = db.prepare(
+    `INSERT INTO channels (number,name,ordering_mode,shuffle_seed,created_at,ads_enabled)
+     VALUES (?,?,'sequential',?,?,0)`
+  ).run(83, 'NOMATCH', 7, Date.now()).lastInsertRowid;
+  addSource.run(emptyCh, 'show-xmen', 'show', 'X-Men Evolution');
+  db.prepare(`INSERT INTO schedule_rules
+      (channel_id,name,kind,priority,enabled,days_of_week,start_time,duration_min,select_tags,select_mode)
+    VALUES (?,?,'recurring',600,1,'0,1,2,3,4,5,6','06:00',120,'nosuchtag','any')`)
+    .run(emptyCh, 'Impossible');
+  generateChannel(emptyCh, Date.now() + 2 * 24 * HOUR);
+  const nomatch = db.prepare(
+    "SELECT COUNT(*) n FROM programs WHERE channel_id=? AND kind='offair' AND title='Nothing matches'"
+  ).get(emptyCh).n;
+  check('daypart: an unmatchable band goes off air rather than ignoring the filter',
+    nomatch > 0, `(${nomatch} blocks)`);
+}
+
 // ---- determinism regression gate (build 17) --------------------------------
 // The scheduler tier teaches rules to select content by TAG, which is exactly
 // the kind of change that can quietly make output depend on Set iteration or

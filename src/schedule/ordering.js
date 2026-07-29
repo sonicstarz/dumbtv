@@ -1,5 +1,6 @@
 import { db } from '../db.js';
 import { seededShuffle, hashString } from '../util/rng.js';
+import { keysMatchingTags } from '../media/tags.js';
 
 // A source is either a container (parent_key — a show, a pack, a folder) or a
 // single item (rating_key). Both columns are indexed, but SQLite will not use
@@ -30,9 +31,17 @@ function byAirDate(a, b) {
 }
 
 /** One array of playable rows per source, each already in its natural order.
- *  Episodes the user filtered out (channel_excludes) are dropped here, so the
- *  rotation, cooldown, and airing counts never see them. */
-function loadSourceBuckets(channelId) {
+ *
+ *  THE one place content is filtered. Exclusions, tag selection (R8) and
+ *  content warnings all narrow the pool HERE, before rotation, cooldown and
+ *  airing counts ever see an item — which is what keeps those correct for free.
+ *  Filtering anywhere downstream would make a skipped episode still count as
+ *  aired. Do not add a second filter site.
+ *
+ *  @param {{tags?: string[], tagMode?: 'any'|'all'}} [opts] narrows the pool
+ *         further for a daypart; omitted means the channel's whole library.
+ */
+function loadSourceBuckets(channelId, opts = {}) {
   const sources = db
     .prepare('SELECT * FROM channel_sources WHERE channel_id = ? ORDER BY id')
     .all(channelId);
@@ -44,11 +53,17 @@ function loadSourceBuckets(channelId) {
       .map((r) => r.rating_key)
   );
 
+  // null means "no tag filter"; an empty Set would mean "nothing matches".
+  const tagged = opts.tags && opts.tags.length
+    ? keysMatchingTags(opts.tags, opts.tagMode || 'any')
+    : null;
+
   return sources
     .map((s) => {
       const rows = selectSourceMedia
         .all(s.rating_key, s.rating_key)
-        .filter((r) => !excluded.has(r.rating_key));
+        .filter((r) => !excluded.has(r.rating_key))
+        .filter((r) => !tagged || tagged.has(r.rating_key));
       return { source: s, items: rows.sort(bySeasonEpisode) };
     })
     .filter((b) => b.items.length > 0);
@@ -63,8 +78,8 @@ function loadSourceBuckets(channelId) {
  *  shuffle       seeded permutation, reshuffled each cycle
  *  marathon      N in a row from one show, then rotate
  */
-export function buildPlaylist(channel, cycle = 0) {
-  const buckets = loadSourceBuckets(channel.id);
+export function buildPlaylist(channel, cycle = 0, opts = {}) {
+  const buckets = loadSourceBuckets(channel.id, opts);
   if (buckets.length === 0) return [];
 
   const mode = channel.ordering_mode;

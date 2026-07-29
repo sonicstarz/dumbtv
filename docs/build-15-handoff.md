@@ -331,7 +331,17 @@ So it is specific to the **macOS platform build's distribution**, and the ranked
 2. **Export compliance unanswered on the macOS build**, which leaves it visible but not distributable.
 3. Sign out / back in to the App Store on that Mac — forces a re-fetch of the install authorisation.
 
-**Check #1 first:** App Store Connect → dumbTV → TestFlight → switch the platform selector to **macOS** → confirm the build has a group and that you are in it.
+**PARKED 2026-07-29 by the owner.** Group membership was checked and is correct, so candidate 1 is out too. State when it was set down:
+
+- **Ruled out:** architecture · Apple ID / TestFlight / agreements (the iOS build installs on that same Mac) · tester-group membership.
+- **Leading hypothesis, untested:** all three targets share the bundle ID `app.dumbtv.app` for universal purchase, and the iOS build is installed on that Mac — so the macOS build carries the same identity as something already present. One-minute test: delete the iOS build, reboot, retry.
+- **The right next step is evidence, not another hypothesis.** Two rounds of diagnosis have now missed because they reasoned from a description. Capture the real failure while reproducing it:
+  ```
+  log stream --info --debug --predicate 'process CONTAINS[c] "appstore" OR process CONTAINS[c] "storedownload" OR process CONTAINS[c] "TestFlight"'
+  ```
+- **Still unchecked:** whether the macOS build shows *Missing Compliance* in App Store Connect.
+
+**This blocks TESTING the Mac build, not shipping.** iOS, iPadOS and tvOS can be submitted independently under the same app record — see the note in the plan about submitting the Mac later.
 
 **Lesson for the next one of these: get the exact error text before writing a findings section.** Two builds of diagnosis went into the wrong failure mode.
 

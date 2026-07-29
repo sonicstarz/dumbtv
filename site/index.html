@@ -1,77 +1,220 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>dumbTV — your Plex library as a 1990s cable box</title>
-<meta name="description" content="dumbTV turns your Plex library into a 1990s cable box. There's always something on. No menus, no pausing — you flip channels and take what's playing.">
+<title>dumbTV — your Plex library, as a 1990s cable box</title>
+<meta name="description" content="dumbTV is the anti-streaming app: it turns your Plex library into channels that broadcast on a schedule. No menus, no pausing, no tracking. iPhone, iPad, Apple TV, Mac.">
 <style>
-  :root { color-scheme: dark; --amber:#ffb000; --bg:#06132f; --ink:#e8ecf5; --dim:#9fb0cf; }
+  html { -webkit-text-size-adjust: 100%; }
+  body { margin: 0; background: #06060a; color: #e8e4d9; font-family: -apple-system, system-ui, "Helvetica Neue", Arial, sans-serif; }
   * { box-sizing: border-box; }
-  body { font: 18px/1.65 -apple-system, system-ui, sans-serif; background: var(--bg); color: var(--ink); margin: 0; }
-  .wrap { max-width: 52rem; margin: 0 auto; padding: 0 1.25rem; }
-  .bars { height: 8px; background: linear-gradient(90deg,#c0c0c0 0 14.2%,#c0c000 0 28.5%,#00c0c0 0 42.8%,#00c000 0 57.1%,#c000c0 0 71.4%,#c00000 0 85.7%,#0000c0 0); }
-  header { text-align: center; padding: 4rem 0 3rem; }
-  h1 { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: clamp(2.6rem,10vw,4.5rem);
-       letter-spacing: .04em; margin: 0; color: var(--amber); }
-  .tag { font-size: clamp(1.15rem,3.5vw,1.5rem); margin: .75rem 0 0; }
-  .sub { color: var(--dim); margin-top: .35rem; }
-  h2 { font-family: ui-monospace, monospace; color: var(--amber); font-size: 1.2rem; letter-spacing: .02em; margin-top: 3rem; }
-  ul { padding-left: 1.1rem; } li { margin: .4rem 0; }
-  ol { padding-left: 1.3rem; }
-  a { color: var(--amber); }
-  .cta { display: flex; gap: .75rem; flex-wrap: wrap; justify-content: center; margin-top: 1.75rem; }
-  .btn { display: inline-block; padding: .7rem 1.2rem; border-radius: 999px; text-decoration: none; font-weight: 600;
-         background: var(--amber); color: #1a1200; }
-  .btn.ghost { background: transparent; color: var(--amber); border: 1px solid var(--amber); }
-  footer { color: var(--dim); text-align: center; padding: 3rem 0; font-size: .9rem; }
-  code { color: #ffcf6b; }
+  a { color: #f2b134; text-decoration: none; }
+  a:hover { color: #ffd479; text-decoration: underline; }
+  :focus-visible { outline: 3px solid #f2b134; outline-offset: 3px; }
+  @keyframes tally { 0%, 55% { opacity: 1 } 56%, 100% { opacity: .2 } }
+  @media (prefers-reduced-motion: reduce) { * { animation: none !important } }
+  @media (max-width: 760px) { [data-split] { grid-template-columns: 1fr !important } }
 </style>
+<script>
+  (function () {
+    var HALF = 18e5, SLOTS = 6;
+    function fmt(d) { var h = d.getHours(), m = d.getMinutes(), ap = h >= 12 ? "PM" : "AM"; h = h % 12 || 12; return h + ":" + (m < 10 ? "0" + m : m) + " " + ap; }
+    function paint() {
+      var now = Date.now(), start = Math.floor(now / HALF) * HALF - HALF;
+      var slots = document.querySelectorAll("[data-slot]");
+      for (var i = 0; i < slots.length; i++) slots[i].textContent = fmt(new Date(start + parseInt(slots[i].getAttribute("data-slot"), 10) * HALF));
+      var clocks = document.querySelectorAll("[data-clock]");
+      for (var c = 0; c < clocks.length; c++) clocks[c].textContent = fmt(new Date(now));
+      var cells = document.querySelectorAll("[data-start]");
+      for (var j = 0; j < cells.length; j++) {
+        var el = cells[j], s = start + parseInt(el.getAttribute("data-start"), 10) * HALF;
+        var e = s + parseInt(el.getAttribute("data-span"), 10) * HALF, live = now >= s && now < e;
+        el.style.background = live ? "rgba(242,177,52,.20)" : "transparent";
+        el.setAttribute("aria-current", live ? "true" : "false");
+      }
+      var frac = (now - start) / (SLOTS * HALF);
+      var ph = document.querySelectorAll("[data-playhead]");
+      for (var k = 0; k < ph.length; k++) ph[k].style.left = "calc(var(--chw) + " + frac.toFixed(5) + " * (100% - var(--chw)))";
+    }
+    function boot() { paint(); if (!window.matchMedia || !window.matchMedia("(prefers-reduced-motion: reduce)").matches) setInterval(paint, 5000); }
+    if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot); else boot();
+  })();
+</script>
+<link rel="canonical" href="https://dumbtv.app/">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="dumbTV">
+<meta property="og:title" content="dumbTV — your Plex library, as a 1990s cable box">
+<meta property="og:description" content="dumbTV is the anti-streaming app: it turns your Plex library into channels that broadcast on a schedule. No menus, no pausing, no tracking. iPhone, iPad, Apple TV, Mac.">
+<meta property="og:url" content="https://dumbtv.app/">
+<meta property="og:image" content="https://dumbtv.app/assets/og.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://dumbtv.app/assets/og.png">
 </head>
 <body>
-  <div class="bars"></div>
-  <div class="wrap">
-    <header>
-      <h1>dumbTV</h1>
-      <p class="tag">Your Plex library, as a 1990s cable box.</p>
-      <p class="sub">There's always something on. Flip channels and take what's playing.</p>
-      <div class="cta">
-        <a class="btn" href="#">Download on the App Store <small>(soon)</small></a>
-        <a class="btn ghost" href="https://github.com/sonicstarz/dumbtv">GitHub</a>
-      </div>
-    </header>
+<div style="display: grid; grid-template-columns: repeat(7, 1fr); height: 8px;" aria-hidden="true"><span style="background:#c0c0c0"></span><span style="background:#c0c000"></span><span style="background:#00c0c0"></span><span style="background:#00c000"></span><span style="background:#c000c0"></span><span style="background:#c00000"></span><span style="background:#0000c0"></span></div>
 
-    <p>It's the anti-streaming app. No grid of thumbnails, no "are you still
-    watching," no endless choice. You build channels once — Saturday cartoons, a
-    movie channel, a marathon — and dumbTV runs them as continuous broadcasts,
-    whether anyone's watching or not. Tune in and you join the show already in
-    progress, exactly like real TV.</p>
-
-    <h2>What makes it dumbTV</h2>
-    <ul>
-      <li><strong>No menus.</strong> Turn it on, take what's on.</li>
-      <li><strong>Join in progress.</strong> Every channel is always mid-broadcast.</li>
-      <li><strong>No pausing, no skipping.</strong> It's live — that's the point.</li>
-      <li><strong>Never transcodes, never touches your watch state.</strong></li>
-      <li><strong>Self-contained.</strong> Runs on your device and your network. No cloud, no account, no tracking.</li>
-      <li><strong>iPhone, iPad, Apple TV, and Mac.</strong> Configure from any browser on your network.</li>
-    </ul>
-
-    <h2>How it works</h2>
-    <ol>
-      <li>Install dumbTV; it shows a setup URL + QR.</li>
-      <li>Open that on your phone, link Plex, build a channel.</li>
-      <li>Flip channels and watch. There's always something on.</li>
-    </ol>
-
-    <p class="sub">Requires a Plex Media Server on your network. Comes with a built-in
-    demo lineup so you can see it working first.</p>
+<div style="background: linear-gradient(180deg, #2b3a8f 0%, #16205a 100%); border-bottom: 2px solid #f2b134;">
+  <div style="max-width: 1160px; margin: 0 auto; padding: 20px clamp(18px, 5vw, 48px); display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap;">
+    <a href="/" style="font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace; font-weight: 700; font-size: 20px; letter-spacing: 0.06em; color: #f2b134;">dumbTV</a>
+    <nav style="display: flex; gap: clamp(12px, 3vw, 26px); font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace; font-size: 12px; letter-spacing: 0.16em; flex-wrap: wrap;">
+      <a href="/how-to/" style="color: #dfe4ff;">HOW-TO</a>
+      <a href="/faq/" style="color: #dfe4ff;">FAQ</a>
+      <a href="/support/" style="color: #dfe4ff;">SUPPORT</a>
+      <a href="https://github.com/sonicstarz/dumbtv" style="color: #dfe4ff;">GITHUB</a>
+    </nav>
   </div>
 
-  <footer>
-    <a href="/support.html">Support</a> · <a href="/privacy.html">Privacy</a> ·
-    <a href="https://github.com/sonicstarz/dumbtv">Source</a>
-    <div>dumbTV — what's on is what's on.</div>
-  </footer>
+  <div style="max-width: 1160px; margin: 0 auto; padding: clamp(36px, 6vw, 72px) clamp(18px, 5vw, 48px) clamp(40px, 6vw, 72px); display: grid; grid-template-columns: 1fr minmax(300px, 440px); gap: clamp(28px, 5vw, 56px); align-items: center;" data-split>
+    <div>
+      <p style="font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace; font-size: 12px; letter-spacing: 0.26em; color: #f2b134; margin: 0 0 16px;">NOW PLAYING</p>
+      <h1 style="font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace; font-weight: 700; font-size: clamp(30px, 4.4vw, 52px); line-height: 1.08; margin: 0 0 16px; color: #ffffff; letter-spacing: -0.01em; text-wrap: balance;">Your Plex library, as a 1990s cable box.</h1>
+      <p style="margin: 0 0 24px; font-size: clamp(17px, 1.6vw, 19px); line-height: 1.55; color: #b9c2f0; max-width: 44ch; text-wrap: pretty;">There's always something on. Flip channels and take what's playing.</p>
+      <div style="height: 8px; background: rgba(255,255,255,.18); margin: 0 0 8px; max-width: 420px;" aria-hidden="true"><span style="display: block; height: 100%; width: 62%; background: #f2b134;"></span></div>
+      <p style="font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace; font-size: 12.5px; color: #f2b134; margin: 0 0 28px;">ALWAYS ON — <span data-clock>7:33 PM</span></p>
+      <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+        <a href="#download" style="background: #f2b134; color: #16205a; font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace; font-weight: 700; font-size: 15px; padding: 14px 24px; border-radius: 999px; min-height: 44px; display: inline-flex; align-items: center;">App Store (soon)</a>
+        <a href="https://github.com/sonicstarz/dumbtv" style="border: 1px solid #6a76c4; color: #dfe4ff; font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace; font-size: 15px; padding: 13px 22px; min-height: 44px; display: inline-flex; align-items: center;">GitHub</a>
+      </div>
+      <p style="margin: 18px 0 0; font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace; font-size: 12px; color: #b9c2f0; line-height: 1.7;">iPhone · iPad · Apple TV · Mac — self-host on Pi or Windows.</p>
+    </div>
+    <div style="border: 2px solid #f2b134; position: relative;">
+      <img src="/assets/iphone-6.9-2-guide.png" alt="The dumbTV guide: a Prevue-style grid with a NOW PLAYING panel, video preview, and blue timeline with a red line at the current time" style="display: block; width: 100%; height: auto;">
+      <div style="position: absolute; inset: 0; pointer-events: none; background: repeating-linear-gradient(180deg, rgba(255,255,255,.03) 0 1px, transparent 1px 3px);" aria-hidden="true"></div>
+    </div>
+  </div>
+</div>
+
+<section style="max-width: 860px; margin: 0 auto; padding: clamp(44px, 7vw, 88px) clamp(18px, 5vw, 48px) clamp(28px, 4vw, 48px);">
+  <p style="margin: 0; font-size: clamp(19px, 2vw, 23px); line-height: 1.6; color: #e8e4d9; text-wrap: pretty;">It's the <strong style="color: #f2b134; font-weight: 600;">anti-streaming app</strong>. No grid of thumbnails, no "are you still watching," no endless choice. You build channels once — Saturday cartoons, a movie channel, a marathon — and dumbTV runs them as continuous broadcasts, whether anyone's watching or not. Tune in and you join the show already in progress, exactly like real TV.</p>
+</section>
+
+<section aria-label="Sample channel guide" style="max-width: 1160px; margin: 0 auto; padding: clamp(20px, 3vw, 36px) clamp(18px, 5vw, 48px) clamp(44px, 6vw, 72px);">
+  <div style="background: linear-gradient(180deg, #2b3a8f 0%, #16205a 100%); padding: clamp(18px, 3vw, 32px);">
+    <div style="display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 14px; gap: 12px; flex-wrap: wrap;">
+      <p style="font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace; font-size: 13px; letter-spacing: 0.26em; color: #f2b134; margin: 0;">GUIDE</p>
+      <p style="font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace; font-size: 12.5px; color: #dfe4ff; margin: 0; display: flex; align-items: center; gap: 8px;"><span style="width: 8px; height: 8px; border-radius: 50%; background: #ff4d4d; animation: tally 1.6s infinite steps(1);" aria-hidden="true"></span><span data-clock>7:33 PM</span></p>
+    </div>
+    <div style="overflow-x: auto; -webkit-overflow-scrolling: touch;">
+      <div style="--chw: 92px; position: relative; min-width: 660px; border-top: 2px solid #f2b134; font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;">
+        <div style="display: grid; grid-template-columns: var(--chw) repeat(6, minmax(0, 1fr));">
+          <div style="padding: 10px; font-size: 10px; letter-spacing: 0.16em; color: #f2b134;">CH</div>
+          <div data-slot="0" style="border-left: 1px solid rgba(255,255,255,.14); padding: 10px 12px; font-size: 12px; color: #f2b134;">7:00 PM</div>
+          <div data-slot="1" style="border-left: 1px solid rgba(255,255,255,.14); padding: 10px 12px; font-size: 12px; color: #f2b134;">7:30 PM</div>
+          <div data-slot="2" style="border-left: 1px solid rgba(255,255,255,.14); padding: 10px 12px; font-size: 12px; color: #f2b134;">8:00 PM</div>
+          <div data-slot="3" style="border-left: 1px solid rgba(255,255,255,.14); padding: 10px 12px; font-size: 12px; color: #f2b134;">8:30 PM</div>
+          <div data-slot="4" style="border-left: 1px solid rgba(255,255,255,.14); padding: 10px 12px; font-size: 12px; color: #f2b134;">9:00 PM</div>
+          <div data-slot="5" style="border-left: 1px solid rgba(255,255,255,.14); padding: 10px 12px; font-size: 12px; color: #f2b134;">9:30 PM</div>
+
+          <div style="border-top: 1px solid rgba(255,255,255,.14); padding: 11px 10px; display: flex; flex-direction: column; justify-content: center;"><span style="font-size: 16px; font-weight: 700; color: #f2b134;">02</span><span style="font-size: 9px; letter-spacing: 0.08em; color: #b9c2f0;">RETRO TOONS</span></div>
+          <div data-start="0" data-span="2" style="grid-column: span 2; border-top: 1px solid rgba(255,255,255,.14); border-left: 1px solid rgba(255,255,255,.14); padding: 11px 12px; display: flex; flex-direction: column; gap: 2px; justify-content: center; min-width: 0;"><span style="font-size: 12.5px; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Rerun Theatre</span><span style="font-size: 10px; color: #b9c2f0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">S01E01–E04</span></div>
+          <div data-start="2" data-span="1" style="border-top: 1px solid rgba(255,255,255,.14); border-left: 1px solid rgba(255,255,255,.14); padding: 11px 12px; display: flex; flex-direction: column; gap: 2px; justify-content: center; min-width: 0;"><span style="font-size: 12.5px; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Saturday Shorts</span><span style="font-size: 10px; color: #b9c2f0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">In order</span></div>
+          <div data-start="3" data-span="3" style="grid-column: span 3; border-top: 1px solid rgba(255,255,255,.14); border-left: 1px solid rgba(255,255,255,.14); padding: 11px 12px; display: flex; flex-direction: column; gap: 2px; justify-content: center; min-width: 0;"><span style="font-size: 12.5px; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Cartoon Marathon</span><span style="font-size: 10px; color: #b9c2f0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Marathon block</span></div>
+
+          <div style="border-top: 1px solid rgba(255,255,255,.14); padding: 11px 10px; display: flex; flex-direction: column; justify-content: center;"><span style="font-size: 16px; font-weight: 700; color: #f2b134;">03</span><span style="font-size: 9px; letter-spacing: 0.08em; color: #b9c2f0;">THE BAT CHANNEL</span></div>
+          <div data-start="0" data-span="1" style="border-top: 1px solid rgba(255,255,255,.14); border-left: 1px solid rgba(255,255,255,.14); padding: 11px 12px; display: flex; flex-direction: column; gap: 2px; justify-content: center; min-width: 0;"><span style="font-size: 12.5px; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Same Bat-Time</span><span style="font-size: 10px; color: #b9c2f0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">S02E11</span></div>
+          <div data-start="1" data-span="1" style="border-top: 1px solid rgba(255,255,255,.14); border-left: 1px solid rgba(255,255,255,.14); padding: 11px 12px; display: flex; flex-direction: column; gap: 2px; justify-content: center; min-width: 0;"><span style="font-size: 12.5px; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Same Bat-Channel</span><span style="font-size: 10px; color: #b9c2f0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">S02E12</span></div>
+          <div data-start="2" data-span="2" style="grid-column: span 2; border-top: 1px solid rgba(255,255,255,.14); border-left: 1px solid rgba(255,255,255,.14); padding: 11px 12px; display: flex; flex-direction: column; gap: 2px; justify-content: center; min-width: 0;"><span style="font-size: 12.5px; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Serial Sunday</span><span style="font-size: 10px; color: #b9c2f0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Release order</span></div>
+          <div data-start="4" data-span="2" style="grid-column: span 2; border-top: 1px solid rgba(255,255,255,.14); border-left: 1px solid rgba(255,255,255,.14); padding: 11px 12px; display: flex; flex-direction: column; gap: 2px; justify-content: center; min-width: 0;"><span style="font-size: 12.5px; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Late Reruns</span><span style="font-size: 10px; color: #b9c2f0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Shuffle · deterministic</span></div>
+
+          <div style="border-top: 1px solid rgba(255,255,255,.14); padding: 11px 10px; display: flex; flex-direction: column; justify-content: center;"><span style="font-size: 16px; font-weight: 700; color: #f2b134;">04</span><span style="font-size: 9px; letter-spacing: 0.08em; color: #b9c2f0;">STAR PATROL</span></div>
+          <div data-start="0" data-span="2" style="grid-column: span 2; border-top: 1px solid rgba(255,255,255,.14); border-left: 1px solid rgba(255,255,255,.14); padding: 11px 12px; display: flex; flex-direction: column; gap: 2px; justify-content: center; min-width: 0;"><span style="font-size: 12.5px; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Star Patrol</span><span style="font-size: 10px; color: #b9c2f0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">S05E04</span></div>
+          <div data-start="2" data-span="2" style="grid-column: span 2; border-top: 1px solid rgba(255,255,255,.14); border-left: 1px solid rgba(255,255,255,.14); padding: 11px 12px; display: flex; flex-direction: column; gap: 2px; justify-content: center; min-width: 0;"><span style="font-size: 12.5px; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Star Patrol</span><span style="font-size: 10px; color: #f2b134; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">S05E05 · premiere</span></div>
+          <div data-start="4" data-span="2" style="grid-column: span 2; border-top: 1px solid rgba(255,255,255,.14); border-left: 1px solid rgba(255,255,255,.14); padding: 11px 12px; display: flex; flex-direction: column; gap: 2px; justify-content: center; min-width: 0;"><span style="font-size: 12.5px; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Deep Space Double Bill</span><span style="font-size: 10px; color: #b9c2f0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Movies</span></div>
+
+          <div style="border-top: 1px solid rgba(255,255,255,.14); padding: 11px 10px; display: flex; flex-direction: column; justify-content: center;"><span style="font-size: 16px; font-weight: 700; color: #f2b134;">05</span><span style="font-size: 9px; letter-spacing: 0.08em; color: #b9c2f0;">MIDNIGHT MOVIE</span></div>
+          <div data-start="0" data-span="4" style="grid-column: span 4; border-top: 1px solid rgba(255,255,255,.14); border-left: 1px solid rgba(255,255,255,.14); padding: 11px 12px; display: flex; flex-direction: column; gap: 2px; justify-content: center; min-width: 0;"><span style="font-size: 12.5px; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Feature Presentation</span><span style="font-size: 10px; color: #b9c2f0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">1988 · 118 min</span></div>
+          <div data-start="4" data-span="2" style="grid-column: span 2; border-top: 1px solid rgba(255,255,255,.14); border-left: 1px solid rgba(255,255,255,.14); padding: 11px 12px; display: flex; flex-direction: column; gap: 2px; justify-content: center; min-width: 0;"><span style="font-size: 12.5px; color: #b9c2f0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Please Stand By</span><span style="font-size: 10px; color: #b9c2f0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Bedtime hours</span></div>
+        </div>
+        <div data-playhead style="position: absolute; top: 0; bottom: 0; width: 2px; background: #ff4d4d; box-shadow: 0 0 10px #ff4d4d; z-index: 2; pointer-events: none; left: 92px;" aria-hidden="true"></div>
+      </div>
+    </div>
+    <p style="font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace; font-size: 12px; color: #b9c2f0; margin: 12px 0 0;">Sample lineup. The red line is now — the times are real.</p>
+  </div>
+</section>
+
+<section style="max-width: 1160px; margin: 0 auto; padding: clamp(20px, 3vw, 40px) clamp(18px, 5vw, 48px) clamp(44px, 6vw, 80px);">
+  <h2 style="font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace; font-weight: 700; font-size: clamp(22px, 2.6vw, 30px); letter-spacing: 0.02em; color: #f2b134; margin: 0 0 clamp(24px, 3vw, 36px);">What makes it dumbTV</h2>
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 28px 40px;">
+    <div style="border-top: 2px solid #f2b134; padding-top: 14px;">
+      <h3 style="font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace; font-size: 15px; letter-spacing: 0.14em; color: #ffffff; margin: 0 0 8px;">NO MENUS</h3>
+      <p style="margin: 0; font-size: 16px; line-height: 1.6; color: #a9a4b8;">Turn it on, take what's on.</p>
+    </div>
+    <div style="border-top: 2px solid #f2b134; padding-top: 14px;">
+      <h3 style="font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace; font-size: 15px; letter-spacing: 0.14em; color: #ffffff; margin: 0 0 8px;">JOIN IN PROGRESS</h3>
+      <p style="margin: 0; font-size: 16px; line-height: 1.6; color: #a9a4b8;">Every channel is always mid-broadcast.</p>
+    </div>
+    <div style="border-top: 2px solid #f2b134; padding-top: 14px;">
+      <h3 style="font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace; font-size: 15px; letter-spacing: 0.14em; color: #ffffff; margin: 0 0 8px;">NO PAUSING, NO SKIPPING</h3>
+      <p style="margin: 0; font-size: 16px; line-height: 1.6; color: #a9a4b8;">It's live — that's the point.</p>
+    </div>
+    <div style="border-top: 2px solid #f2b134; padding-top: 14px;">
+      <h3 style="font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace; font-size: 15px; letter-spacing: 0.14em; color: #ffffff; margin: 0 0 8px;">HANDS OFF YOUR LIBRARY</h3>
+      <p style="margin: 0; font-size: 16px; line-height: 1.6; color: #a9a4b8;">Never transcodes, never touches your watch state.</p>
+    </div>
+    <div style="border-top: 2px solid #f2b134; padding-top: 14px;">
+      <h3 style="font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace; font-size: 15px; letter-spacing: 0.14em; color: #ffffff; margin: 0 0 8px;">SELF-CONTAINED</h3>
+      <p style="margin: 0; font-size: 16px; line-height: 1.6; color: #a9a4b8;">Your device, your network. No cloud, no account, no tracking.</p>
+    </div>
+    <div style="border-top: 2px solid #f2b134; padding-top: 14px;">
+      <h3 style="font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace; font-size: 15px; letter-spacing: 0.14em; color: #ffffff; margin: 0 0 8px;">EVERY SCREEN</h3>
+      <p style="margin: 0; font-size: 16px; line-height: 1.6; color: #a9a4b8;">iPhone, iPad, Apple TV &amp; Mac. Configure from any browser on your network.</p>
+    </div>
+  </div>
+</section>
+
+<section style="background: linear-gradient(180deg, #2b3a8f 0%, #16205a 100%);">
+  <div style="max-width: 1160px; margin: 0 auto; padding: clamp(44px, 6vw, 80px) clamp(18px, 5vw, 48px);">
+    <h2 style="font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace; font-weight: 700; font-size: clamp(22px, 2.6vw, 30px); letter-spacing: 0.02em; color: #f2b134; margin: 0 0 clamp(24px, 3vw, 36px);">How it works</h2>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 28px 40px;">
+      <div>
+        <p style="font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace; font-size: 34px; font-weight: 700; color: #f2b134; margin: 0 0 10px;">1</p>
+        <p style="margin: 0; font-size: 17px; line-height: 1.6; color: #dfe4ff;">Install dumbTV; it shows a setup URL + QR code.</p>
+      </div>
+      <div>
+        <p style="font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace; font-size: 34px; font-weight: 700; color: #f2b134; margin: 0 0 10px;">2</p>
+        <p style="margin: 0; font-size: 17px; line-height: 1.6; color: #dfe4ff;">Open that on your phone, link Plex, build a channel.</p>
+      </div>
+      <div>
+        <p style="font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace; font-size: 34px; font-weight: 700; color: #f2b134; margin: 0 0 10px;">3</p>
+        <p style="margin: 0; font-size: 17px; line-height: 1.6; color: #dfe4ff;">Flip channels and watch. There's always something on.</p>
+      </div>
+    </div>
+    <p style="margin: clamp(28px, 4vw, 44px) 0 0; font-size: 15px; line-height: 1.6; color: #b9c2f0; max-width: 62ch;">Requires a Plex Media Server on your network. Comes with a built-in demo lineup so you can see it working first. <a href="/how-to/">Full setup guide →</a></p>
+  </div>
+</section>
+
+<section id="download" style="max-width: 1160px; margin: 0 auto; padding: clamp(44px, 7vw, 88px) clamp(18px, 5vw, 48px);">
+  <div style="display: grid; grid-template-columns: 1fr minmax(280px, 420px); gap: clamp(28px, 5vw, 56px); align-items: center;" data-split>
+    <div>
+      <h2 style="font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace; font-weight: 700; font-size: clamp(24px, 3vw, 36px); color: #ffffff; margin: 0 0 14px;">Get dumbTV</h2>
+      <p style="margin: 0 0 26px; font-size: 17px; line-height: 1.6; color: #a9a4b8; max-width: 48ch;">One app for iPhone, iPad, Apple TV, and Mac. Self-hosters: the same broadcast engine runs on a Raspberry Pi or Windows, straight from the repo.</p>
+      <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+        <a href="#download" aria-disabled="true" style="background: #f2b134; color: #16205a; font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace; font-weight: 700; font-size: 15px; padding: 14px 24px; border-radius: 999px; min-height: 44px; display: inline-flex; align-items: center;">App Store (soon)</a>
+        <a href="https://github.com/sonicstarz/dumbtv" style="border: 1px solid #4a4652; color: #e8e4d9; font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace; font-size: 15px; padding: 13px 22px; min-height: 44px; display: inline-flex; align-items: center;">Self-host from GitHub</a>
+      </div>
+    </div>
+    <div style="border: 2px solid #f2b134; position: relative;">
+      <img src="/assets/iphone-6.9-1-watch-banner.png" alt="dumbTV playing channel 02 Retro Toons, with the amber lower-third banner showing the show, time, and what's next" style="display: block; width: 100%; height: auto;">
+      <div style="position: absolute; inset: 0; pointer-events: none; background: repeating-linear-gradient(180deg, rgba(255,255,255,.03) 0 1px, transparent 1px 3px);" aria-hidden="true"></div>
+    </div>
+  </div>
+</section>
+
+<footer style="border-top: 2px solid #f2b134; background: #06060a;">
+  <div style="max-width: 1160px; margin: 0 auto; padding: clamp(32px, 5vw, 52px) clamp(18px, 5vw, 48px); display: flex; flex-direction: column; gap: 18px;">
+    <nav style="display: flex; flex-wrap: wrap; gap: 10px 26px; font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace; font-size: 13px; letter-spacing: 0.08em;">
+      <a href="/how-to/">How-To</a>
+      <a href="/faq/">FAQ</a>
+      <a href="/support/">Support</a>
+      <a href="/privacy/">Privacy</a>
+      <a href="https://github.com/sonicstarz/dumbtv">GitHub</a>
+    </nav>
+    <p style="margin: 0; font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace; font-size: 13px; color: #f2b134;">what's on is what's on.</p>
+    <p style="margin: 0; font-size: 13.5px; line-height: 1.6; color: #a9a4b8;">Not affiliated with Plex. dumbTV never modifies your library or marks anything as watched.</p>
+  </div>
+  <div style="display: grid; grid-template-columns: repeat(7, 1fr); height: 8px;" aria-hidden="true"><span style="background:#c0c0c0"></span><span style="background:#c0c000"></span><span style="background:#00c0c0"></span><span style="background:#00c000"></span><span style="background:#c000c0"></span><span style="background:#c00000"></span><span style="background:#0000c0"></span></div>
+</footer>
 </body>
 </html>

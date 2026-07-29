@@ -1,53 +1,87 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>dumbTV — Support</title>
+<meta name="description" content="Get help with dumbTV: the setup guide, the FAQ, email support, and GitHub issues.">
 <style>
-  :root { color-scheme: dark; }
-  body { font: 17px/1.6 -apple-system, system-ui, sans-serif; background: #06132f; color: #e8ecf5;
-         max-width: 44rem; margin: 0 auto; padding: 2.5rem 1.25rem 4rem; }
-  h1, h2 { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; color: #ffb000; letter-spacing: .02em; }
-  h1 { font-size: 1.7rem; } h2 { font-size: 1.15rem; margin-top: 2rem; }
-  a { color: #ffb000; } code { color: #ffcf6b; }
-  .muted { color: #9fb0cf; } ol { padding-left: 1.2rem; }
+  html { -webkit-text-size-adjust: 100%; }
+  body { margin: 0; background: #06060a; color: #e8e4d9; font-family: -apple-system, system-ui, "Helvetica Neue", Arial, sans-serif; }
+  * { box-sizing: border-box; }
+  a { color: #f2b134; text-decoration: none; }
+  a:hover { color: #ffd479; text-decoration: underline; }
+  :focus-visible { outline: 3px solid #f2b134; outline-offset: 3px; }
 </style>
+<link rel="canonical" href="https://dumbtv.app/support/">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="dumbTV">
+<meta property="og:title" content="dumbTV — Support">
+<meta property="og:description" content="Get help with dumbTV: the setup guide, the FAQ, email support, and GitHub issues.">
+<meta property="og:url" content="https://dumbtv.app/support/">
+<meta property="og:image" content="https://dumbtv.app/assets/og.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://dumbtv.app/assets/og.png">
 </head>
 <body>
-  <h1>dumbTV — Support</h1>
-  <p>dumbTV turns your Plex library into a 1990s cable box. There's always
-  something on — you flip channels and take what's playing.</p>
+<div style="display: grid; grid-template-columns: repeat(7, 1fr); height: 8px;" aria-hidden="true"><span style="background:#c0c0c0"></span><span style="background:#c0c000"></span><span style="background:#00c0c0"></span><span style="background:#00c000"></span><span style="background:#c000c0"></span><span style="background:#c00000"></span><span style="background:#0000c0"></span></div>
 
-  <h2>Requirements</h2>
-  <p>A <strong>Plex Media Server</strong> on your network. No Plex? The app ships
-  with a built-in demo lineup so you can see how it works first.</p>
+<div style="background: linear-gradient(180deg, #2b3a8f 0%, #16205a 100%); border-bottom: 2px solid #f2b134;">
+  <div style="max-width: 900px; margin: 0 auto; padding: 20px clamp(18px, 5vw, 40px); display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap;">
+    <a href="/" style="font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace; font-weight: 700; font-size: 20px; letter-spacing: 0.06em; color: #f2b134;">dumbTV</a>
+    <nav style="display: flex; gap: clamp(12px, 3vw, 26px); font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace; font-size: 12px; letter-spacing: 0.16em; flex-wrap: wrap;">
+      <a href="/how-to/" style="color: #dfe4ff;">HOW-TO</a>
+      <a href="/faq/" style="color: #dfe4ff;">FAQ</a>
+      <a href="/support/" style="color: #f2b134;">SUPPORT</a>
+      <a href="https://github.com/sonicstarz/dumbtv" style="color: #dfe4ff;">GITHUB</a>
+    </nav>
+  </div>
+  <div style="max-width: 900px; margin: 0 auto; padding: clamp(28px, 5vw, 56px) clamp(18px, 5vw, 40px) clamp(32px, 5vw, 56px);">
+    <p style="font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace; font-size: 12px; letter-spacing: 0.26em; color: #f2b134; margin: 0 0 14px;">SUPPORT</p>
+    <h1 style="font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace; font-weight: 700; font-size: clamp(28px, 5vw, 44px); line-height: 1.1; color: #ffffff; margin: 0 0 14px;">Need a hand with dumbTV?</h1>
+    <p style="margin: 0; font-size: 17px; line-height: 1.6; color: #b9c2f0; max-width: 56ch;">Most questions are answered in the setup guide or the FAQ. If yours isn't, email us or open an issue.</p>
+  </div>
+</div>
 
-  <h2>Setting up</h2>
-  <ol>
-    <li>Open dumbTV. Until it's configured, it shows a <strong>SET UP</strong> card
-      with a URL and a QR code.</li>
-    <li>On your phone or laptop, open that URL (or scan the QR).</li>
-    <li>Go to <strong>Server</strong> and link Plex — it's the standard PIN flow at
-      <a href="https://plex.tv/link">plex.tv/link</a>.</li>
-    <li>Build a channel: pick shows or movies, choose how they're ordered, and it
-      starts broadcasting.</li>
-    <li>Back on the TV, flip channels and watch.</li>
-  </ol>
+<main style="max-width: 900px; margin: 0 auto; padding: clamp(36px, 5vw, 64px) clamp(18px, 5vw, 40px) clamp(48px, 6vw, 80px);">
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 20px; margin-bottom: clamp(36px, 5vw, 56px);">
+    <a href="/how-to/" style="border: 2px solid #f2b134; padding: 24px; display: block; color: inherit; text-decoration: none;">
+      <p style="font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace; font-size: 12px; letter-spacing: 0.2em; color: #f2b134; margin: 0 0 10px;">SETUP GUIDE →</p>
+      <p style="margin: 0; font-size: 16px; line-height: 1.6; color: #a9a4b8;">Install → open the setup URL → link Plex → build a channel. Plus every control, on every device.</p>
+    </a>
+    <a href="/faq/" style="border: 2px solid #f2b134; padding: 24px; display: block; color: inherit; text-decoration: none;">
+      <p style="font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace; font-size: 12px; letter-spacing: 0.2em; color: #f2b134; margin: 0 0 10px;">FAQ →</p>
+      <p style="margin: 0; font-size: 16px; line-height: 1.6; color: #a9a4b8;">Why you can't pause, what direct-play means, ordering modes, Kids Mode, demo mode, and the rest.</p>
+    </a>
+  </div>
 
-  <h2>Frequently asked</h2>
-  <p><strong>Why can't I pause or skip?</strong> By design — it's live TV. What's on
-  is what's on. (Recording/playback is a separate, deliberate exception.)</p>
-  <p><strong>How do I change channels?</strong> Remote or arrow keys (Apple TV / Mac),
-  or swipe up and down (iPhone/iPad). Type a number to jump to a channel.</p>
-  <p><strong>Something won't play.</strong> dumbTV only direct-plays — it never
-  transcodes. A file your device can't play directly is skipped rather than
-  transcoded.</p>
-  <p><strong>It didn't mark my show watched.</strong> Correct — dumbTV never touches
-  your Plex watch state.</p>
+  <div style="border-top: 1px solid rgba(255,255,255,.14); padding-top: clamp(28px, 4vw, 40px); display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 28px 40px;">
+    <div>
+      <h2 style="font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace; font-size: 15px; letter-spacing: 0.14em; color: #ffffff; margin: 0 0 8px;">EMAIL</h2>
+      <p style="margin: 0; font-size: 16.5px; line-height: 1.6; color: #a9a4b8;">Write to <strong style="color: #f2b134;">[CONTACT EMAIL]</strong> — a human reads it.</p>
+    </div>
+    <div>
+      <h2 style="font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace; font-size: 15px; letter-spacing: 0.14em; color: #ffffff; margin: 0 0 8px;">BUGS</h2>
+      <p style="margin: 0; font-size: 16.5px; line-height: 1.6; color: #a9a4b8;">Found something broken? <a href="https://github.com/sonicstarz/dumbtv/issues">Open an issue on GitHub</a> — include your device and what channel was doing at the time.</p>
+    </div>
+  </div>
 
-  <h2>Contact</h2>
-  <p>Email <a href="mailto:support@dumbtv.app">support@dumbtv.app</a>.</p>
-  <p class="muted"><a href="/privacy.html">Privacy Policy</a></p>
+  <p style="margin: clamp(36px, 5vw, 56px) 0 0; font-size: 14.5px; line-height: 1.7; color: #a9a4b8; border-left: 4px solid #f2b134; padding-left: 18px;">Quick sanity check before writing in: dumbTV needs a Plex (or Jellyfin) server on your network, setup happens from a browser on your phone or laptop, and no — pause isn't broken. It's live TV.</p>
+</main>
+
+<footer style="border-top: 2px solid #f2b134; background: #06060a;">
+  <div style="max-width: 900px; margin: 0 auto; padding: clamp(32px, 5vw, 52px) clamp(18px, 5vw, 40px); display: flex; flex-direction: column; gap: 18px;">
+    <nav style="display: flex; flex-wrap: wrap; gap: 10px 26px; font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace; font-size: 13px; letter-spacing: 0.08em;">
+      <a href="/">Home</a>
+      <a href="/how-to/">How-To</a>
+      <a href="/faq/">FAQ</a>
+      <a href="/privacy/">Privacy</a>
+      <a href="https://github.com/sonicstarz/dumbtv">GitHub</a>
+    </nav>
+    <p style="margin: 0; font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace; font-size: 13px; color: #f2b134;">what's on is what's on.</p>
+  </div>
+  <div style="display: grid; grid-template-columns: repeat(7, 1fr); height: 8px;" aria-hidden="true"><span style="background:#c0c0c0"></span><span style="background:#c0c000"></span><span style="background:#00c0c0"></span><span style="background:#00c000"></span><span style="background:#c000c0"></span><span style="background:#c00000"></span><span style="background:#0000c0"></span></div>
+</footer>
 </body>
 </html>

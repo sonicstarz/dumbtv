@@ -68,13 +68,15 @@
     <ol style="margin: 0 0 14px; padding-left: 24px; font-size: 16.5px; line-height: 1.75;">
       <li style="margin-bottom: 8px;"><strong>Your media server</strong> (Plex or Jellyfin) — to browse your library and play video directly. This traffic stays between your device and your server.</li>
       <li><strong>plex.tv</strong> — only if you link a Plex account, to complete the standard sign-in (PIN) flow. This is a direct connection between your device and Plex; we are not in the middle.</li>
+      <li style="margin-top: 8px;"><strong>archive.org</strong> (and, for the SPACE channel, <strong>images.nasa.gov</strong>) — only if you install one of the built-in content packs. Your device downloads those public-domain films straight from the source. We are not in the middle, there is no account, and nothing is reported back to us.</li>
+      <li style="margin-top: 8px;"><strong>dumbtv.app</strong> — only when you <em>open the Channel Packs page</em>, to fetch the current list of available packs. Not on launch, not on a schedule, and never in the background: if you never open that page, dumbTV never contacts us at all. The request carries no identifier — it is a plain download of a public file, and dumbTV works without it using the copy built into the app.</li>
     </ol>
-    <p style="margin: 0; font-size: 16.5px; line-height: 1.7;">That's all. dumbTV makes no other network calls.</p>
+    <p style="margin: 0; font-size: 16.5px; line-height: 1.7;">That's all. dumbTV makes no other network calls — no analytics, no telemetry, no crash reporting, no check-in of any kind.</p>
   </section>
 
   <section style="margin-bottom: 40px; border-top: 2px solid #f2b134; padding-top: 20px;">
     <h2 style="font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace; font-size: 18px; letter-spacing: 0.08em; color: #f2b134; margin: 0 0 14px;">This website</h2>
-    <p style="margin: 0; font-size: 16.5px; line-height: 1.7;">The dumbTV website (<strong>dumbtv.app</strong>) runs <strong>no third-party analytics, advertising, or tracking cookies</strong>. <em style="color: #a9a4b8;">[HOSTING NOTE: state honestly what the chosen host does — e.g. "Our host may keep standard server access logs (IP address, page requested, timestamp) for security and reliability. We do not use these to identify or track you." Adjust once hosting is chosen.]</em></p>
+    <p style="margin: 0; font-size: 16.5px; line-height: 1.7;">The dumbTV website (<strong>dumbtv.app</strong>) runs <strong>no third-party analytics, advertising, or tracking cookies</strong>. The site is hosted by <strong>Netlify</strong>, which keeps standard server access logs — IP address, page requested, timestamp — for security and reliability. We do not use those logs to identify or track anyone, and we do not combine them with anything else. The same applies to the pack list the app downloads from this domain.</p>
   </section>
 
   <section style="margin-bottom: 40px; border-top: 2px solid #f2b134; padding-top: 20px;">

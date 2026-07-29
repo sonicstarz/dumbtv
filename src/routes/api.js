@@ -41,7 +41,10 @@ import {
 } from '../jellyfin/auth.js';
 import { completeJSON, llmConfigured, llmConfig } from '../llm/client.js';
 import { generateChannel, regenerateChannel, ensureSchedule, previewChannel } from '../schedule/generator.js';
-import { packsOverview, startInstall, createChannelFromPack, uninstallPack } from '../packs/install.js';
+import {
+  packsOverview, startInstall, createChannelFromPack, uninstallPack,
+  refreshCatalogInBackground,
+} from '../packs/install.js';
 import { scanLocalFolder, previewLocalFolder, createChannelFromLocalFolder } from '../media/localscan.js';
 import {
   isConfigured, setPin, verifyPin, clearPin, tokenValid, cookieToken, sessionCookieHeader,
@@ -473,7 +476,14 @@ export default async function api(fastify) {
   // Curated public-domain channel packs. GET lists the catalog merged with
   // what's installed; install downloads from the Internet Archive; channel
   // spins one up in a tap; DELETE removes it (aired programs survive).
-  fastify.get('/api/packs', async () => ({ packs: packsOverview() }));
+  fastify.get('/api/packs', async () => {
+    // D5: opening the pack page is the ONE moment dumbTV asks dumbtv.app what
+    // exists. Fire-and-forget — the list you see is whatever is already cached,
+    // and a refresh lands for the next open. Nobody waits on our server to see
+    // their own installed packs. Stated in the privacy policy in these terms.
+    refreshCatalogInBackground();
+    return { packs: packsOverview() };
+  });
 
   fastify.post('/api/packs/:id/install', async (req, reply) => {
     try { return { ok: true, progress: startInstall(req.params.id) }; }

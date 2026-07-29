@@ -44,21 +44,70 @@ extension ConfigAPI {
     static func downloadedPacksDir() -> URL { AppPaths.packsDir() }
 
     func loadCatalog() -> PackCatalog {
-        // Prefer a downloaded catalog override, else the bundled fallback.
+        // Prefer the downloaded catalog, else the one bundled with the build.
+        // That override slot existed from the start; nothing ever wrote it
+        // until refreshCatalogInBackground() below.
         let candidates = [
             Self.downloadedPacksDir().appendingPathComponent("index.json"),
             Bundle.main.resourceURL?.appendingPathComponent("packs/index.json"),
         ].compactMap { $0 }
         for url in candidates {
             if let data = try? Data(contentsOf: url),
-               let cat = try? JSONDecoder().decode(PackCatalog.self, from: data) { return cat }
+               let cat = try? JSONDecoder().decode(PackCatalog.self, from: data),
+               !cat.packs.isEmpty { return cat }
         }
         return PackCatalog(version: 1, packs: [])
+    }
+
+    // ── the live catalog (D5, second half) ──────────────────────────────────
+    //
+    // Publishing dumbtv.app/packs/index.json was half the job; without a fetch,
+    // curation still could not change without an app release.
+    //
+    // WHEN is a privacy decision, not a technical one, and the privacy policy
+    // states it in these words: only when you open the Channel Packs page.
+    // Never on launch, never on a timer, never in the background. Open the page
+    // and dumbTV asks what exists; don't, and it never contacts us at all.
+
+    static let catalogURL = URL(string: "https://dumbtv.app/packs/index.json")!
+    static let catalogTTL: TimeInterval = 6 * 60 * 60      // at most 4 asks a day
+    static let catalogMaxBytes = 2 * 1024 * 1024           // a list, not a payload
+
+    /// Refresh the cached catalog if it is stale. Fire-and-forget: the picker
+    /// renders from what it already has and takes the new list on the next open,
+    /// so a slow or unreachable dumbtv.app is never something the user waits on
+    /// to see their own installed packs.
+    func refreshCatalogInBackground() {
+        let dest = Self.downloadedPacksDir().appendingPathComponent("index.json")
+        if let attrs = try? FileManager.default.attributesOfItem(atPath: dest.path),
+           let modified = attrs[.modificationDate] as? Date,
+           Date().timeIntervalSince(modified) < Self.catalogTTL {
+            return                                          // fresh enough; ask nobody
+        }
+        Task.detached(priority: .utility) {
+            var req = URLRequest(url: Self.catalogURL, timeoutInterval: 10)
+            req.setValue("dumbTV", forHTTPHeaderField: "User-Agent")   // no identifier
+            guard let (data, resp) = try? await URLSession.shared.data(for: req),
+                  let http = resp as? HTTPURLResponse, http.statusCode == 200,
+                  data.count <= Self.catalogMaxBytes,
+                  // A 200 that isn't a catalog (a captive portal, a login page)
+                  // must never be allowed to replace a working one.
+                  let cat = try? JSONDecoder().decode(PackCatalog.self, from: data),
+                  !cat.packs.isEmpty
+            else { return }
+            try? FileManager.default.createDirectory(
+                at: Self.downloadedPacksDir(), withIntermediateDirectories: true)
+            try? data.write(to: dest, options: .atomic)
+        }
     }
 
     // MARK: routes
 
     func packsList() -> Response {
+        // D5: opening the pack page is the ONE moment dumbTV asks dumbtv.app
+        // what exists. Fire-and-forget — this list is whatever is already
+        // cached, and a refresh lands for the next open.
+        refreshCatalogInBackground()
         let installed = Dictionary(uniqueKeysWithValues: store.packs().map { ($0.id, $0) })
         let packChannels = Set(((try? store.sql.query(
             "SELECT rating_key FROM channel_sources WHERE source_type='pack'")) ?? [])

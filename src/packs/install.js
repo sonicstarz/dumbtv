@@ -259,9 +259,88 @@ export function listPacks() {
 
 // ── catalog + one-tap install (P3) ───────────────────────────────────────────
 
+// ── the live catalog (D5, second half) ──────────────────────────────────────
+//
+// Publishing dumbtv.app/packs/index.json was only ever half the job — until
+// something FETCHES it, curation still can't change without an app release.
+//
+// The timing is a privacy decision, not a technical one, and the privacy policy
+// now states it in these words: the fetch happens ONLY when you open the
+// Channel Packs page. Not on launch, not on a timer, never in the background.
+// If you never open that page, dumbTV never contacts us at all — which is the
+// difference between "no phone-home" being true and being a slogan.
+//
+// Everything else here is about never letting a network call break the picker:
+// a cached copy is preferred over the bundled one, the bundled one is always
+// there as a floor, and a fetch that fails or returns nonsense changes nothing.
+
+const CATALOG_URL = process.env.DUMBTV_CATALOG_URL || 'https://dumbtv.app/packs/index.json';
+const CATALOG_TTL_MS = 6 * 60 * 60 * 1000;   // re-open the page all you like; we ask at most 4×/day
+const CATALOG_MAX_BYTES = 2 * 1024 * 1024;   // it is a list of packs, not a payload
+const cachedCatalogPath = () => path.join(path.dirname(config.dbPath), 'catalog.json');
+
+/** Shape check. A 200 that isn't a catalog must not be allowed to replace one. */
+function validCatalog(c) {
+  return !!c && Array.isArray(c.packs) && c.packs.length > 0
+    && c.packs.every((p) => p && typeof p.id === 'string' && Array.isArray(p.items));
+}
+
+/**
+ * The catalog, newest trustworthy copy first: the downloaded cache, then the
+ * one bundled with the build. Never throws, never blocks.
+ */
 export function loadCatalog() {
-  try { return JSON.parse(fs.readFileSync(CATALOG_PATH, 'utf8')); }
-  catch { return { version: 1, packs: [] }; }
+  for (const file of [cachedCatalogPath(), CATALOG_PATH]) {
+    try {
+      const c = JSON.parse(fs.readFileSync(file, 'utf8'));
+      if (validCatalog(c)) return c;
+    } catch { /* try the next one */ }
+  }
+  return { version: 1, packs: [] };
+}
+
+let catalogFetchInFlight = null;
+
+/**
+ * Refresh the cached catalog, if it is stale. Called when the pack page is
+ * opened and nowhere else.
+ *
+ * Deliberately fire-and-forget: the picker renders from whatever it already has
+ * and picks the new list up on the next open. A slow or dead dumbtv.app must
+ * never be something the user waits on to see their own installed packs.
+ */
+export function refreshCatalogInBackground() {
+  const cache = cachedCatalogPath();
+  try {
+    const age = Date.now() - fs.statSync(cache).mtimeMs;
+    if (age < CATALOG_TTL_MS) return null;          // fresh enough; ask nobody
+  } catch { /* no cache yet — fetch */ }
+  if (catalogFetchInFlight) return catalogFetchInFlight;
+
+  catalogFetchInFlight = (async () => {
+    try {
+      const res = await fetch(CATALOG_URL, {
+        headers: { 'User-Agent': 'dumbTV' },        // no identifier, no query string
+        signal: AbortSignal.timeout(10000),
+      });
+      if (!res.ok) return false;
+      const len = Number(res.headers.get('content-length'));
+      if (Number.isFinite(len) && len > CATALOG_MAX_BYTES) return false;
+      const text = await res.text();
+      if (text.length > CATALOG_MAX_BYTES) return false;
+      const parsed = JSON.parse(text);
+      if (!validCatalog(parsed)) return false;      // a login page is not a catalog
+      fs.mkdirSync(path.dirname(cache), { recursive: true });
+      fs.writeFileSync(cache, text);
+      return true;
+    } catch {
+      // Offline, blocked, DNS-poisoned, whatever. The bundled catalog stands.
+      return false;
+    } finally {
+      catalogFetchInFlight = null;
+    }
+  })();
+  return catalogFetchInFlight;
 }
 
 // In-flight/finished install state, keyed by packId, for progress polling.

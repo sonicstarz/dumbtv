@@ -4,10 +4,19 @@
  */
 
 import { escapeHtml } from './esc.js';
+import { createStaticField } from './static-renderer.js';
 
 const $ = (s) => document.querySelector(s);
 
 const video = $('#video');
+
+// U-5: the cheatsheet used to replay for 9 seconds on EVERY load, forever. It
+// is a first-run courtesy, not a permanent fixture — the Apple app settled this
+// in build 13 with first_run_done. `h` still brings it back any time.
+const SEEN_HELP = 'dumbtv.helpSeen';
+const firstRun = !localStorage.getItem(SEEN_HELP);
+if (firstRun) localStorage.setItem(SEEN_HELP, '1');
+
 const state = {
   channels: [],
   channelId: null,
@@ -18,10 +27,18 @@ const state = {
   digits: '',
   digitTimer: null,
   bannerUntil: 0,
-  helpUntil: Date.now() + 9000,
+  helpUntil: firstRun ? Date.now() + 9000 : 0,
   fill: 'fit',
   captions: false,
+  // K-B2: the up-next banner reveals itself near the end of a program, the way
+  // a broadcaster slides one in over the last act. Once per program.
+  nextRevealedFor: null,
+  guideSig: '',        // E-5: only rebuild the guide DOM when it actually changed
 };
+
+// The one noise field. Channel-change bursts, off-air snow, and later the Vibe
+// grain all draw through it.
+const snow = createStaticField($('#snow'), { intensity: 0.85, grain: 4 });
 
 const clock = (ts) =>
   new Date(ts).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
@@ -89,11 +106,19 @@ async function loadDisplaySettings() {
 
 // ------------------------------------------------------------ the loop
 
+// U-4: a hidden tab is not watching television. Polling every second behind a
+// backgrounded window is pure battery cost, and a dead server should not be
+// hammered forever — back off, then recover the moment it answers.
+let pollFails = 0;
+
 async function poll() {
+  if (document.hidden) return;
   let data;
   try {
     data = await api('/api/onair');
+    pollFails = 0;
   } catch {
+    pollFails++;
     show('trouble', { message: 'Cannot reach the dumbTV server' });
     return;
   }
@@ -122,6 +147,17 @@ async function poll() {
 
   const changed = now.id !== state.programId;
   state.programId = now.id;
+
+  // K-B2: reveal the up-next banner over the last stretch of a program, once.
+  // A viewer who can't pause deserves to be told what's coming without asking.
+  const REVEAL_BEFORE_MS = 120000;
+  if (now.remainingMs > 0 && now.remainingMs <= REVEAL_BEFORE_MS
+      && state.nextRevealedFor !== now.id
+      && (now.kind === 'episode' || now.kind === 'movie')
+      && entry.next) {
+    state.nextRevealedFor = now.id;
+    state.bannerUntil = Date.now() + 6000;
+  }
 
   if (now.kind === 'offair') {
     if (changed) video.removeAttribute('src');
@@ -161,6 +197,13 @@ function paint() {
   $('#digits').classList.toggle('on', state.digits.length > 0);
   $('#digits').textContent = state.digits.padEnd(2, '·');
 
+  // K-B1: the channel bug. Present whenever a picture is, absent when the
+  // screen belongs to something else (a card, the guide, a dialled number).
+  const showBug = !!entry && !state.guideOpen && state.program?.playable
+    && state.program.kind !== 'offair';
+  $('#bug').classList.toggle('on', showBug);
+  if (showBug) $('#bugNum').textContent = String(entry.channel.number).padStart(2, '0');
+
   const showBanner = now < state.bannerUntil && !state.guideOpen;
   $('#banner').classList.toggle('on', showBanner);
 
@@ -185,7 +228,16 @@ function paint() {
   $('#guide').classList.toggle('on', state.guideOpen);
   $('#screen').classList.toggle('guiding', state.guideOpen);
   if (state.guideOpen) {
+    // The clock ticks every frame; the ROWS change only when the poll brings
+    // new data or the selection moves. Rebuilding the whole grid at 4 Hz threw
+    // away the selected row on every tick — which is why selection could never
+    // animate, and why a scrolling guide CHANNEL (R4) could not be built on
+    // this at all. Rebuild on a cheap signature instead (E-5).
     $('#gClock').textContent = clock(now);
+    const sig = state.guideIndex + '|' + state.channels
+      .map((c) => `${c.channel.id}:${c.now?.id ?? 0}:${c.next?.id ?? 0}`).join(',');
+    if (sig === state.guideSig) return;
+    state.guideSig = sig;
     // Everything interpolated here is escaped: titles and channel names come
     // from Plex/Jellyfin metadata, from filenames, and from pack manifests, so
     // none of it is ours. (The banner and the cards above use textContent and
@@ -224,6 +276,11 @@ function tuneTo(channelId) {
   state.channelId = channelId;
   state.programId = null;
   state.bannerUntil = Date.now() + 5000;
+  state.nextRevealedFor = null;
+  // K-B3: a moment of snow between channels. Deliberately not awaited — the
+  // tune must not wait on an animation, so the picture arrives underneath and
+  // the static clears off it.
+  snow.burst(200);
   poll();
 }
 
@@ -286,6 +343,7 @@ document.addEventListener('keydown', async (e) => {
     case 'g':
     case 'G':
       state.guideOpen = !state.guideOpen;
+      state.guideSig = '';   // force one rebuild on open/close
       if (state.guideOpen) {
         state.guideIndex = Math.max(
           0,
@@ -357,7 +415,20 @@ video.addEventListener('error', () => {
 
 poll();
 loadDisplaySettings();
-setInterval(poll, 1000);
-setInterval(paint, 250);
+
+// The tick re-derives what should be on air; the schedule is the source of
+// truth, never a timer, so a missed tick costs nothing but a late correction.
+// Back off to at most ~8s while the server is unreachable (U-4).
+(function tick() {
+  const delay = pollFails ? Math.min(8000, 1000 * 2 ** Math.min(pollFails, 3)) : 1000;
+  setTimeout(() => { poll().finally(tick); }, delay);
+})();
+
+setInterval(() => { if (!document.hidden) paint(); }, 250);
 // Pick up display-setting changes made from the config app.
-setInterval(loadDisplaySettings, 10000);
+setInterval(() => { if (!document.hidden) loadDisplaySettings(); }, 10000);
+
+// Coming back to the tab should feel instant, not up-to-a-second stale.
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden) { pollFails = 0; poll(); paint(); }
+});

@@ -315,7 +315,29 @@ Also check and report:
 
 Write findings into `docs/build-15-handoff.md` under a "G1 findings" heading rather than guessing at a code fix. **Do not change the deployment target speculatively** — lowering it has real consequences and needs the tester's OS version first.
 
-### G1 findings — 2026-07-29 · **architecture is ruled out; the deployment target is the answer**
+### ⚠️ G1 — CORRECTED 2026-07-29. The findings below answered the wrong question.
+
+**The actual error is "TestFlight is currently unavailable. Try again." — not "not compatible."** Everything under the heading that follows was reasoned from a paraphrase and is answering a failure mode that never occurred. It is kept only because ruling architecture out is still useful.
+
+**What the real error tells us:**
+
+- **It is not a build problem.** The build lists correctly — 435.8 MB, correct version, Install offered. Nothing about a deployment target or a missing architecture produces this message.
+- **It is not an Apple outage.** It has failed since build 1, across months and fifteen builds.
+- **It is not the account, the Apple ID, or the agreements** — because the **iOS build installs on that same Mac**, through the same TestFlight and App Store plumbing. If any of those were broken, nothing would install.
+
+So it is specific to the **macOS platform build's distribution**, and the ranked candidates are:
+
+1. **The macOS build is not assigned to a TestFlight tester group.** Groups are assigned PER PLATFORM in App Store Connect — being a tester on iOS does not make you one on macOS. This fits "since build 1" exactly: it would never self-resolve, and it surfaces as a generic error because the build genuinely is not available to that account.
+2. **Export compliance unanswered on the macOS build**, which leaves it visible but not distributable.
+3. Sign out / back in to the App Store on that Mac — forces a re-fetch of the install authorisation.
+
+**Check #1 first:** App Store Connect → dumbTV → TestFlight → switch the platform selector to **macOS** → confirm the build has a group and that you are in it.
+
+**Lesson for the next one of these: get the exact error text before writing a findings section.** Two builds of diagnosis went into the wrong failure mode.
+
+---
+
+### Superseded G1 findings — 2026-07-29 · *(kept for the architecture ruling only)*
 
 Read from `xcodebuild -showBuildSettings` on the **Release** configuration, which is what `build-release.sh` archives and therefore what build 14 actually shipped:
 

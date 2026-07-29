@@ -196,11 +196,27 @@ $('#rMode').addEventListener('change', (e) => {
   $('#rCadenceWrap').style.display = e.target.value === 'original_cadence' ? 'block' : 'none';
 });
 $('#rPinSource').addEventListener('change', loadPinEpisodes);
+// R2: picking a season fills the dates and turns on annual repeat, because a
+// holiday window that only fires once is almost never what someone meant.
+$('#rSeasonPreset')?.addEventListener('change', (e) => {
+  const v = e.target.value;
+  if (!v) return;
+  const [from, to] = v.split(':');
+  const y = new Date().getFullYear();
+  $('#rEffFrom').value = `${y}-${from}`;
+  // A window that wraps the new year ends in the FOLLOWING year.
+  $('#rEffTo').value = `${to < from ? y + 1 : y}-${to}`;
+  $('#rEffAnnual').checked = true;
+});
+
 $('#rAdd').addEventListener('click', async () => {
   const kind = $('#rKind').value;
   const body = { kind, name: $('#rName').value || null };
   if ($('#rEffFrom').value) body.effectiveFrom = $('#rEffFrom').value;
   if ($('#rEffTo').value) body.effectiveTo = $('#rEffTo').value;
+  // R2: an annual window compares month/day only, so the season returns each
+  // year instead of being a one-off range that silently expires.
+  if ($('#rEffAnnual').checked) body.effectiveAnnual = true;
   if (kind === 'recurring' || kind === 'blackout') {
     body.daysOfWeek = $('#rDays').value.trim();
     body.startTime = $('#rStart').value.trim();

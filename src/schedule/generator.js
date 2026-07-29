@@ -272,17 +272,49 @@ function expandAirdate(rule, from, until) {
   return out;
 }
 
+/** 'YYYY-MM-DD' → the day-of-year ordinal MMDD, for annual comparisons. */
+const monthDay = (iso) => {
+  const [, m, d] = String(iso).split('-').map(Number);
+  return m * 100 + d;
+};
+
+/**
+ * Is `ts` inside an ANNUAL window? Compares month/day only, so the same window
+ * comes round every year — a Halloween channel should not need re-dating each
+ * autumn. Windows that wrap the year end (Dec 15 – Jan 5) are the reason this
+ * is a predicate rather than a clamp: there is no single absolute range to
+ * intersect, so occurrences are generated across the whole span and filtered.
+ */
+function insideAnnualWindow(ts, fromIso, toIso) {
+  if (!fromIso && !toIso) return true;
+  const d = new Date(ts);
+  const md = (d.getMonth() + 1) * 100 + d.getDate();
+  const lo = fromIso ? monthDay(fromIso) : 101;
+  const hi = toIso ? monthDay(toIso) : 1231;
+  return lo <= hi ? md >= lo && md <= hi : md >= lo || md <= hi;   // wraps midnight of the year
+}
+
 /** Expand one rule into concrete [start, end) occurrences inside the window. */
 function expandRule(rule, from, until) {
-  const effFrom = rule.effective_from ? Date.parse(`${rule.effective_from}T00:00:00`) : -Infinity;
-  const effTo = rule.effective_to ? Date.parse(`${rule.effective_to}T23:59:59`) : Infinity;
+  const annual = !!rule.effective_annual;
+  // An annual rule is not clamped to an absolute range — it recurs, so the
+  // dates are a shape, not a boundary. Non-annual keeps the original behaviour.
+  const effFrom = !annual && rule.effective_from ? Date.parse(`${rule.effective_from}T00:00:00`) : -Infinity;
+  const effTo = !annual && rule.effective_to ? Date.parse(`${rule.effective_to}T23:59:59`) : Infinity;
   const lo = Math.max(from, effFrom);
   const hi = Math.min(until, effTo);
   if (lo >= hi) return [];
 
+  const seasonal = (occurrences) =>
+    annual
+      ? occurrences.filter((o) => insideAnnualWindow(o.start, rule.effective_from, rule.effective_to))
+      : occurrences;
+
   if (rule.kind === 'blackout' || rule.kind === 'recurring') {
-    return dayTimeOccurrences(rule.days_of_week, rule.start_time, rule.duration_min, lo, hi)
-      .map((o) => ({ ...o, rule }));
+    return seasonal(
+      dayTimeOccurrences(rule.days_of_week, rule.start_time, rule.duration_min, lo, hi)
+        .map((o) => ({ ...o, rule }))
+    );
   }
   if (rule.kind === 'pinned' && rule.starts_at_utc) {
     const m = db.prepare('SELECT duration_ms FROM media WHERE rating_key = ?').get(rule.rating_key);
@@ -292,7 +324,7 @@ function expandRule(rule, from, until) {
     const e = s + dur;
     if (e > lo && s < hi) return [{ start: s, end: e, rule, ratingKey: rule.rating_key }];
   }
-  if (rule.kind === 'airdate') return expandAirdate(rule, lo, hi);
+  if (rule.kind === 'airdate') return seasonal(expandAirdate(rule, lo, hi));
   return [];
 }
 

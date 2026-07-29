@@ -771,6 +771,42 @@ check('pack-file: nothing was written outside the pack dir',
   !fs.existsSync(path.join(os.tmpdir(), 'escape.mp4')));
 fs.rmSync(evilPackDir, { recursive: true, force: true });
 
+// ---- seasonal windows (R2) ------------------------------------------------
+// An annual rule compares MONTH AND DAY only, so a Halloween channel comes back
+// every October instead of expiring after one year. Windows may wrap the new
+// year, which is why this is a predicate and not a clamp.
+console.log('\nSeasonal windows');
+{
+  const DAY_MS = 24 * 3600 * 1000;
+  const seasonCh = db.prepare(
+    `INSERT INTO channels (number,name,shuffle_seed,created_at) VALUES (?,?,?,?)`
+  ).run(88, 'SEASONAL', 7, Date.now()).lastInsertRowid;
+  db.prepare('INSERT INTO channel_sources (channel_id,rating_key,source_type,title) VALUES (?,?,?,?)')
+    .run(seasonCh, 'show-xmen', 'show', 'X-Men Evolution');
+  // A blackout that should bite ONLY in October — dated years in the past, so
+  // an absolute window would have expired long ago.
+  db.prepare(`INSERT INTO schedule_rules
+      (channel_id,name,kind,priority,enabled,days_of_week,start_time,duration_min,
+       effective_from,effective_to,effective_annual)
+    VALUES (?,?,'blackout',1000,1,'0,1,2,3,4,5,6','00:00',1439,?,?,1)`)
+    .run(seasonCh, 'October only', '2020-10-01', '2020-10-31');
+
+  const nextYear = new Date().getFullYear() + 1;
+  const octStart = new Date(nextYear, 9, 5).getTime();
+  const mayStart = new Date(nextYear, 4, 5).getTime();
+  // Generate far enough ahead to cover both probes.
+  generateChannel(seasonCh, octStart + 3 * DAY_MS);
+
+  const offairIn = (from) => db.prepare(
+    `SELECT COUNT(*) n FROM programs WHERE channel_id=? AND kind='offair' AND start_utc>=? AND start_utc<?`
+  ).get(seasonCh, from, from + 2 * DAY_MS).n;
+
+  check('seasonal: an annual window still bites in a LATER year',
+    offairIn(octStart) > 0, `(${offairIn(octStart)} off-air blocks, Oct ${nextYear})`);
+  check('seasonal: and does NOT bite outside its window',
+    offairIn(mayStart) === 0, `(May ${nextYear})`);
+}
+
 const counts = db.prepare('SELECT COUNT(*) n FROM programs').get().n;
 console.log(`\n${counts} programs across all channels`);
 console.log(`${pass} passed, ${fail} failed\n`);

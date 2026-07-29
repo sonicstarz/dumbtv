@@ -176,6 +176,16 @@ export class Engine extends EventEmitter {
     return this.snapshot();
   }
 
+  /**
+   * Toggle the guide from outside the player window — the phone remote (R9)
+   * and, later, a FLIRC GUIDE key routed over HTTP. The mpv key path calls the
+   * same two methods, so there is one guide, driven from several inputs.
+   */
+  async toggleGuide() {
+    this.guideOpen ? await this.#closeGuide() : await this.#openGuide();
+    return { guideOpen: this.guideOpen };
+  }
+
   /** Dispatch a key from the mpv window (or a FLIRC remote pretending to be one). */
   async #onKey(args) {
     if (args[0] !== 'dumbtv-key') return;

@@ -194,6 +194,11 @@ addColumnIfMissing('channels', 'ads_between', 'INTEGER NOT NULL DEFAULT 4');
 addColumnIfMissing('channels', 'overrun_policy', "TEXT NOT NULL DEFAULT 'protect'"); // protect|cutin
 // original_cadence airdate replay speed (1 = original pacing).
 addColumnIfMissing('schedule_rules', 'cadence_compress', 'REAL NOT NULL DEFAULT 1');
+// Seasonal windows (R2): when set, effective_from/effective_to are compared by
+// MONTH AND DAY only, so the window comes round every year — a Halloween
+// channel should not need re-dating each autumn. Off = the original one-shot
+// absolute range, so nothing existing changes behaviour.
+addColumnIfMissing('schedule_rules', 'effective_annual', 'INTEGER NOT NULL DEFAULT 0');
 // Loudness: gain (dB) toward the target, measured at import, applied at playback.
 addColumnIfMissing('assets', 'gain_db', 'REAL');
 // System channels (S3): a prebuilt channel dumbTV ships and stands behind — the

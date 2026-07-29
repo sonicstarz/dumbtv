@@ -18,6 +18,8 @@ app.register(api);
 
 app.get('/', (req, reply) => reply.sendFile('index.html'));
 app.get('/tv', (req, reply) => reply.sendFile('tv.html'));
+// The phone remote (R9) — change channels from the sofa without the config app.
+app.get('/remote', (req, reply) => reply.sendFile('remote.html'));
 
 app.setErrorHandler((err, req, reply) => {
   reply.code(err.statusCode || 500).send({ error: err.message });

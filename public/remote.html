@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>dumbTV Remote</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect x='11' y='3' width='10' height='26' rx='4' fill='none' stroke='%23f2b134' stroke-width='3'/></svg>" />
+<style>
+:root {
+  --amber: #f2b134;
+  --tape: #e8e4d9;
+  --dim: #a9a4b8;
+  --tally: #e0483f;
+  --panel: #14141c;
+  --sans: system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --mono: ui-monospace, 'SF Mono', Menlo, monospace;
+}
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body {
+  margin: 0; min-height: 100%; background: #06060a; color: var(--tape);
+  font-family: var(--sans);
+  /* A remote is held, not read — never let the page rubber-band under a thumb. */
+  overscroll-behavior: none;
+}
+body {
+  display: flex; flex-direction: column; gap: 14px;
+  padding: max(14px, env(safe-area-inset-top)) 14px max(14px, env(safe-area-inset-bottom));
+  max-width: 420px; margin: 0 auto;
+}
+h1 { font-family: var(--mono); font-size: 13px; letter-spacing: .22em; color: var(--dim);
+     margin: 4px 0 0; text-transform: uppercase; font-weight: 600; }
+
+/* ---- now playing ---- */
+#now {
+  background: var(--panel); border-left: 5px solid var(--amber);
+  border-radius: 6px; padding: 14px 16px; min-height: 92px;
+}
+#now .ch { font-family: var(--mono); font-size: 13px; letter-spacing: .16em; color: var(--amber); }
+#now .title { font-size: 20px; font-weight: 600; margin-top: 6px; line-height: 1.25; }
+#now .sub { font-size: 14px; color: var(--dim); margin-top: 4px; }
+#now .next { font-family: var(--mono); font-size: 12px; color: var(--dim); margin-top: 10px; }
+#now.stale { opacity: .45; }
+
+/* ---- buttons ---- */
+button {
+  font: inherit; color: var(--tape); background: var(--panel);
+  border: 1px solid rgba(255,255,255,.13); border-radius: 10px;
+  padding: 0; cursor: pointer; touch-action: manipulation;
+  /* 56px: a thumb target, not a mouse target. */
+  min-height: 56px;
+}
+button:active { background: #23232f; transform: translateY(1px); }
+button:focus-visible { outline: 3px solid var(--amber); outline-offset: 2px; }
+button[disabled] { opacity: .4; cursor: default; }
+
+.pad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.pad button { font-family: var(--display, var(--mono)); font-size: 24px; font-weight: 600; }
+.row { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+.row.three { grid-template-columns: repeat(3, 1fr); }
+.big { font-size: 17px; font-weight: 600; }
+.amber { color: var(--amber); }
+
+/* The channel entry echo — mirrors the TV's own digit readout. */
+#entry {
+  font-family: var(--mono); font-size: 15px; letter-spacing: .3em;
+  color: var(--amber); text-align: center; min-height: 20px;
+}
+
+#msg { font-family: var(--mono); font-size: 12px; color: var(--dim); text-align: center; min-height: 16px; }
+#msg.bad { color: var(--tally); }
+
+@media (prefers-reduced-motion: reduce) { button:active { transform: none; } }
+</style>
+</head>
+<body>
+
+<h1>dumbTV Remote</h1>
+
+<!-- Announced to screen readers as it changes, so the remote is usable without
+     looking at it — which is rather the point of a remote. -->
+<div id="now" role="status" aria-live="polite" aria-atomic="true">
+  <div class="ch" id="nowCh">—</div>
+  <div class="title" id="nowTitle">Connecting…</div>
+  <div class="sub" id="nowSub"></div>
+  <div class="next" id="nowNext"></div>
+</div>
+
+<div class="row">
+  <button id="chUp" class="big" aria-label="Channel up">CH &uarr;</button>
+  <button id="chDown" class="big" aria-label="Channel down">CH &darr;</button>
+</div>
+
+<div id="entry" aria-live="polite"></div>
+
+<div class="pad" id="pad" role="group" aria-label="Channel number">
+  <button data-d="1">1</button><button data-d="2">2</button><button data-d="3">3</button>
+  <button data-d="4">4</button><button data-d="5">5</button><button data-d="6">6</button>
+  <button data-d="7">7</button><button data-d="8">8</button><button data-d="9">9</button>
+  <button id="clear" aria-label="Clear entry">&#10005;</button>
+  <button data-d="0">0</button>
+  <button id="go" class="amber" aria-label="Tune to the entered channel">GO</button>
+</div>
+
+<div class="row three">
+  <button id="info" class="big" aria-label="Show the channel banner">INFO</button>
+  <button id="guide" class="big" aria-label="Toggle the guide">GUIDE</button>
+  <button id="rec" class="big" aria-label="Record what is on now">REC</button>
+</div>
+
+<div id="msg"></div>
+
+<script src="/remote.js" type="module"></script>
+</body>
+</html>

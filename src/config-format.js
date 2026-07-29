@@ -35,7 +35,7 @@ export const SOURCE_FIELDS = ['ratingKey', 'sourceType', 'title'];
 export const RULE_FIELDS = [
   'name', 'kind', 'priority', 'enabled', 'daysOfWeek', 'startTime', 'durationMin',
   'startsAtUtc', 'sourceType', 'ratingKey', 'orderingMode', 'effectiveFrom',
-  'effectiveTo', 'adPolicy', 'airdateMode', 'cadenceCompress',
+  'effectiveTo', 'adPolicy', 'airdateMode', 'cadenceCompress', 'effectiveAnnual',
 ];
 
 /**
@@ -62,7 +62,7 @@ export const RULE_COLUMNS = {
   startsAtUtc: 'starts_at_utc', sourceType: 'source_type', ratingKey: 'rating_key',
   orderingMode: 'ordering_mode', effectiveFrom: 'effective_from',
   effectiveTo: 'effective_to', adPolicy: 'ad_policy', airdateMode: 'airdate_mode',
-  cadenceCompress: 'cadence_compress',
+  cadenceCompress: 'cadence_compress', effectiveAnnual: 'effective_annual',
 };
 
 const BOOL_CHANNEL_FIELDS = new Set(['adsEnabled', 'enabled']);

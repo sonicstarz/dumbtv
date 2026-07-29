@@ -604,7 +604,7 @@ export default async function api(fastify) {
   const RULE_FIELDS = [
     'name', 'kind', 'priority', 'enabled', 'days_of_week', 'start_time', 'duration_min',
     'starts_at_utc', 'source_type', 'rating_key', 'ordering_mode', 'effective_from',
-    'effective_to', 'ad_policy', 'airdate_mode', 'cadence_compress',
+    'effective_to', 'ad_policy', 'airdate_mode', 'cadence_compress', 'effective_annual',
   ];
 
   fastify.get('/api/channels/:id/rules', async (req) => ({
@@ -620,10 +620,10 @@ export default async function api(fastify) {
       INSERT INTO schedule_rules
         (channel_id, name, kind, priority, enabled, days_of_week, start_time, duration_min,
          starts_at_utc, source_type, rating_key, ordering_mode, effective_from, effective_to,
-         ad_policy, airdate_mode, cadence_compress)
+         ad_policy, airdate_mode, cadence_compress, effective_annual)
       VALUES (@channelId,@name,@kind,@priority,1,@daysOfWeek,@startTime,@durationMin,
               @startsAtUtc,@sourceType,@ratingKey,@orderingMode,@effectiveFrom,@effectiveTo,
-              @adPolicy,@airdateMode,@cadenceCompress)
+              @adPolicy,@airdateMode,@cadenceCompress,@effectiveAnnual)
     `).run({
       channelId: Number(req.params.id), name: b.name || null, kind: b.kind, priority,
       daysOfWeek: b.daysOfWeek || null, startTime: b.startTime || null, durationMin: b.durationMin ?? null,
@@ -631,6 +631,7 @@ export default async function api(fastify) {
       orderingMode: b.orderingMode || null, effectiveFrom: b.effectiveFrom || null,
       effectiveTo: b.effectiveTo || null, adPolicy: b.adPolicy ? JSON.stringify(b.adPolicy) : null,
       airdateMode: b.airdateMode || null, cadenceCompress: b.cadenceCompress ?? 1,
+      effectiveAnnual: b.effectiveAnnual ? 1 : 0,
     });
     return { id: info.lastInsertRowid };
   });
@@ -645,6 +646,7 @@ export default async function api(fastify) {
       ordering_mode: b.orderingMode, effective_from: b.effectiveFrom, effective_to: b.effectiveTo,
       ad_policy: b.adPolicy === undefined ? undefined : (b.adPolicy ? JSON.stringify(b.adPolicy) : null),
       airdate_mode: b.airdateMode, cadence_compress: b.cadenceCompress,
+      effective_annual: b.effectiveAnnual === undefined ? undefined : (b.effectiveAnnual ? 1 : 0),
     };
     const sets = [], vals = [];
     for (const f of RULE_FIELDS) {
@@ -944,6 +946,9 @@ export default async function api(fastify) {
   }));
 
   fastify.post('/api/player/banner', async () => engine.showBanner());
+
+  // The phone remote's GUIDE key (R9). Same guide the mpv window toggles.
+  fastify.post('/api/player/guide', async () => engine.toggleGuide());
 
   // ---- Local media -------------------------------------------------------
 

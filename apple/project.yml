@@ -16,8 +16,8 @@ packages:
 settings:
   base:
     SWIFT_VERSION: "5.0"
-    MARKETING_VERSION: "1.2.0"
-    CURRENT_PROJECT_VERSION: "17"
+    MARKETING_VERSION: "1.3.0"
+    CURRENT_PROJECT_VERSION: "18"
     GENERATE_INFOPLIST_FILE: YES
     INFOPLIST_FILE: Info-shared.plist          # base for ATS; Xcode merges generated keys on top
     # dumbTV reaches the user's Plex server and serves its own setup page on the
@@ -53,6 +53,14 @@ targetTemplates:
       - name: Bundle content packs
         basedOnDependencyAnalysis: false
         script: |
+          # Provenance gate on what goes INSIDE the binary. build-pack.js gates at
+          # BUILD time; this phase used to copy any PRELOAD pack with a built dist
+          # regardless — so a dist encoded before the rights schema shipped with no
+          # basis at all. Build 18 was archived that way (ad-break and
+          # saturday-morning, four uncited titles) while the download catalog was
+          # correctly refusing the same packs. Fails the build, not a warning: the
+          # binary is the one path we cannot recall.
+          "${SRCROOT}/check-preload-provenance.sh" || exit 1
           DEST="${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/packs"
           rm -rf "$DEST"; mkdir -p "$DEST"
           # The download catalog (fallback for the pack picker when dumbtv.app is unreachable).

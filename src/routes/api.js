@@ -45,7 +45,10 @@ import {
   packsOverview, startInstall, createChannelFromPack, uninstallPack,
   refreshCatalogInBackground,
 } from '../packs/install.js';
-import { scanLocalFolder, previewLocalFolder, createChannelFromLocalFolder } from '../media/localscan.js';
+import {
+  scanLocalFolder, previewLocalFolder, createChannelFromLocalFolder,
+  listLocalFolders, forgetLocalFolder,
+} from '../media/localscan.js';
 import {
   isConfigured, setPin, verifyPin, clearPin, tokenValid, cookieToken, sessionCookieHeader,
 } from '../auth.js';
@@ -506,6 +509,39 @@ export default async function api(fastify) {
   // ── local folders (Track I) — "bring your own files", no Plex ──────────────
   // Node/Pi/Mac-dev only: the config UI runs on another device and can't pick a
   // folder on the TV. (Apple registers folders via a native grant; see docs.)
+  // The management list the web UI renders. Same wire shape as the Apple side's
+  // /api/local-folders, so one UI serves both without branching.
+  fastify.get('/api/local-folders', async () => ({ folders: listLocalFolders() }));
+
+  fastify.delete('/api/local-folders/:id', async (req) => {
+    forgetLocalFolder(req.params.id);
+    return { ok: true };
+  });
+
+  // Matches the Apple side's shape (/:id/channel) so ONE web UI drives both.
+  // The older body-carries-the-id form below is kept for anything already
+  // calling it.
+  fastify.post('/api/local-folders/:id/channel', async (req, reply) => {
+    const f = listLocalFolders().find((x) => x.folderId === req.params.id);
+    if (!f) return reply.code(400).send({ error: 'No such folder' });
+    const { channelId } = createChannelFromLocalFolder(
+      f.folderId, req.body?.name || f.name, req.body || {}
+    );
+    return { ok: true, channelId, results: ensureSchedule() };
+  });
+
+  fastify.post('/api/local-folders/:id/rescan', async (req, reply) => {
+    const f = listLocalFolders().find((x) => x.folderId === req.params.id);
+    if (!f) return reply.code(400).send({ error: 'No such folder' });
+    try {
+      const res = await scanLocalFolder(f.path);
+      for (const { id } of db.prepare(
+        "SELECT channel_id AS id FROM channel_sources WHERE rating_key = ?"
+      ).all(req.params.id)) regenerateChannel(id);
+      return { ok: true, items: res.added };
+    } catch (e) { return reply.code(400).send({ error: e.message }); }
+  });
+
   fastify.get('/api/local-folders/preview', async (req, reply) => {
     if (!req.query.path) return reply.code(400).send({ error: 'path required' });
     try { return await previewLocalFolder(req.query.path); }

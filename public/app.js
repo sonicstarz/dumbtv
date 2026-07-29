@@ -1568,7 +1568,100 @@ async function loadGuide() {
 
 // ---------------------------------------------------------------- channel packs
 
+// ── local folders (Track I, P5/P6) ──────────────────────────────────────────
+//
+// One UI, two grant models. On a Pi/Windows/Docker install there is no sandbox,
+// so a path is enough and you type one. On a Mac the app IS sandboxed: it has
+// to be handed the folder through a native panel, and permission only survives
+// a relaunch as a security-scoped bookmark — so the grant happens in the Mac
+// app's menu and everything afterwards happens right here.
+//
+// The wire shape is identical on both backends, so this function does not care
+// which one it is talking to; only the "how do I add one" affordance differs.
+async function loadLocalFolders() {
+  const list = $('#localFolders');
+  const add = $('#localAdd');
+  if (!list) return;
+
+  let folders = [];
+  try { ({ folders } = await api('/api/local-folders')); }
+  catch { list.innerHTML = ''; add.innerHTML = ''; return; }   // older backend — hide the whole block
+
+  list.innerHTML = folders.length ? folders.map((f) => `
+    <div class="chan" style="grid-template-columns:1fr auto;align-items:center">
+      <div>
+        <b>${escapeHtml(f.name)}</b>
+        ${f.missing ? '<span class="chip" style="color:var(--tally)">NOT FOUND</span>' : ''}
+        ${f.hasChannel ? '<span class="chip">ON AIR</span>' : ''}
+        <div class="sub mono" style="font-size:12px">${escapeHtml(f.path)}</div>
+        <div class="sub" style="font-size:12px">
+          ${f.itemCount} item${f.itemCount === 1 ? '' : 's'}${f.lastScan ? ` · scanned ${fmtDay(f.lastScan)}` : ''}
+        </div>
+      </div>
+      <div class="chan-actions">
+        ${f.hasChannel ? '' : `<button class="sm" data-lf-channel="${escapeHtml(f.folderId)}">Make a channel</button>`}
+        <button class="sm" data-lf-rescan="${escapeHtml(f.folderId)}">Rescan</button>
+        <button class="sm ghost" data-lf-forget="${escapeHtml(f.folderId)}">Remove</button>
+      </div>
+    </div>`).join('') : '';
+
+  // The missing-folder case is worth explaining rather than leaving as a chip:
+  // it is nearly always an unplugged drive, not a broken app.
+  if (folders.some((f) => f.missing)) {
+    list.insertAdjacentHTML('beforeend',
+      `<p class="hint" style="color:var(--tally)">A folder above is not where it was — usually an unplugged drive. Its channel keeps its place and starts playing again when the folder comes back.</p>`);
+  }
+
+  const native = state.status && state.status.platform !== 'node';
+  add.innerHTML = native
+    ? `<p class="hint">${folders.length ? '' : 'No folders yet. '}To add one, use <b>Channel ▸ Add Local Folder…</b> in the dumbTV menu bar on the Mac itself — macOS only lets an app read a folder you hand it directly.</p>`
+    : `<div class="row" style="align-items:flex-end;gap:10px;margin-top:12px">
+         <div class="field" style="flex:1">
+           <label>FOLDER PATH ON THIS MACHINE</label>
+           <input id="lfPath" placeholder="/media/cartoons" style="width:100%">
+         </div>
+         <button class="primary" id="lfAdd">Add folder</button>
+       </div>`;
+
+  list.querySelectorAll('[data-lf-rescan]').forEach((b) => (b.onclick = async () => {
+    b.disabled = true; b.textContent = 'Scanning…';
+    try {
+      const r = await api(`/api/local-folders/${encodeURIComponent(b.dataset.lfRescan)}/rescan`, { method: 'POST', body: {} });
+      toast(`Found ${r.items} item${r.items === 1 ? '' : 's'}.`);
+    } catch (e) { toast(e.message, true); }
+    loadLocalFolders();
+  }));
+  list.querySelectorAll('[data-lf-channel]').forEach((b) => (b.onclick = async () => {
+    try {
+      await api(`/api/local-folders/${encodeURIComponent(b.dataset.lfChannel)}/channel`, { method: 'POST', body: {} });
+      toast('Channel created.');
+      loadLocalFolders(); loadChannels();
+    } catch (e) { toast(e.message, true); }
+  }));
+  list.querySelectorAll('[data-lf-forget]').forEach((b) => (b.onclick = async () => {
+    if (!(await confirmModal('Remove this folder? Its files stay on disk. Any channel using it keeps its place and stands by until you add the folder again.', { danger: true, ok: 'Remove' }))) return;
+    try { await api(`/api/local-folders/${encodeURIComponent(b.dataset.lfForget)}`, { method: 'DELETE' }); }
+    catch (e) { return toast(e.message, true); }
+    toast('Folder removed.');
+    loadLocalFolders();
+  }));
+
+  const addBtn = $('#lfAdd');
+  if (addBtn) addBtn.onclick = async () => {
+    const p = $('#lfPath').value.trim();
+    if (!p) return toast('Enter a folder path.', true);
+    addBtn.disabled = true; addBtn.textContent = 'Scanning…';
+    try {
+      const r = await api('/api/local-folders', { method: 'POST', body: { path: p } });
+      toast(`Added ${r.added} item${r.added === 1 ? '' : 's'}.`);
+    } catch (e) { toast(e.message, true); }
+    addBtn.disabled = false; addBtn.textContent = 'Add folder';
+    loadLocalFolders();
+  };
+}
+
 async function loadPacks() {
+  loadLocalFolders();
   const host = $('#packList');
   if (!host.children.length) host.innerHTML = '<p class="hint">Loading…</p>';
   let data;

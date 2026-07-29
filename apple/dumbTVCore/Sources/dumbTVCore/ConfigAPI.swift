@@ -129,6 +129,12 @@ public final class ConfigAPI {
         case ("DELETE", 2) where s[0] == "channels": return deleteChannel(s[1])
         case ("PATCH", 2) where s[0] == "rules":     return patchRule(s[1], req)
         case ("DELETE", 2) where s[0] == "rules":    return deleteRule(s[1])
+        // --- local folders (Track I, P6) — granted natively, managed here ---
+        case ("GET", 1) where s[0] == "local-folders":                    return localFoldersList()
+        case ("POST", 3) where s[0] == "local-folders" && s[2] == "rescan":  return await localFolderRescan(s[1])
+        case ("POST", 3) where s[0] == "local-folders" && s[2] == "channel": return localFolderChannel(s[1], req)
+        case ("DELETE", 2) where s[0] == "local-folders":                 return localFolderForget(s[1])
+
         case ("GET", 2) where s[0] == "config" && s[1] == "export": return exportConfig()
         case ("POST", 2) where s[0] == "config" && s[1] == "import": return importConfig(req)
 
@@ -591,6 +597,74 @@ public final class ConfigAPI {
         if let v = b.string("displayFill") { store.setSetting("display_fill", v == "fill" ? "fill" : "fit") }
         if let v = b.bool("captions") { store.setSetting("captions", v ? "1" : "0") }
         return .ok()
+    }
+
+    // MARK: - local folders (Track I, P6)
+    //
+    // The grant itself is native and macOS-only — a sandboxed app can only get
+    // permission from a real NSOpenPanel, and the config UI is a browser on
+    // another device. So the Mac app owns that one moment; everything after it
+    // lives here, in the same web UI as the rest of the configuration.
+
+    private func localFolderJSON(_ f: Store.GrantedFolder) -> [String: Any] {
+        [
+            "folderId": f.folderId,
+            "path": f.path,
+            "name": (f.path as NSString).lastPathComponent,
+            "addedAt": f.addedAt,
+            "lastScan": f.lastScan ?? NSNull(),
+            "itemCount": f.itemCount,
+            // Surfaced, not hidden: a folder on an unmounted drive should say so
+            // rather than leaving a channel mysteriously empty.
+            "missing": f.missing,
+            "hasChannel": store.allChannels().contains { c in
+                store.sources(c.id).contains { $0.ratingKey == f.folderId }
+            },
+        ]
+    }
+
+    private func localFoldersList() -> Response {
+        .ok(["folders": store.grantedFolders().map(localFolderJSON)])
+    }
+
+    /// Re-read a granted folder. New files appear, vanished ones drop out, and
+    /// already-aired programs are untouched — the same rules as a pack refresh.
+    private func localFolderRescan(_ folderId: String) async -> Response {
+        #if os(macOS)
+        guard let (url, needsStop) = store.resolveGrantedFolder(folderId) else {
+            return .bad("That folder's permission could not be restored. Remove it and add it again.")
+        }
+        defer { if needsStop { url.stopAccessingSecurityScopedResource() } }
+        let items = await Store.scanFolder(url)
+        _ = store.registerLocalFolder(rootPath: url.path, items: items)
+        store.noteFolderScanned(folderId, itemCount: items.count)
+        // Rebuild only the channels that actually play this folder. Invariant #4
+        // holds — regenerate never rewrites what has already aired.
+        let now = nowMs()
+        for c in store.allChannels()
+        where store.sources(c.id).contains(where: { $0.ratingKey == folderId }) {
+            Scheduler.regenerate(store: store, channelId: c.id, now: now)
+        }
+        return .ok(["ok": true, "items": items.count])
+        #else
+        return .bad("Local folders are a macOS feature.")
+        #endif
+    }
+
+    private func localFolderChannel(_ folderId: String, _ req: Request) -> Response {
+        guard let f = store.grantedFolders().first(where: { $0.folderId == folderId }) else {
+            return .bad("No such folder")
+        }
+        let name = (req.body?["name"] as? String) ?? (f.path as NSString).lastPathComponent
+        guard let id = store.createChannelFromLocalFolder(folderId, name: name) else {
+            return .bad("Could not create the channel")
+        }
+        return .ok(["ok": true, "channelId": id])
+    }
+
+    private func localFolderForget(_ folderId: String) -> Response {
+        store.removeGrantedFolder(folderId)
+        return .ok(["ok": true])
     }
 
     // MARK: - config export / import (format v3)

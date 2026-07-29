@@ -72,6 +72,98 @@ extension Store {
         return Int(id)
     }
 
+    // ── granted folders (P6) ────────────────────────────────────────────────
+    //
+    // The decided shape, from the Track I open question: GRANT ONCE NATIVELY,
+    // MANAGE IN THE WEB UI. The config UI runs in a browser on another device
+    // and cannot open a file picker on the TV — so the Mac app owns the moment
+    // permission is given, and everything afterwards (see it, rescan it, remove
+    // it) happens in the same web UI as the rest of the configuration.
+
+    public struct GrantedFolder: Sendable {
+        public let folderId: String
+        public let path: String
+        public let addedAt: Millis
+        public let lastScan: Millis?
+        public let itemCount: Int
+        /// True when the folder is no longer where it was — moved, renamed, or
+        /// on a volume that isn't mounted. Worth showing rather than hiding:
+        /// an empty channel with no explanation looks like a bug.
+        public var missing: Bool { !FileManager.default.fileExists(atPath: path) }
+    }
+
+    /// Persist a grant. The bookmark is what survives a relaunch; the path is
+    /// only ever for display and for spotting a folder that has moved.
+    public func saveGrantedFolder(folderId: String, path: String, bookmark: Data) {
+        _ = try? sql.run("""
+            INSERT INTO granted_folders (folder_id, path, bookmark, added_at, last_scan, item_count)
+            VALUES (?,?,?,?,NULL,0)
+            ON CONFLICT(folder_id) DO UPDATE SET path=excluded.path, bookmark=excluded.bookmark
+            """, [.text(folderId), .text(path), .text(bookmark.base64EncodedString()),
+                  .int(Millis(Date().timeIntervalSince1970 * 1000))])
+    }
+
+    public func grantedFolders() -> [GrantedFolder] {
+        ((try? sql.query("SELECT * FROM granted_folders ORDER BY added_at")) ?? []).compactMap { r in
+            guard let id = r.text("folder_id"), let p = r.text("path") else { return nil }
+            return GrantedFolder(folderId: id, path: p,
+                                 addedAt: r.int("added_at") ?? 0,
+                                 lastScan: r.int("last_scan"),
+                                 itemCount: Int(r.int("item_count") ?? 0))
+        }
+    }
+
+    public func grantedFolderBookmark(_ folderId: String) -> Data? {
+        guard let row = (try? sql.query(
+                "SELECT bookmark FROM granted_folders WHERE folder_id=?", [.text(folderId)]))?.first,
+              let b64 = row.text("bookmark") else { return nil }
+        return Data(base64Encoded: b64)
+    }
+
+    public func noteFolderScanned(_ folderId: String, itemCount: Int) {
+        _ = try? sql.run("UPDATE granted_folders SET last_scan=?, item_count=? WHERE folder_id=?",
+                         [.int(Millis(Date().timeIntervalSince1970 * 1000)),
+                          .int(Int64(itemCount)), .text(folderId)])
+    }
+
+    /// Forget a folder: drop the grant and its media, but leave any channel
+    /// standing. Same rule as uninstalling a pack — the channel goes to the
+    /// stand-by card rather than vanishing, and re-granting restores it exactly,
+    /// because the folder key is a hash of the path and the rating keys are
+    /// hashes of the relative paths (invariant #5 across a re-grant).
+    public func removeGrantedFolder(_ folderId: String) {
+        _ = try? sql.run("DELETE FROM media WHERE parent_key=?", [.text(folderId)])
+        _ = try? sql.run("DELETE FROM granted_folders WHERE folder_id=?", [.text(folderId)])
+    }
+
+    #if os(macOS)
+    /// Turn a stored bookmark back into a usable URL.
+    ///
+    /// Returns the URL and whether the caller must call
+    /// `stopAccessingSecurityScopedResource()` when finished — which it must,
+    /// because these are a limited resource and leaking them eventually stops
+    /// new grants from resolving at all.
+    ///
+    /// A STALE bookmark is not a failure: macOS hands back a working URL and
+    /// asks for a fresh bookmark, which is how a moved folder keeps working. We
+    /// re-save it silently.
+    public func resolveGrantedFolder(_ folderId: String) -> (url: URL, needsStop: Bool)? {
+        guard let data = grantedFolderBookmark(folderId) else { return nil }
+        var stale = false
+        guard let url = try? URL(resolvingBookmarkData: data,
+                                 options: [.withSecurityScope],
+                                 relativeTo: nil,
+                                 bookmarkDataIsStale: &stale) else { return nil }
+        let ok = url.startAccessingSecurityScopedResource()
+        if stale, let fresh = try? url.bookmarkData(options: [.withSecurityScope],
+                                                    includingResourceValuesForKeys: nil,
+                                                    relativeTo: nil) {
+            saveGrantedFolder(folderId: folderId, path: url.path, bookmark: fresh)
+        }
+        return (url, ok)
+    }
+    #endif
+
     #if canImport(AVFoundation)
     /// Scan a folder into ScannedItems (durations via AVFoundation). App-level:
     /// call inside a security-scoped-resource access on the granted folder URL.

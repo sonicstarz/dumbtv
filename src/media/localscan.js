@@ -91,6 +91,15 @@ export async function scanLocalFolder(dir) {
     for (const rk of existing) if (!seen.has(rk)) del.run(rk); // vanished files
   })();
 
+  // Remember the folder itself, not just its files — so the web UI can list it,
+  // rescan it and remove it. Same shape as the Apple side's granted_folders.
+  db.prepare(`
+    INSERT INTO local_folders (folder_id, path, added_at, last_scan, item_count)
+    VALUES (?,?,?,?,?)
+    ON CONFLICT(folder_id) DO UPDATE SET
+      path=excluded.path, last_scan=excluded.last_scan, item_count=excluded.item_count
+  `).run(parent, root, Date.now(), Date.now(), rows.length);
+
   return { folderId: parent, name: folderName, path: root, added: rows.length, skipped: files.length - rows.length };
 }
 
@@ -105,6 +114,30 @@ export async function previewLocalFolder(dir) {
     items.push({ file: path.relative(root, f), ...meta });
   }
   return { name: folderName, path: root, items };
+}
+
+/** Every folder dumbTV has been pointed at, for the web UI's management list. */
+export function listLocalFolders() {
+  return db.prepare('SELECT * FROM local_folders ORDER BY added_at').all().map((f) => ({
+    folderId: f.folder_id,
+    path: f.path,
+    name: path.basename(f.path),
+    addedAt: f.added_at,
+    lastScan: f.last_scan,
+    itemCount: f.item_count,
+    // A folder on an unplugged drive should SAY so — an empty channel with no
+    // explanation reads as a bug rather than a missing disk.
+    missing: !fs.existsSync(f.path),
+    hasChannel: !!db.prepare(
+      "SELECT 1 FROM channel_sources WHERE rating_key = ? AND source_type = 'local'"
+    ).get(f.folder_id),
+  }));
+}
+
+/** Forget a folder: drop its media, keep any channel (it stands by instead). */
+export function forgetLocalFolder(folderId) {
+  db.prepare('DELETE FROM media WHERE parent_key = ?').run(folderId);
+  db.prepare('DELETE FROM local_folders WHERE folder_id = ?').run(folderId);
 }
 
 export function createChannelFromLocalFolder(folderId, name, opts = {}) {

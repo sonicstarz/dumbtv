@@ -518,5 +518,23 @@ public final class Store {
     CREATE TABLE IF NOT EXISTS channel_excludes (
       channel_id INTEGER NOT NULL REFERENCES channels(id) ON DELETE CASCADE,
       rating_key TEXT NOT NULL, PRIMARY KEY (channel_id, rating_key));
+
+    -- Folders the user has granted access to (Track I, P6).
+    --
+    -- A sandboxed Mac app cannot simply remember a path: permission is granted
+    -- to a URL, and only a SECURITY-SCOPED BOOKMARK carries that permission
+    -- across launches. Hence the blob. It is stored base64 in a TEXT column
+    -- because this SQLite wrapper has no blob value type, and a bookmark is
+    -- about a kilobyte — not worth widening the whole layer for.
+    --
+    -- folder_id matches the key registerLocalFolder() already uses, so the
+    -- media rows, the channel source, and the grant all agree on one identity.
+    CREATE TABLE IF NOT EXISTS granted_folders (
+      folder_id  TEXT PRIMARY KEY,
+      path       TEXT NOT NULL,
+      bookmark   TEXT NOT NULL,
+      added_at   INTEGER NOT NULL,
+      last_scan  INTEGER,
+      item_count INTEGER NOT NULL DEFAULT 0);
     """
 }

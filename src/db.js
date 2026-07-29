@@ -164,6 +164,18 @@ CREATE TABLE IF NOT EXISTS media_tags (
 );
 CREATE INDEX IF NOT EXISTS idx_media_tags_tag ON media_tags(tag);
 
+-- Folders the user pointed dumbTV at (Track I, P5/P6). Node has no sandbox, so
+-- unlike the Apple side there is no security-scoped bookmark to keep — a path
+-- is enough. The columns otherwise match granted_folders in Store.swift so ONE
+-- web UI can manage both without knowing which backend it is talking to.
+CREATE TABLE IF NOT EXISTS local_folders (
+  folder_id  TEXT PRIMARY KEY,
+  path       TEXT NOT NULL,
+  added_at   INTEGER NOT NULL,
+  last_scan  INTEGER,
+  item_count INTEGER NOT NULL DEFAULT 0
+);
+
 -- Episodes (or movies) the user has filtered out of a channel's rotation.
 -- The media stays cached; it's just skipped when the playlist is built.
 CREATE TABLE IF NOT EXISTS channel_excludes (

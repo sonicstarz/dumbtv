@@ -77,6 +77,20 @@ struct dumbTVApp: App {
                 Divider()
                 Button(engine.guideOpen ? "Hide Guide" : "Show Guide") { engine.guideOpen.toggle() }
                     .keyboardShortcut("g", modifiers: .command)
+                Divider()
+                // Track I, P6: the ONLY native step in "bring your own files".
+                // A sandboxed app must be handed a folder through a real panel;
+                // everything after this — listing, rescanning, building a
+                // channel — happens in the web UI like the rest of setup.
+                Button("Add Local Folder…") {
+                    // `store` is optional because it can genuinely fail to open
+                    // (the tvOS storage rescue). Disabled rather than crashing:
+                    // channel 00 already explains what went wrong.
+                    guard let store else { return }
+                    Task { _ = await FolderGrant.pick(store: store) }
+                }
+                .keyboardShortcut("o", modifiers: .command)
+                .disabled(store == nil)
             }
         }
         #endif

@@ -287,7 +287,19 @@ Remaining:
 
 iOS is wave 2. **tvOS is never** — no user filesystem; that's a documented product decision, not a gap.
 
-### F findings — 2026-07-29 · **not implemented: it needs a schema decision this handoff does not make**
+### ✅ F — BUILT 2026-07-29, after the storage decision was made
+
+Storage decided: a **`granted_folders` table** (not UserDefaults — that was for small durable flags surviving a tvOS Caches purge; these are ~1 KB blobs with a path, a scan time and a count, which is a model object). The bookmark is stored **base64 in a TEXT column**, because this SQLite wrapper has no blob value type and a kilobyte is not worth widening the whole layer for.
+
+Shipped: the table + `saveGrantedFolder` / `grantedFolders` / `removeGrantedFolder` / `resolveGrantedFolder` (which silently re-saves a stale bookmark, so a moved folder keeps working) · `NSOpenPanel` behind **Channel ▸ Add Local Folder…** in the Mac menu bar · four API routes · and a shared web UI.
+
+**Node gained parity so ONE web UI serves both**: a `local_folders` table mirroring the Apple columns minus the bookmark, a `GET /api/local-folders` list, rescan, forget, and a `/:id/channel` route matching the Apple shape. A wire mismatch was caught by testing — Node's existing route took the id in the BODY while the Apple one takes it in the PATH, which is precisely the kind of drift that makes "one UI, two backends" quietly false.
+
+**Verified:** 5 Swift tests (grant survives, bookmark round-trips byte-for-byte through base64, a moved folder reports itself, forgetting drops media but keeps the channel, path normalisation is stable so a re-grant restores the same schedule) and an end-to-end Node run against real video files (scan → list → channel → 50k programs scheduled → rescan → forget).
+
+**Still needs a human:** the `NSOpenPanel` itself. A file panel cannot be clicked headlessly, so the grant path is the one part shipping unexercised — it is on the device-pass list, not claimed as done.
+
+### Superseded F findings — *(the reasoning for stopping, kept for the record)*
 
 Stopped here rather than inventing, per this document's own scope guard (*"If a fix appears to need a schema migration not listed here, stop and flag it"*). Two things are genuinely undecided:
 

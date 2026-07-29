@@ -162,7 +162,17 @@ CREATE TABLE IF NOT EXISTS channel_excludes (
 
 // Add columns to tables that predate them. SQLite has no ADD COLUMN IF NOT
 // EXISTS, so check the table shape first. Idempotent — safe on every boot.
+//
+// ⚠️ Table, column and definition are interpolated into SQL, because SQLite
+// cannot parameterise identifiers. That is safe ONLY because every argument
+// below is a literal written here. This file is the model's source of truth and
+// gets read as an example, so: never call this with a value that came from a
+// request, a config file, or a pack manifest. The guard makes that mechanical.
+const MIGRATABLE_TABLES = new Set(['assets', 'programs', 'channels', 'schedule_rules', 'media']);
 function addColumnIfMissing(table, column, definition) {
+  if (!MIGRATABLE_TABLES.has(table) || !/^[a-z_][a-z0-9_]*$/.test(column)) {
+    throw new Error(`refusing to migrate unknown table/column: ${table}.${column}`);
+  }
   const cols = db.prepare(`PRAGMA table_info(${table})`).all();
   if (!cols.some((c) => c.name === column)) {
     db.exec(`ALTER TABLE ${table} ADD COLUMN ${column} ${definition}`);

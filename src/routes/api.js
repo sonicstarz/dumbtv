@@ -29,6 +29,7 @@ import {
   importAds,
   ping,
   imageUrl,
+  fetchImage,
   activeBackend,
 } from '../media/backend.js';
 import {
@@ -286,13 +287,60 @@ export default async function api(fastify) {
     };
   });
 
+  // ---- Artwork proxy -----------------------------------------------------
+
+  /**
+   * Poster/thumb bytes, fetched with the server's credentials so the browser
+   * never sees them (S-5). The path is validated per backend inside the client,
+   * so this cannot be turned into a general-purpose authenticated proxy (S-6).
+   *
+   * The cache is what the Apple side gained in build 12 as the fix for the slow
+   * picker; Node had none, so every render re-fetched every poster (E-3).
+   */
+  const IMG_CACHE_MAX = 200;
+  const imgCache = new Map();   // insertion-ordered → cheap LRU
+
+  fastify.get('/api/image', async (req, reply) => {
+    const p = req.query.path;
+    if (!p) return reply.code(400).send({ error: 'Missing path' });
+    const w = Math.min(1000, Math.max(16, Number(req.query.w) || 300));
+    const h = Math.min(1500, Math.max(16, Number(req.query.h) || 450));
+    const key = `${activeBackend()}|${p}|${w}x${h}`;
+
+    const hit = imgCache.get(key);
+    if (hit) {
+      imgCache.delete(key);      // refresh recency
+      imgCache.set(key, hit);
+      reply.header('Cache-Control', 'private, max-age=86400');
+      return reply.type(hit.type).send(hit.buf);
+    }
+
+    let img;
+    try {
+      img = await fetchImage(p, w, h);
+    } catch {
+      img = null;
+    }
+    // No artwork is ordinary, not an error — an item with no primary image 404s
+    // on Jellyfin, which is exactly why thumbs are only claimed when they exist.
+    if (!img) return reply.code(404).send({ error: 'No image' });
+
+    imgCache.set(key, img);
+    if (imgCache.size > IMG_CACHE_MAX) imgCache.delete(imgCache.keys().next().value);
+    reply.header('Cache-Control', 'private, max-age=86400');
+    return reply.type(img.type).send(img.buf);
+  });
+
   // ---- Channels ----------------------------------------------------------
 
   fastify.get('/api/channels', async () => {
     const rows = db.prepare('SELECT * FROM channels ORDER BY number').all();
     const srcStmt = db.prepare('SELECT * FROM channel_sources WHERE channel_id = ? ORDER BY id');
+    // Two indexed lookups rather than an OR, which SQLite would answer with a
+    // full scan — this runs once per source on every channel-list load (E-2).
     const countStmt = db.prepare(
-      `SELECT COUNT(*) n FROM media WHERE parent_key = ? OR rating_key = ?`
+      `SELECT (SELECT COUNT(*) FROM media WHERE parent_key = ?)
+            + (SELECT COUNT(*) FROM media WHERE rating_key = ?) AS n`
     );
     return {
       channels: rows.map((c) => {
@@ -911,11 +959,15 @@ export default async function api(fastify) {
     // Authorize: a hand-dropped local file, OR a file inside a registered
     // content pack's root (Track I). path.resolve collapses any ".." so a
     // request can't escape a pack root — same "DB-known locations only" rule.
-    const resolved = path.resolve(p);
+    // path.resolve collapses ".." but does NOT follow symlinks, so a link
+    // planted inside a pack root used to pass this check and then be streamed
+    // (S-8). Compare REAL paths on both sides.
+    const realPath = (f) => { try { return fs.realpathSync(f); } catch { return path.resolve(f); } };
+    const resolved = realPath(p);
     const underPackRoot = db
       .prepare('SELECT root_path FROM packs')
       .all()
-      .some((r) => resolved.startsWith(path.resolve(r.root_path) + path.sep));
+      .some((r) => resolved.startsWith(realPath(r.root_path) + path.sep));
     const known =
       db.prepare('SELECT 1 FROM assets WHERE path = ?').get(p) ||
       db.prepare('SELECT 1 FROM media WHERE part_key = ?').get(`local:${p}`) ||
@@ -1060,6 +1112,7 @@ export default async function api(fastify) {
     if (b.captions !== undefined) setSetting('captions', b.captions ? 1 : 0);
     if (b.timezone !== undefined) {
       const tz = (b.timezone || '').trim();
+      const before = process.env.TZ;
       // Validate the IANA zone before storing.
       try {
         if (tz) Intl.DateTimeFormat('en', { timeZone: tz });
@@ -1067,6 +1120,16 @@ export default async function api(fastify) {
         if (tz) process.env.TZ = tz;
       } catch {
         return { ok: false, error: 'Unknown timezone' };
+      }
+      // Slot alignment is anchored to LOCAL midnight, so every program already
+      // generated is aligned to the OLD one. Nothing else triggers a rebuild,
+      // so the schedule would sit silently on the wrong grid until some
+      // unrelated edit fixed it (D-4). Invariant #4 holds — regeneration only
+      // deletes start_utc >= now, so whatever is airing finishes as scheduled.
+      if (tz && tz !== before) {
+        for (const { id } of db.prepare('SELECT id FROM channels').all()) {
+          try { regenerateChannel(id); } catch { /* one bad channel must not fail the setting */ }
+        }
       }
     }
     return { ok: true };

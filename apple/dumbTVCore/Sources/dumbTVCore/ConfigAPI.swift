@@ -216,7 +216,21 @@ public final class ConfigAPI {
     /// straight from the Store and hit Plex with URLSession directly, so N
     /// posters load in PARALLEL and don't queue behind the library browse. Cached
     /// so a re-render is free.
+    // Artwork paths are library paths (Plex) or item ids (Jellyfin). Without
+    // this check the proxy is an authenticated open proxy: anything on the LAN
+    // could have the app make token-bearing requests to arbitrary endpoints on
+    // the media server and read the replies back (S-6).
+    private static let safePlexThumb = try! NSRegularExpression(pattern: "^/library/[A-Za-z0-9/_.-]+$")
+    private static let safeItemId = try! NSRegularExpression(pattern: "^[A-Za-z0-9-]{8,64}$")
+
+    private func isSafeImagePath(_ p: String) -> Bool {
+        let re = usingJellyfin ? Self.safeItemId : Self.safePlexThumb
+        let range = NSRange(p.startIndex..<p.endIndex, in: p)
+        return re.firstMatch(in: p, range: range) != nil
+    }
+
     public func fetchImage(path: String) async -> (Data, String)? {
+        guard isSafeImagePath(path) else { return nil }
         if let cached = imageCache.get(path) { return (cached, "image/jpeg") }
         let url: URL?
         if usingJellyfin {

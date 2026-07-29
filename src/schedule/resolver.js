@@ -28,6 +28,25 @@ const qNextShow = db.prepare(`
 const qMedia = db.prepare('SELECT * FROM media WHERE rating_key = ?');
 const qAsset = db.prepare('SELECT * FROM assets WHERE id = ?');
 
+// The guide grid, hoisted to module scope like every other statement here —
+// these used to be prepared inside a per-program loop.
+const qGuideRows = db.prepare(`
+  SELECT * FROM programs
+  WHERE channel_id = ? AND end_utc > ? AND start_utc < ?
+    AND kind IN ('episode','movie','offair')
+  ORDER BY start_utc
+`);
+
+/** Every slot's true end (ad pods included) for the window, in ONE query. */
+const qSlotEnds = db.prepare(`
+  SELECT slot_start, MAX(end_utc) AS e FROM programs
+  WHERE channel_id = ? AND slot_start IN (
+    SELECT DISTINCT slot_start FROM programs
+    WHERE channel_id = ? AND end_utc > ? AND start_utc < ?
+  )
+  GROUP BY slot_start
+`);
+
 /**
  * The one query the whole illusion rests on: what is airing right now, and
  * how far into it are we? Seek that many ms in and you have joined a
@@ -151,38 +170,33 @@ export function guide(fromTs, hours = 3) {
     .prepare('SELECT * FROM channels WHERE enabled = 1 ORDER BY number')
     .all();
 
-  const rows = db.prepare(`
-    SELECT * FROM programs
-    WHERE channel_id = ? AND end_utc > ? AND start_utc < ?
-      AND kind IN ('episode','movie','offair')
-    ORDER BY start_utc
-  `);
-
   return {
     from,
     to,
-    channels: channels.map((c) => ({
-      ...publicChannel(c),
-      programs: rows.all(c.id, from, to).map((r) => {
-        const slotEnd = db
-          .prepare(
-            `SELECT MAX(end_utc) AS e FROM programs
-             WHERE channel_id = ? AND slot_start = ?`
-          )
-          .get(c.id, r.slot_start);
-        return {
+    channels: channels.map((c) => {
+      const rows = qGuideRows.all(c.id, from, to);
+      // A block runs until the END of its slot, ads included — that is what
+      // makes the grid read like a listings page. Getting that per row used to
+      // mean one MAX() query PER PROGRAM (and a fresh prepare inside the loop);
+      // one grouped query per channel answers it for every slot at once.
+      const slotEnds = new Map();
+      for (const s of qSlotEnds.all(c.id, c.id, from, to)) slotEnds.set(s.slot_start, s.e);
+
+      return {
+        ...publicChannel(c),
+        programs: rows.map((r) => ({
           id: r.id,
           startUtc: r.start_utc,
-          endUtc: slotEnd && slotEnd.e ? slotEnd.e : r.end_utc,
+          endUtc: slotEnds.get(r.slot_start) ?? r.end_utc,
           airsUntil: r.end_utc,
           kind: r.kind,
           title: r.title,
           subtitle: r.subtitle,
           seasonNo: r.season_no,
           episodeNo: r.episode_no,
-        };
-      }),
-    })),
+        })),
+      };
+    }),
   };
 }
 

@@ -223,9 +223,31 @@ export function streamUrl(partKey) {
   return `${server.uri}${partKey}?X-Plex-Token=${server.accessToken}`;
 }
 
+/**
+ * What the WEB UI is given for artwork. Deliberately NOT the Plex URL: that
+ * carries X-Plex-Token, and handing it to a browser puts the token in page
+ * source, history, devtools, and any screenshot of the config UI. The Apple
+ * app has proxied artwork for exactly this reason since build 12; Node was
+ * still handing the token out (S-5).
+ */
 export function imageUrl(thumb, width = 300, height = 450) {
+  if (!getServer() || !thumb) return null;
+  return `/api/image?path=${encodeURIComponent(thumb)}&w=${width}&h=${height}`;
+}
+
+// A thumb is a Plex library path and nothing else. Without this the proxy is an
+// authenticated open proxy: anything on the LAN could ask us to make token-bearing
+// requests to arbitrary Plex endpoints and read the replies back (S-6).
+const SAFE_THUMB = /^\/library\/[A-Za-z0-9/_.-]+$/;
+
+/** Fetch artwork server-side, so the token stays here. Returns {buf, type} or null. */
+export async function fetchImage(thumb, width = 300, height = 450) {
   const server = getServer();
-  if (!server || !thumb) return null;
+  if (!server || !thumb || !SAFE_THUMB.test(thumb)) return null;
   const inner = encodeURIComponent(`${thumb}?X-Plex-Token=${server.accessToken}`);
-  return `${server.uri}/photo/:/transcode?width=${width}&height=${height}&minSize=1&url=${inner}&X-Plex-Token=${server.accessToken}`;
+  const url = `${server.uri}/photo/:/transcode?width=${width}&height=${height}&minSize=1&url=${inner}&X-Plex-Token=${server.accessToken}`;
+  const res = await fetch(url, { signal: AbortSignal.timeout(15000) });
+  if (!res.ok) return null;
+  const buf = Buffer.from(await res.arrayBuffer());
+  return { buf, type: res.headers.get('content-type') || 'image/jpeg' };
 }

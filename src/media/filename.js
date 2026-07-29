@@ -50,9 +50,20 @@ export function parseFilename(filename, folder = '') {
     }
   }
 
-  // Movie "Title (YYYY)" or a bare title.
-  const ym = base.match(/\((\d{4})\)/) || base.match(/\b(19\d{2}|20\d{2})\b/);
-  const year = ym ? Number(ym[1]) : null;
-  const title = clean(base.replace(/\(?\b(19\d{2}|20\d{2})\b\)?/, '')) || clean(base) || 'Untitled';
+  // Movie "Title (YYYY)", or a bare year at the END of the name.
+  //
+  // The year strip used to be unanchored and fired on the FIRST year anywhere,
+  // which ate titles that ARE years: "2001 A Space Odyssey (1968)" lost the
+  // 2001 and came out as "A Space Odyssey" dated 2001. A parenthesised year is
+  // unambiguous; a bare one only counts trailing, where a release year sits.
+  const paren = base.match(/\((19\d{2}|20\d{2})\)/);
+  const trailing = paren ? null : base.match(/[ ._-](19\d{2}|20\d{2})\s*$/);
+  const year = paren ? Number(paren[1]) : trailing ? Number(trailing[1]) : null;
+  const stripped = paren
+    ? base.replace(paren[0], '')
+    : trailing
+      ? base.slice(0, trailing.index)
+      : base;
+  const title = clean(stripped) || clean(base) || 'Untitled';
   return { kind: 'movie', title, showTitle: folderName || null, seasonNo: null, episodeNo: null, year };
 }

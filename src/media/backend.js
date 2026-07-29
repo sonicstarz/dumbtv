@@ -22,6 +22,10 @@ export const getAllEpisodes = (...a) => active().getAllEpisodes(...a);
 export const getMovie = (...a) => active().getMovie(...a);
 export const getSectionAds = (...a) => active().getSectionAds(...a);
 export const imageUrl = (...a) => active().imageUrl(...a);
+// Artwork is fetched server-side so the backend's credentials never reach the
+// browser. Dispatches on the ACTIVE backend (unlike stream URLs, which dispatch
+// on the part-key prefix) because a thumb carries no prefix to dispatch on.
+export const fetchImage = (...a) => active().fetchImage(...a);
 
 // Ad import differs by name between backends.
 export const importAds = (sectionKey) =>

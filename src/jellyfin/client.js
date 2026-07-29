@@ -201,8 +201,23 @@ export function streamUrl(partKey) {
   return `${s.url}/Videos/${id}/stream?static=true&mediaSourceId=${id}&api_key=${s.token}`;
 }
 
+/** Proxied, like Plex — the api_key must not reach the browser (S-5). */
 export function imageUrl(itemId, width = 300, height = 450) {
+  if (!getJfServer() || !itemId) return null;
+  return `/api/image?path=${encodeURIComponent(itemId)}&w=${width}&h=${height}`;
+}
+
+// A Jellyfin "thumb" is an item id, so anything with a slash or a dot is not one
+// — and would otherwise let a caller steer the request elsewhere (S-6).
+const SAFE_ITEM_ID = /^[A-Za-z0-9-]{8,64}$/;
+
+/** Fetch artwork server-side. Returns {buf, type} or null. */
+export async function fetchImage(itemId, width = 300, height = 450) {
   const s = getJfServer();
-  if (!s || !itemId) return null;
-  return `${s.url}/Items/${itemId}/Images/Primary?fillWidth=${width}&fillHeight=${height}&api_key=${s.token}`;
+  if (!s || !itemId || !SAFE_ITEM_ID.test(itemId)) return null;
+  const url = `${s.url}/Items/${itemId}/Images/Primary?fillWidth=${width}&fillHeight=${height}&api_key=${s.token}`;
+  const res = await fetch(url, { signal: AbortSignal.timeout(15000) });
+  if (!res.ok) return null;   // an item with no artwork 404s — verified in build 13
+  const buf = Buffer.from(await res.arrayBuffer());
+  return { buf, type: res.headers.get('content-type') || 'image/jpeg' };
 }

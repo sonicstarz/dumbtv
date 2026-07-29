@@ -1,16 +1,90 @@
 [
-  { "file": "The Bat Channel S01E02 Nothing to Fear.mkv", "folder": "The Bat Channel",
-    "kind": "episode", "showTitle": "The Bat Channel", "seasonNo": 1, "episodeNo": 2, "title": "Nothing to Fear" },
-  { "file": "Show.Name.s1e2.mp4", "folder": "",
-    "kind": "episode", "showTitle": "Show Name", "seasonNo": 1, "episodeNo": 2, "title": "Episode 2" },
-  { "file": "Gargoyles 2x05 Deadly Force.avi", "folder": "",
-    "kind": "episode", "showTitle": "Gargoyles", "seasonNo": 2, "episodeNo": 5, "title": "Deadly Force" },
-  { "file": "Superman - The Mad Scientist S01E01.mp4", "folder": "Superman",
-    "kind": "episode", "showTitle": "Superman - The Mad Scientist", "seasonNo": 1, "episodeNo": 1, "title": "Episode 1" },
-  { "file": "His Girl Friday (1940).mp4", "folder": "Movies",
-    "kind": "movie", "title": "His Girl Friday", "year": 1940 },
-  { "file": "Steamboat Willie 1928.mp4", "folder": "",
-    "kind": "movie", "title": "Steamboat Willie", "year": 1928 },
-  { "file": "Detour.mkv", "folder": "Film Noir",
-    "kind": "movie", "title": "Detour", "showTitle": "Film Noir", "year": null }
+  {
+    "file": "The Bat Channel S01E02 Nothing to Fear.mkv",
+    "folder": "The Bat Channel",
+    "kind": "episode",
+    "showTitle": "The Bat Channel",
+    "seasonNo": 1,
+    "episodeNo": 2,
+    "title": "Nothing to Fear"
+  },
+  {
+    "file": "Show.Name.s1e2.mp4",
+    "folder": "",
+    "kind": "episode",
+    "showTitle": "Show Name",
+    "seasonNo": 1,
+    "episodeNo": 2,
+    "title": "Episode 2"
+  },
+  {
+    "file": "Gargoyles 2x05 Deadly Force.avi",
+    "folder": "",
+    "kind": "episode",
+    "showTitle": "Gargoyles",
+    "seasonNo": 2,
+    "episodeNo": 5,
+    "title": "Deadly Force"
+  },
+  {
+    "file": "Superman - The Mad Scientist S01E01.mp4",
+    "folder": "Superman",
+    "kind": "episode",
+    "showTitle": "Superman - The Mad Scientist",
+    "seasonNo": 1,
+    "episodeNo": 1,
+    "title": "Episode 1"
+  },
+  {
+    "file": "His Girl Friday (1940).mp4",
+    "folder": "Movies",
+    "kind": "movie",
+    "title": "His Girl Friday",
+    "year": 1940
+  },
+  {
+    "file": "Steamboat Willie 1928.mp4",
+    "folder": "",
+    "kind": "movie",
+    "title": "Steamboat Willie",
+    "year": 1928
+  },
+  {
+    "file": "Detour.mkv",
+    "folder": "Film Noir",
+    "kind": "movie",
+    "title": "Detour",
+    "showTitle": "Film Noir",
+    "year": null
+  },
+  {
+    "file": "2001 A Space Odyssey (1968).mkv",
+    "folder": "Movies",
+    "kind": "movie",
+    "showTitle": "Movies",
+    "seasonNo": null,
+    "episodeNo": null,
+    "title": "2001 A Space Odyssey",
+    "year": 1968
+  },
+  {
+    "file": "1984 (1984).mp4",
+    "folder": "Movies",
+    "kind": "movie",
+    "showTitle": "Movies",
+    "seasonNo": null,
+    "episodeNo": null,
+    "title": "1984",
+    "year": 1984
+  },
+  {
+    "file": "Metropolis 1927.mp4",
+    "folder": "Movies",
+    "kind": "movie",
+    "showTitle": "Movies",
+    "seasonNo": null,
+    "episodeNo": null,
+    "title": "Metropolis",
+    "year": 1927
+  }
 ]

@@ -380,6 +380,14 @@ export function startInstall(packId) {
     } catch (e) {
       prog.state = 'error';
       prog.error = e.message;
+    } finally {
+      // The picker polls for a while after an install settles, then stops
+      // caring. Holding every finished entry forever is a slow leak in a
+      // process that runs for months on a Pi (E-4).
+      setTimeout(() => {
+        const cur = installProgress.get(packId);
+        if (cur && cur.state !== 'downloading') installProgress.delete(packId);
+      }, 5 * 60 * 1000).unref?.();
     }
   })();
 

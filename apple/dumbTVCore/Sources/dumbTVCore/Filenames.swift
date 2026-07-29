@@ -44,20 +44,35 @@ public enum Filenames {
                               showTitle: show, seasonNo: season, episodeNo: episode, year: nil)
         }
 
-        // Movie "Title (YYYY)" or bare title.
-        let year = firstYear(in: base)
-        var title = base.replacingOccurrences(of: "\\(?\\b(19[0-9]{2}|20[0-9]{2})\\b\\)?", with: "", options: .regularExpression)
-        title = clean(title)
+        // Movie "Title (YYYY)", or a bare year at the END of the name.
+        //
+        // The strip used to be unanchored and took the FIRST year anywhere,
+        // which ate titles that ARE years: "2001 A Space Odyssey (1968)" lost
+        // the 2001 and came out as "A Space Odyssey" dated 2001. A parenthesised
+        // year is unambiguous; a bare one only counts trailing.
+        var year: Int?
+        var stripped = base
+        if let (y, range) = match(in: base, pattern: "\\((19[0-9]{2}|20[0-9]{2})\\)") {
+            year = y
+            stripped = base.replacingCharacters(in: range, with: "")
+        } else if let (y, range) = match(in: base, pattern: "[ ._-](19[0-9]{2}|20[0-9]{2})\\s*$") {
+            year = y
+            stripped = String(base[base.startIndex..<range.lowerBound])
+        }
+        var title = clean(stripped)
         if title.isEmpty { title = clean(base) }
         if title.isEmpty { title = "Untitled" }
         return ParsedName(kind: .movie, title: title, showTitle: folderName.isEmpty ? nil : folderName,
                           seasonNo: nil, episodeNo: nil, year: year)
     }
 
-    private static func firstYear(in s: String) -> Int? {
-        guard let re = try? NSRegularExpression(pattern: "(19[0-9]{2}|20[0-9]{2})"),
+    /// The captured year plus the range of the WHOLE match, so the caller can cut it out.
+    private static func match(in s: String, pattern: String) -> (Int, Range<String.Index>)? {
+        guard let re = try? NSRegularExpression(pattern: pattern),
               let m = re.firstMatch(in: s, range: NSRange(s.startIndex..., in: s)),
-              let r = Range(m.range(at: 1), in: s) else { return nil }
-        return Int(s[r])
+              let whole = Range(m.range, in: s),
+              let cap = Range(m.range(at: 1), in: s),
+              let y = Int(s[cap]) else { return nil }
+        return (y, whole)
     }
 }

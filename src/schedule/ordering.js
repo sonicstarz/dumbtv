@@ -1,10 +1,17 @@
 import { db } from '../db.js';
 import { seededShuffle, hashString } from '../util/rng.js';
 
+// A source is either a container (parent_key — a show, a pack, a folder) or a
+// single item (rating_key). Both columns are indexed, but SQLite will not use
+// both arms of an OR, so the disjunction scans the whole media table — once per
+// source, per channel. UNION ALL gets two index lookups instead.
 const selectSourceMedia = db.prepare(`
-  SELECT m.* FROM media m
-  WHERE m.parent_key = ? OR m.rating_key = ?
-  ORDER BY COALESCE(m.season_no, 0), COALESCE(m.episode_no, 0), m.title
+  SELECT * FROM (
+    SELECT m.* FROM media m WHERE m.parent_key = ?
+    UNION ALL
+    SELECT m.* FROM media m WHERE m.rating_key = ?
+  )
+  ORDER BY COALESCE(season_no, 0), COALESCE(episode_no, 0), title
 `);
 
 function bySeasonEpisode(a, b) {

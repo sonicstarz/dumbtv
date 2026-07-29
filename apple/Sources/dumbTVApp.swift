@@ -22,6 +22,8 @@ struct dumbTVApp: App {
     private let store: Store?
     private let server: EmbeddedServer?
     private let configURL: String?
+    /// Native Setup, sharing the server's ONE ConfigAPI (see EmbeddedServer.api).
+    @StateObject private var setup: SetupModel
     /// Self-reported init/server state, surfaced on channel 00 when the server
     /// isn't reachable (build 11 tvOS-failure evidence).
     private let diag = SystemDiagnostics()
@@ -31,6 +33,10 @@ struct dumbTVApp: App {
         // failure or hang leaves a trail on the channel-00 diagnostics screen.
         let dbPath = AppPaths.databasePath()
         diag.storePath = dbPath
+        // Held locally as well as stored: StateObject's initialiser takes an
+        // @autoclosure, and reading `self.server` inside it during init() is
+        // "escaping autoclosure captures mutating self".
+        var created: EmbeddedServer?
         do {
             let s = try Store(path: dbPath)
             store = s
@@ -40,6 +46,7 @@ struct dumbTVApp: App {
             srv.onStateChange = { state in d.setServerState(state) }
             srv.start()
             server = srv
+            created = srv
             let url = NetworkInfo.configURL(port: srv.port)
             configURL = url
             diag.serverPort = srv.port
@@ -51,6 +58,13 @@ struct dumbTVApp: App {
             configURL = nil
             diag.storeError = "\(error)"
         }
+        // Deliberately the server's instance, not a fresh one: a second ConfigAPI
+        // would own a second PlexClient, so a PIN started in native Setup could
+        // not be completed in the web UI and the two would disagree about who is
+        // linked. nil when the backend never opened — Setup then says so instead
+        // of failing silently.
+        let sharedAPI = created?.api
+        _setup = StateObject(wrappedValue: SetupModel(api: sharedAPI))
         // F7: record WHERE the database ended up and how old it is. The
         // "every new build resets the app" report needs evidence, not a guess —
         // in particular whether the silent temporary-directory fallback fired.
@@ -59,7 +73,8 @@ struct dumbTVApp: App {
 
     var body: some Scene {
         WindowGroup {
-            ContentView(engine: engine, store: store, configURL: configURL, diag: diag)
+            ContentView(engine: engine, store: store, configURL: configURL,
+                        diag: diag, setup: setup)
                 #if os(macOS)
                 .frame(minWidth: 640, minHeight: 360)
                 .background(Color.black)

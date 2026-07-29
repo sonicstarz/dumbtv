@@ -8,7 +8,12 @@ import dumbTVCore
 /// config UI for everything else. You reach it from a phone/laptop browser on
 /// the LAN — the same web UI every dumbTV device serves.
 final class EmbeddedServer {
-    private let api: ConfigAPI
+    /// Shared deliberately with the native Setup UI rather than letting it build
+    /// its own `ConfigAPI`. A second instance would carry its OWN `PlexClient`
+    /// actor — so a PIN created natively could not be polled by the web UI and
+    /// vice versa, and the two would disagree about who is linked. One instance,
+    /// two front-ends.
+    let api: ConfigAPI
     private var listener: NWListener?
     private let queue = DispatchQueue(label: "dumbtv.httpd", attributes: .concurrent)
     let port: UInt16

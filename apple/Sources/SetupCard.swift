@@ -1,11 +1,19 @@
 import SwiftUI
 import CoreImage.CIFilterBuiltins
 
-/// The "how do I configure this?" affordance shown on the TV when nothing is
-/// set up yet: a scannable QR + the URL to open on a phone or laptop. Config
-/// lives in the web UI, so this is the whole on-device setup story.
+/// The "configure this from another device" affordance: a scannable QR + the URL
+/// to open on a phone or laptop.
+///
+/// This used to BE the setup story — hence the old comment here that config lives
+/// in the web UI. It doesn't any more: setup is native and on-device (SetupView),
+/// and this card is the optional companion for bulk work. When `onOpenSetup` is
+/// supplied it also offers the native path, which is the only way in on iOS,
+/// where there is no keyboard to press S on.
 struct SetupCard: View {
     let url: String
+    /// Opens native Setup. Supplied everywhere the card is the user's first
+    /// contact; omitted when the card is already being shown INSIDE Setup.
+    var onOpenSetup: (() -> Void)? = nil
     /// When shown over live channels (not on channel 0 itself), advertise the
     /// permanent way back to this screen. (D3)
     var showChannelHint: Bool = false
@@ -56,6 +64,17 @@ struct SetupCard: View {
                         .fixedSize(horizontal: false, vertical: true)
                 }
                 #endif
+                // The native path, offered first because it needs no second
+                // device at all — and on tvOS a second device is the difference
+                // between "set this up" and "give up".
+                if let onOpenSetup {
+                    Button(action: onOpenSetup) {
+                        Text("— or SET UP ON THIS DEVICE")
+                            .font(.system(.caption, design: .monospaced)).bold()
+                            .foregroundStyle(Palette.amber)
+                    }
+                    .padding(.top, 4)
+                }
                 if showChannelHint {
                     Text("Tune to channel 0 anytime to bring this back.")
                         .font(.system(.caption2, design: .monospaced))

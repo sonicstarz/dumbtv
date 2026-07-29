@@ -40,6 +40,14 @@ struct TVView: View {
     var configURL: String? = nil
     /// App/server self-report, shown on channel 00 when the server is down.
     @ObservedObject var diag: SystemDiagnostics
+    /// Native Setup. Nil only if the backend failed to open, in which case
+    /// channel 00 is still the place that explains why.
+    var setup: SetupModel? = nil
+
+    /// Native Setup, shown as an overlay so the video surface underneath (F3)
+    /// is never unmounted — opening Setup does not interrupt what is on.
+    @State private var setupOpen =
+        ProcessInfo.processInfo.environment["DUMBTV_START_NATIVE_SETUP"] == "1"
 
     /// The guide's thumbnail rect, published by the slot placeholder.
     @State private var guideSlot: CGRect = .zero
@@ -106,6 +114,23 @@ struct TVView: View {
         // Keep the last measured slot when the guide closes and the placeholder
         // goes away — otherwise the next open would start from a zero rect.
         .onPreferenceChange(VideoSlotKey.self) { if $0 != .zero { guideSlot = $0 } }
+        // Native Setup, over the top. An .overlay rather than a .fullScreenCover
+        // or a TabView branch: those unmount what's underneath, and what's
+        // underneath is THE video surface (F3). The player keeps running behind
+        // this, so closing Setup returns to a programme already in progress
+        // rather than to a black frame and a reload.
+        .overlay {
+            if setupOpen, let setup {
+                SetupView(model: setup, diag: diag, configURL: configURL) {
+                    setupOpen = false
+                    // Nothing to reload by hand: native Setup mutates through the
+                    // same ConfigAPI the web UI does, which posts
+                    // .dumbTVConfigChanged — and Engine already observes it. A
+                    // channel created here is in the lineup before Setup closes.
+                }
+                .transition(.opacity)
+            }
+        }
         // Focus + keyboard/remote input is macOS/tvOS only (iOS uses the swipe
         // gesture below). Keeping these off iOS lets the iOS deployment target
         // drop below 17 — .focusable()/.onKeyPress are iOS 17+.
@@ -156,12 +181,17 @@ struct TVView: View {
             }
             engine.showBanner()
             let ch = press.characters
-            // Guide: G always (web muscle-memory), and 1 when you're not part-way
-            // through dialing — so a leading 1 opens the guide (there's no ch 1),
-            // but a trailing 1 (e.g. "21") still dials. Every other channel is
-            // reachable in the guide with the arrows.
+            // S opens native Setup from anywhere — the "reachable at any time,
+            // not only on first run" requirement.
+            if ch == "s" || ch == "S" { setupOpen = true; return .handled }
+            // Guide: G always (web muscle-memory).
+            //
+            // `1` USED TO OPEN THE GUIDE TOO, on the reasoning that "there's no
+            // ch 1". There is: channel 1 is SPACE, a locked built-in this app
+            // ships with — so a leading 1 made SPACE, 10-19 and everything over
+            // 100 undialable. Same bug, same reasoning, as the mpv keymap on the
+            // Pi side (fixed in build 18). G is the guide; every digit dials.
             if ch == "g" || ch == "G" { engine.toggleGuide(); return .handled }
-            if ch == "1" && engine.dialing.isEmpty { engine.toggleGuide(); return .handled }
             // F2: symmetric with the tap gesture. This used to swallow the press
             // and do nothing outside the guide — and because the key handler ate
             // it, the .onTapGesture fallback never ran either, so a single centre
@@ -298,7 +328,9 @@ struct TVView: View {
                 if engine.setupCardVisible, !engine.setupCardDismissed,
                    !engine.showFirstRun, let url = configURL {
                     HStack {
-                        SetupCard(url: url, showChannelHint: true,
+                        SetupCard(url: url,
+                                  onOpenSetup: setup == nil ? nil : { setupOpen = true },
+                                  showChannelHint: true,
                                   onDismiss: { engine.setupCardDismissed = true })
                         Spacer()
                     }
@@ -390,7 +422,11 @@ struct TVView: View {
                 // on-screen diagnostics block instead of a useless sentence, so a
                 // single TestFlight photo says exactly what failed (build 11).
                 if let url = configURL, diag.storeOpened {
-                    SetupCard(url: url)
+                    // Channel 00 is the documented permanent way back, so the
+                    // native path has to be offered here too — otherwise the only
+                    // route in on iOS disappears once the first-run card is gone.
+                    SetupCard(url: url,
+                              onOpenSetup: setup == nil ? nil : { setupOpen = true })
                     // F7: the storage provenance shows even when everything is
                     // WORKING. A tmp-directory reset leaves the store open and the
                     // server up, so the diagnostics block below would never

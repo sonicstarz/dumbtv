@@ -61,15 +61,35 @@ final class Player: ObservableObject {
         views = [makeView(), makeView()]
         vlcs = views.map { v in
             // network-caching smooths WAN streaming (the freeze-and-swap hides
-            // the buffering gap). normvol levels loudness between shows; a LONG
-            // averaging window (~4s vs the old ~200ms) corrects slow program-to-
-            // program level differences without pumping on dialogue transients —
-            // the earlier short window is what made it "feel off."
+            // the buffering gap).
+            //
+            // AUDIO: WE DO NOTHING TO IT. Both things that used to be here were
+            // wrong, and the symptom was audio that sounded hollow and thin, "like
+            // one channel got phase flipped."
+            //
+            // 1. force-dolby-surround defaults to AUTO, and that is almost
+            //    certainly what caused it. When VLC decides a stream is Dolby
+            //    Surround encoded — which it guesses, and guesses wrong on plain
+            //    stereo — it applies Pro Logic matrix decoding, and that inverts
+            //    phase on the surround-derived channel by design. Pinned OFF (2).
+            //    Nothing we play is matrix-encoded; there is no upside to letting
+            //    it guess.
+            //
+            // 2. `--audio-filter=normvol` is gone. It levelled loudness across
+            //    programmes, but: norm-buff-size is a COUNT OF AUDIO BUFFERS
+            //    (VLC default 20), not milliseconds — the old comment here
+            //    claimed 200 meant "~4s" and that is simply not what the knob is.
+            //    And norm-max-level=2.0 let it AMPLIFY up to 2x with no limiter
+            //    behind it, so anything already near full scale clipped. It was
+            //    also applied to everything, when the only case that ever wanted
+            //    it was commercials (see "loudness normalisation on commercials"
+            //    in the roadmap — still a later item, and it belongs at pack-build
+            //    time, not in the player).
+            //
+            // Direct play, untouched audio. Same rule as invariant #2 for video.
             let p = VLCMediaPlayer(options: [
                 "--network-caching=4000",
-                "--audio-filter=normvol",
-                "--norm-buff-size=200",
-                "--norm-max-level=2.0",
+                "--force-dolby-surround=2",
             ])
             p.drawable = v
             return p

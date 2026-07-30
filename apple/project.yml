@@ -17,7 +17,7 @@ settings:
   base:
     SWIFT_VERSION: "5.0"
     MARKETING_VERSION: "1.3.0"
-    CURRENT_PROJECT_VERSION: "19"
+    CURRENT_PROJECT_VERSION: "20"
     GENERATE_INFOPLIST_FILE: YES
     INFOPLIST_FILE: Info-shared.plist          # base for ATS; Xcode merges generated keys on top
     # dumbTV reaches the user's Plex server and serves its own setup page on the

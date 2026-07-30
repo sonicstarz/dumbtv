@@ -64,9 +64,22 @@ struct SetupCard: View {
                         .fixedSize(horizontal: false, vertical: true)
                 }
                 #endif
-                // The native path, offered first because it needs no second
-                // device at all — and on tvOS a second device is the difference
-                // between "set this up" and "give up".
+                // NOT ON tvOS, and this is load-bearing.
+                //
+                // A Button here is a second focusable sitting on the watch screen,
+                // and tvOS gives focus to ONE thing. With this button present the
+                // root TV surface never held focus, so its `.onTapGesture` never
+                // fired and the centre button did nothing at all — the "select
+                // doesn't work, single or double" report. Same reason the dismiss
+                // ✕ below was already excluded on tvOS "where it would fight the
+                // focus engine"; I added this one anyway and reintroduced exactly
+                // that bug.
+                //
+                // tvOS reaches Setup through the guide's ⚙ row instead, which
+                // works WITH the focus engine rather than against it. This button
+                // exists for iOS/iPadOS touch, where there is no focus to steal
+                // and no keyboard to press S on.
+                #if !os(tvOS)
                 if let onOpenSetup {
                     Button(action: onOpenSetup) {
                         Text("— or SET UP ON THIS DEVICE")
@@ -75,6 +88,7 @@ struct SetupCard: View {
                     }
                     .padding(.top, 4)
                 }
+                #endif
                 if showChannelHint {
                     Text("Tune to channel 0 anytime to bring this back.")
                         .font(.system(.caption2, design: .monospaced))

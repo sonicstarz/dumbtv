@@ -219,6 +219,22 @@ struct TVView: View {
         .onExitCommand { if !setupShowing, engine.guideOpen { engine.guideOpen = false } }
         #endif
 
+        #if os(tvOS)
+        // SELECT. THIS IS LOAD-BEARING AND IT WENT MISSING ONCE.
+        //
+        // When the Button experiment was reverted, the scripted edit that was
+        // supposed to restore this didn't match its anchor and silently did
+        // nothing — so tvOS shipped with no select handler at all and the centre
+        // button did nothing, single OR double press. It compiled clean, because
+        // an absent view modifier is not an error.
+        //
+        // The verification missed it too: guide ARROWS were tested (onMoveCommand)
+        // and Setup TILES were tested (real Buttons with their own actions), and
+        // neither of those routes through here. Test the centre button on the TV
+        // surface specifically after touching this file.
+        .onTapGesture(perform: selectPressed)
+        #endif
+
         // macOS ONLY. This block is the KEYBOARD map — digits to dial, g, s, i,
         // c, m, esc. It used to be compiled for tvOS as well, which was both
         // pointless and harmful: an Apple TV has no keyboard, and the Siri Remote

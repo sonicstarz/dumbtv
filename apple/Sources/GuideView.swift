@@ -105,7 +105,7 @@ private struct GuideGrid: View {
             }
             .frame(width: gutter)
             ZStack(alignment: .leading) {
-                Text("SET UP dumbTV — link a server, pick libraries, make a channel")
+                Text("CHANNEL PACKS — download public-domain channels to this device")
                     .font(Palette.mono(13 * s)).foregroundStyle(Palette.peri)
                     .padding(.leading, 12 * s).lineLimit(1)
             }
@@ -152,7 +152,7 @@ private struct GuideGrid: View {
                                 .contentShape(Rectangle())
                                 .onTapGesture { engine.guideSelection = -1; engine.guideSelect() }
                                 .accessibilityElement(children: .ignore)
-                                .accessibilityLabel("Setup. Link a media server, choose libraries, create a channel. Select to open.")
+                                .accessibilityLabel("Channel packs. Download public-domain channels to this device. Select to open.")
                             ForEach(engine.guideProgramRows()) { row in
                                 let airing = row.programs.first { now >= $0.startUtc && now < $0.endUtc }
                                 GuideGridRow(row: row, gutter: gutter, lane: lane, windowStart: windowStart,

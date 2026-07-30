@@ -67,6 +67,18 @@ struct TVView: View {
     /// arrows and SELECT before SwiftUI can move focus between Setup's buttons.
     private var setupShowing: Bool { (setupOpen || engine.setupRequested) && setup != nil }
 
+    /// Does the TV surface actually HOLD focus?
+    ///
+    /// `.focusable()` only makes a view *eligible*. Nothing ever gave this one
+    /// focus, and on tvOS `.onTapGesture` fires only on the focused view — so the
+    /// first SELECT press was spent acquiring focus and did nothing visible, and
+    /// the second one finally registered. Every single press on this app needed
+    /// to be a double press.
+    ///
+    /// Claimed explicitly on appear, and re-claimed whenever Setup closes (the
+    /// overlay takes focus away while it is up, by design).
+    @FocusState private var tvFocused: Bool
+
     var body: some View {
         ZStack {
             Color.black.ignoresSafeArea()
@@ -135,6 +147,10 @@ struct TVView: View {
                 SetupView(model: setup, diag: diag, configURL: configURL) {
                     setupOpen = false
                     engine.setupRequested = false
+                    // Take focus back, or the first press after closing Setup is
+                    // swallowed re-acquiring it — the same double-press bug,
+                    // reintroduced on every exit from Setup.
+                    tvFocused = true
                     // Nothing to reload by hand: native Setup mutates through the
                     // same ConfigAPI the web UI does, which posts
                     // .dumbTVConfigChanged — and Engine already observes it. A
@@ -154,6 +170,10 @@ struct TVView: View {
         // so the Setup screen appeared but the remote kept driving the channels
         // behind it. Standing down here is what lets the overlay take focus.
         .focusable(!setupShowing)
+        .focused($tvFocused)
+        // Claim focus, don't just be eligible for it. Without this the first
+        // press of every remote button was swallowed granting focus.
+        .onAppear { tvFocused = true }
         .onMoveCommand { direction in
             // Setup owns the remote while it is up.
             if setupShowing { return }
@@ -194,7 +214,16 @@ struct TVView: View {
             if engine.guideOpen { engine.guideSelect() } else { engine.toggleGuide() }
         }
         #endif
-        #if os(tvOS) || os(macOS)
+        // macOS ONLY. This block is the KEYBOARD map — digits to dial, g, s, i,
+        // c, m, esc. It used to be compiled for tvOS as well, which was both
+        // pointless and harmful: an Apple TV has no keyboard, and the Siri Remote
+        // is already handled by onMoveCommand / onTapGesture / onExitCommand /
+        // onPlayPauseCommand above. Having this here too meant SELECT could be
+        // seen by two handlers, one of which ran `engine.showBanner()` and then
+        // declined the press — a first press that visibly did something small
+        // while not doing the thing you asked for. That is precisely the shape of
+        // "the first click does nothing."
+        #if os(macOS)
         .onKeyPress { press in
             // Setup owns the keyboard while it is up: let every key through to
             // it (text fields, focus movement) instead of dialing channels.

@@ -164,7 +164,8 @@ struct TVView: View {
             // guide's ⚙ row. Deriving it avoids .onChange entirely — the
             // two-parameter form is iOS 17+ and this app targets iOS 16.
             if setupOpen || engine.setupRequested, let setup {
-                SetupView(model: setup, diag: diag, configURL: configURL) {
+                SetupView(model: setup, diag: diag, engine: engine,
+                          player: engine.player, configURL: configURL) {
                     setupOpen = false
                     engine.setupRequested = false
                     // Take focus back, or the first press after closing Setup is
@@ -521,6 +522,10 @@ struct TVView: View {
                     Text("Press G for the guide · ↑ ↓ change the channel")
                     #endif
                 }
+                // Channel 00 has no dial on tvOS/iOS, so say how to get BACK here
+                // rather than leaving it as a screen you can only reach once.
+                Text("The ⚙ row at the top of the guide opens packs & setup.")
+                    .font(Palette.mono(12 * s)).foregroundStyle(Palette.dim)
                 .font(Palette.mono(13 * s)).foregroundStyle(Palette.dim)
                 .multilineTextAlignment(.center)
             }

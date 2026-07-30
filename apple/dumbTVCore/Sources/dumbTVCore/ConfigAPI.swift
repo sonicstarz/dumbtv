@@ -284,6 +284,14 @@ public final class ConfigAPI {
     /// the card before a human ever saw the page (N7). The signal is now the
     /// config page itself being served to a browser; the embedded server calls
     /// this from its static-asset handler.
+    /// Also called by the NATIVE Setup screen, not only the web one.
+    ///
+    /// `setup_seen` is what retires the QR nag card on the TV. It used to be set
+    /// exclusively here, from the embedded server's static-asset handler — i.e.
+    /// only when a browser actually loaded the config page. So anyone who set
+    /// their box up entirely on-device (download a pack, make a channel, never
+    /// touch a laptop) got a QR code over the picture on EVERY launch, forever.
+    /// Doing setup counts as having seen setup, wherever you did it.
     public func markConfigPageOpened() {
         if store.getSetting("setup_seen") == nil { store.setSetting("setup_seen", "1") }
     }

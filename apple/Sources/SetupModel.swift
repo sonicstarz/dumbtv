@@ -187,6 +187,12 @@ final class SetupModel: ObservableObject {
         busy = "Loading…"
         defer { busy = nil }
 
+        // Opening native Setup counts as having seen setup — this is what stops
+        // the QR card nagging forever on a box that was never configured from a
+        // browser. Same call the embedded server makes when a browser loads the
+        // config page; it is a no-op once set.
+        api?.markConfigPageOpened()
+
         // `/api/status` reports the ACTIVE backend: `backend`, `linked`, and
         // `server` as {name, uri, local} or null. It does not carry a separate
         // plex/jellyfin split — that comes from /api/jellyfin/status.

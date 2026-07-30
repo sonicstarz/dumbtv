@@ -58,6 +58,10 @@ private struct SetupButtonStyle: ButtonStyle {
 struct SetupView: View {
     @ObservedObject var model: SetupModel
     @ObservedObject var diag: SystemDiagnostics
+    /// Needed for the tvOS sound/captions controls — that platform has no other
+    /// route to mute or CC at all. Observed so the labels track the live state.
+    @ObservedObject var engine: Engine
+    @ObservedObject var player: Player
     var configURL: String?
     var onClose: () -> Void
 
@@ -122,6 +126,9 @@ struct SetupView: View {
                     // screen owns.
                     companionSection
                     packsSection
+                    #if os(tvOS)
+                    soundSection
+                    #endif
                     diagnosticsSection
                 }
                 .padding(28 * z)
@@ -243,7 +250,12 @@ struct SetupView: View {
     // still here and still working.
     private var companionStep: Int { 1 }
     private var packsStep: Int { 2 }
+    #if os(tvOS)
+    private var soundStep: Int { 3 }
+    private var diagnosticsStep: Int { 4 }
+    #else
     private var diagnosticsStep: Int { 3 }
+    #endif
 
     // MARK: - Content packs
 
@@ -481,6 +493,40 @@ struct SetupView: View {
             }
         }
     }
+
+    // MARK: - Sound & captions (tvOS only)
+
+    #if os(tvOS)
+    /// Mute and captions, which tvOS otherwise CANNOT REACH AT ALL.
+    ///
+    /// `ControlBar` — the Guide/Mute/CC row — is `#if !os(tvOS)`, and the i/c/m
+    /// keys are macOS-only. The Siri Remote's whole surface is already spoken
+    /// for: up/down surf, select opens the guide, menu goes back, and play/pause
+    /// is bound to ⊘ on purpose (invariant #1). There is no free button, so
+    /// these live here instead of nowhere.
+    ///
+    /// Not as fast as a dedicated button, and it should not stay this way
+    /// forever — but "two presses away" beats "impossible", which is what it was.
+    @ViewBuilder
+    private var soundSection: some View {
+        VStack(alignment: .leading, spacing: 12 * z) {
+            sectionTitle("\(soundStep) · SOUND & CAPTIONS")
+            HStack(spacing: 14 * z) {
+                Button(player.muted ? "UNMUTE" : "MUTE") { engine.toggleMute() }
+                    .font(f(14, .bold))
+                Button(player.captionsOn ? "CAPTIONS OFF" : "CAPTIONS ON") { engine.toggleCaptions() }
+                    .font(f(14, .bold))
+            }
+            Text(soundStatus)
+                .font(f(10)).foregroundStyle(Palette.dim)
+        }
+    }
+
+    private var soundStatus: String {
+        "Sound \(player.muted ? "muted" : "on")  ·  Captions \(player.captionsOn ? "on" : "off")"
+            + "  ·  Mute survives channel changes and restarts."
+    }
+    #endif
 
     // MARK: - O5 · Diagnostics
 

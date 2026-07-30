@@ -42,19 +42,27 @@ struct GuideView: View {
 
     // Bottom-right key legend, mono like the web.
     private var footer: some View {
+        // A key legend that lies is worse than no legend — it has now been wrong
+        // twice. First it said "1 CLOSE" after `1` was freed to dial channel 1
+        // (SPACE). Then it read as keyboard instructions on iOS, which has no
+        // keyboard: "ENTER WATCH · G CLOSE" on a touchscreen. Each platform now
+        // names its own gestures.
         HStack(spacing: 30 * s) {
             Spacer()
-            Text("⚙ TOP ROW = SETUP")
+            Text("⚙ TOP ROW = PACKS & SETUP")
+            #if os(tvOS)
+            Text("↑↓ CHANNEL")
+            Text("←→ HOURS")
+            Text("SELECT WATCH")
+            Text("MENU CLOSE")
+            #elseif os(macOS)
             Text("↑↓ CHANNEL")
             Text("←→ HOURS")
             Text("ENTER WATCH")
-            // Said "1 CLOSE" — which stopped being true when `1` was freed up to
-            // dial channel 1 (SPACE) instead of toggling the guide. A key legend
-            // that lies is worse than no legend.
-            #if os(tvOS)
-            Text("MENU CLOSE")
-            #else
             Text("G CLOSE")
+            #else
+            Text("TAP A ROW TO WATCH")
+            Text("DOUBLE-TAP TO CLOSE")
             #endif
         }
         .font(Palette.mono(13 * s, .semibold))

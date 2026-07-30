@@ -152,19 +152,26 @@ struct FirstRunPopup: View {
 
     /// The control cheatsheet, per platform — the same set the remote/keyboard
     /// actually implements.
+    /// Every line here has to name something the platform can ACTUALLY do.
+    ///
+    /// This list used to promise "0 — this setup screen, anytime" on tvOS and
+    /// "DIAL 0" on iOS. Neither is possible: digits reach `pressDigit` only from
+    /// the macOS keyboard, so channel 00 was unreachable on the two platforms
+    /// being told to dial it. The way in on every platform is the ⚙ row at the
+    /// top of the guide, so that is what it says now.
     private static var controls: [(String, String)] {
         #if os(tvOS)
         return [("UP / DOWN", "change channel"),
                 ("SELECT", "channel info & the guide"),
-                ("0", "this setup screen, anytime")]
+                ("⚙ IN THE GUIDE", "packs & setup, anytime")]
         #elseif os(macOS)
         return [("↑ / ↓", "change channel"),
                 ("G  ·  SPACE", "the guide  ·  channel info"),
-                ("0", "this setup screen, anytime")]
+                ("S  ·  ⚙", "packs & setup, anytime")]
         #else
         return [("SWIPE ↑ / ↓", "change channel"),
                 ("DOUBLE-TAP", "channel info & the guide"),
-                ("DIAL 0", "this setup screen, anytime")]
+                ("⚙ IN THE GUIDE", "packs & setup, anytime")]
         #endif
     }
 

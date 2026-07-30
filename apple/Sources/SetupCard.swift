@@ -90,7 +90,11 @@ struct SetupCard: View {
                 }
                 #endif
                 if showChannelHint {
-                    Text("Tune to channel 0 anytime to bring this back.")
+                    // Was "Tune to channel 0" — which only works on macOS, where
+                    // the keyboard can reach `pressDigit`. tvOS and iOS have no
+                    // dial UI at all, so this told most users to do something
+                    // impossible. The ⚙ row in the guide works everywhere.
+                    Text("Open the ⚙ row at the top of the guide to bring this back.")
                         .font(.system(.caption2, design: .monospaced))
                         .foregroundStyle(Palette.dim)
                         .fixedSize(horizontal: false, vertical: true)

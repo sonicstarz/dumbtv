@@ -79,7 +79,27 @@ struct TVView: View {
     /// overlay takes focus away while it is up, by design).
     @FocusState private var tvFocused: Bool
 
-    var body: some View {
+    var body: some View { screen }
+
+    // TRIED AND REVERTED: wrapping the whole screen in a Button so the focus
+    // engine would activate it natively on the first SELECT. It does — but a
+    // Button on tvOS also claims the ARROWS for focus navigation, so channel
+    // up/down and guide scrolling stopped working entirely, and `.buttonStyle(.plain)`
+    // still applied a focus scale + shadow + rounded corners to the ENTIRE
+    // television. The custom guide navigation and a Button cannot both own the
+    // D-pad. Focusable-plus-claimed-focus is the approach that keeps both.
+
+    /// SELECT / click / centre press. One place, so the Button and the macOS
+    /// keyboard path cannot drift.
+    private func selectPressed() {
+        // Setup owns SELECT while it is up — its own buttons handle their own.
+        if setupShowing { return }
+        // The first-run card pages before anything else.
+        if firstRunAdvance() { return }
+        if engine.guideOpen { engine.guideSelect() } else { engine.toggleGuide() }
+    }
+
+    private var screen: some View {
         ZStack {
             Color.black.ignoresSafeArea()
 
@@ -162,17 +182,14 @@ struct TVView: View {
         // Focus + keyboard/remote input is macOS/tvOS only (iOS uses the swipe
         // gesture below). Keeping these off iOS lets the iOS deployment target
         // drop below 17 — .focusable()/.onKeyPress are iOS 17+.
+        // Focusable AND focused. `.focusable()` alone only makes the view
+        // eligible; claiming focus is what stops the first press of every button
+        // being spent acquiring it. Stands down while Setup is up so the overlay
+        // can take focus — otherwise it swallows arrows and the remote keeps
+        // driving channels behind a Setup screen that looks interactive.
         #if os(tvOS) || os(macOS)
-        // NOT focusable while Setup is open. This root view is what stops the
-        // overlay's buttons from ever getting focus: on tvOS the focus engine
-        // hands focus to a focusable ancestor, and `.onMoveCommand` here then
-        // swallows every arrow before SwiftUI can move between the buttons —
-        // so the Setup screen appeared but the remote kept driving the channels
-        // behind it. Standing down here is what lets the overlay take focus.
         .focusable(!setupShowing)
         .focused($tvFocused)
-        // Claim focus, don't just be eligible for it. Without this the first
-        // press of every remote button was swallowed granting focus.
         .onAppear { tvFocused = true }
         .onMoveCommand { direction in
             // Setup owns the remote while it is up.
@@ -201,19 +218,7 @@ struct TVView: View {
         // .onExitCommand closes Setup instead — don't also act on it here.
         .onExitCommand { if !setupShowing, engine.guideOpen { engine.guideOpen = false } }
         #endif
-        #if os(tvOS)
-        // B3 — the owner's remote spec (simpler than the old two-step):
-        //   up/down = change channel (onMoveCommand; the banner auto-appears on tune)
-        //   SELECT  = open the guide directly; in the guide, tune the highlighted row
-        //   back/menu = dismiss the guide (onExitCommand above)
-        .onTapGesture {
-            // Setup owns SELECT while it is up — its buttons handle their own.
-            if setupShowing { return }
-            // SELECT pages the first-run card before it does anything else.
-            if firstRunAdvance() { return }
-            if engine.guideOpen { engine.guideSelect() } else { engine.toggleGuide() }
-        }
-        #endif
+
         // macOS ONLY. This block is the KEYBOARD map — digits to dial, g, s, i,
         // c, m, esc. It used to be compiled for tvOS as well, which was both
         // pointless and harmful: an Apple TV has no keyboard, and the Siri Remote

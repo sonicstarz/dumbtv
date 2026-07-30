@@ -87,5 +87,14 @@
   "rightsBasisSummary": [
     "NR"
   ],
-  "partialSeries": false
+  "partialSeries": false,
+  "editorial": {
+    "rating": "PG",
+    "kidSafe": true,
+    "era": "1932–1937",
+    "tint": "rose",
+    "history": "Betty Boop began in 1930 as a caricature of a jazz-age singer — drawn, at first, with a dog's ears. She was rapidly redrawn as human and became the first cartoon character built around an adult woman rather than an animal. The Hays Code caught up with her in 1934 and the studio was made to lengthen her skirt, raise her neckline and put her in domestic settings; the pre-Code shorts and the post-Code ones barely look like the same series.",
+    "synopsis": "Fleischer Betty Boop shorts, including Minnie the Moocher with Cab Calloway performing and rotoscoped into the picture as a ghostly walrus.",
+    "advisory": "Only part of the Betty Boop catalogue is public domain — several were renewed and are excluded."
+  }
 }

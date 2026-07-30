@@ -61,6 +61,16 @@ final class SetupModel: ObservableObject {
         let bytesTotal: Int
         let error: String?
 
+        // Detail-screen copy. All optional — a pack installed before this
+        // existed, or one from an older catalog, simply has none.
+        let rating: String
+        let kidSafe: Bool?
+        let era: String
+        let tint: String
+        let history: String
+        let synopsis: String
+        let advisory: String?
+
         var downloading: Bool { state == "downloading" }
         /// 0…1, by BYTES where known — item count jumps in coarse steps and a
         /// 3-item pack would show 0%, 33%, 66%, done for a multi-GB download.
@@ -245,6 +255,7 @@ final class SetupModel: ObservableObject {
         packs = raw.compactMap { p in
             guard let id = p["id"] as? String else { return nil }
             let prog = p["progress"] as? [String: Any]
+            let ed = p["editorial"] as? [String: Any]
             return Pack(
                 id: id,
                 name: (p["name"] as? String) ?? id,
@@ -261,7 +272,14 @@ final class SetupModel: ObservableObject {
                 total: num(prog?["total"]),
                 bytesDone: num(prog?["bytesDone"]),
                 bytesTotal: num(prog?["bytesTotal"]),
-                error: prog?["error"] as? String)
+                error: prog?["error"] as? String,
+                rating: (ed?["rating"] as? String) ?? "",
+                kidSafe: ed?["kidSafe"] as? Bool,
+                era: (ed?["era"] as? String) ?? "",
+                tint: (ed?["tint"] as? String) ?? "",
+                history: (ed?["history"] as? String) ?? "",
+                synopsis: (ed?["synopsis"] as? String) ?? ((p["description"] as? String) ?? ""),
+                advisory: ed?["advisory"] as? String)
         }
         // Ads-only packs are commercials, not channels — they belong in the web
         // UI's asset manager, not on a "pick something to watch" list.

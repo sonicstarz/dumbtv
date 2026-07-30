@@ -547,5 +547,14 @@
     "AGE",
     "NR"
   ],
-  "partialSeries": false
+  "partialSeries": false,
+  "editorial": {
+    "rating": "PG",
+    "kidSafe": false,
+    "era": "1929–1931",
+    "tint": "sepia",
+    "history": "This is where Looney Tunes starts. Hugh Harman and Rudolf Ising, both ex-Disney, built a character called Bosko and sold a series to Leon Schlesinger, who sold it on to Warner Bros. The whole point of the line was to plug Warner's music catalogue, which is why so much of it is built around a song. Merrie Melodies began as the second series alongside it. Everything Warner animation later became — the timing, the musicality, Carl Stalling's scoring — grows out of this run.",
+    "synopsis": "The 1929–31 block in release order: Bosko's debut, the first Merrie Melodies, and the earliest Warner shorts to survive into the public domain.",
+    "advisory": "Bosko is a minstrel-derived caricature — that is what the character was in 1929, and this pack does not pretend otherwise. Pre-Code humour throughout. The one Censored Eleven title from this era is excluded outright."
+  }
 }

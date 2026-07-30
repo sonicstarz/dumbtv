@@ -92,6 +92,11 @@ struct SetupView: View {
     private enum Anchor: Hashable { case pack, link, library, done }
     @FocusState private var anchor: Anchor?
 
+    /// The pack whose detail screen is open, if any. An overlay rather than a
+    /// sheet or a NavigationStack push: same reason Setup itself is an overlay —
+    /// nothing below it gets unmounted, so the video surface keeps running.
+    @State private var detail: SetupModel.Pack?
+
     @State private var chanName = ""
     @State private var chanNumber = ""
     @State private var chanOrdering = "sequential"
@@ -109,11 +114,15 @@ struct SetupView: View {
                     if let n = model.notice { banner(n, Palette.amber) }
                     if let b = model.busy { banner(b, Palette.dim) }
 
-                    packsSection
-                    linkSection
-                    if model.isLinked { channelSection }
-                    diagnosticsSection
+                    // Order is the whole design. The QR banner is FIRST because
+                    // everything this screen cannot do — Plex, Jellyfin, bulk
+                    // curation, ad breaks, per-item edits — is done there, and
+                    // burying that under a grid is how people conclude the app
+                    // can't do it. Then the grid, which is the one job this
+                    // screen owns.
                     companionSection
+                    packsSection
+                    diagnosticsSection
                 }
                 .padding(28 * z)
                 .frame(maxWidth: columnWidth, alignment: .leading)
@@ -153,6 +162,18 @@ struct SetupView: View {
                 anchor = model.isLinked ? (model.libraries.isEmpty ? .done : .library) : .link
             }
         }
+        // The pack detail screen, over the top of Setup.
+        .overlay {
+            if let d = detail {
+                // Re-read from the model each pass rather than using the captured
+                // copy: a download finishing while the detail screen is open has
+                // to flip DOWNLOAD into ADD TO CHANNEL, and a snapshot never
+                // would.
+                PackDetail(pack: model.packs.first(where: { $0.id == d.id }) ?? d,
+                           model: model, z: z) { detail = nil }
+                    .transition(.opacity)
+            }
+        }
         // Poll only while something is actually downloading, and stop when it
         // isn't — so it costs nothing at rest, and a pack that finishes while
         // Setup is open flips to "make it a channel" without a keypress.
@@ -170,7 +191,7 @@ struct SetupView: View {
     private var header: some View {
         HStack(alignment: .firstTextBaseline) {
             VStack(alignment: .leading, spacing: 4) {
-                Text("SET UP dumbTV").font(f(20, .bold)).foregroundStyle(Palette.amber)
+                Text("CHANNEL PACKS").font(f(20, .bold)).foregroundStyle(Palette.amber)
                 Text(model.linkSummary).font(f(12)).foregroundStyle(Palette.peri)
             }
             Spacer()
@@ -207,92 +228,64 @@ struct SetupView: View {
     /// something watchable on a box with no Plex and no Jellyfin — no account, no
     /// second device, no network config. Putting "link a media server" first
     /// implied dumbTV needs one.
-    private var packsStep: Int { 1 }
-    private var serverStep: Int { 2 }
-    private var channelStep: Int { 3 }
-    private var diagnosticsStep: Int { model.isLinked ? 4 : 3 }
-    private var companionStep: Int { model.isLinked ? 5 : 4 }
+    // PARKED, NOT DELETED: `linkSection` and `channelSection` are still compiled
+    // but no longer rendered. The owner's spec for this screen is two things —
+    // the web-config banner and the pack grid — so Plex/Jellyfin linking and
+    // library-to-channel go back to the web UI.
+    //
+    // The cost is real and worth restating: the App Review argument for building
+    // native Setup at all was that a reviewer handed an Apple TV must be able to
+    // configure the app on the device in front of them, and linking a server is
+    // the part they would try. Packs alone do give a reviewer a watchable channel
+    // with no second device, which may well be enough — but if review comes back
+    // asking for on-device server setup, putting `linkSection` back into the
+    // stack below is a one-line change, and the Plex PIN flow it depends on is
+    // still here and still working.
+    private var companionStep: Int { 1 }
+    private var packsStep: Int { 2 }
+    private var diagnosticsStep: Int { 3 }
 
     // MARK: - Content packs
 
     @ViewBuilder
     private var packsSection: some View {
-        VStack(alignment: .leading, spacing: 12 * z) {
+        VStack(alignment: .leading, spacing: 14 * z) {
             sectionTitle("\(packsStep) · CHANNEL PACKS")
-            Text("Public-domain channels, downloaded straight to this device. No server, no account — this is the fastest way to something watchable.")
+            Text("Public-domain channels, downloaded straight to this device. No server, no account.")
                 .font(f(11)).foregroundStyle(Palette.peri)
                 .fixedSize(horizontal: false, vertical: true)
 
             if model.packs.isEmpty {
-                Text("No packs available. dumbTV asks dumbtv.app what exists when this page opens — if the network was down, close and reopen Setup.")
+                Text("No packs available. dumbTV asks dumbtv.app what exists when this page opens — if the network was down, close and reopen.")
                     .font(f(11)).foregroundStyle(Palette.dim)
                     .fixedSize(horizontal: false, vertical: true)
                 Button("CHECK AGAIN") { Task { await model.loadPacks() } }.font(f(12))
             } else {
-                // The first pack row carries the focus anchor; the rest are
-                // reached by moving down from it.
-                ForEach(Array(model.packs.enumerated()), id: \.element.id) { idx, p in
-                    packRow(p, isFirst: idx == 0)
+                // AVAILABLE first, DOWNLOADED beneath it. Finished packs sink to
+                // the bottom so the top of the grid is always "what could I add?"
+                // — the question you opened this screen to answer.
+                if !available.isEmpty { grid(available, anchorFirst: true) }
+                if !downloaded.isEmpty {
+                    Text("DOWNLOADED")
+                        .font(f(12, .bold)).foregroundStyle(Palette.ice)
+                        .padding(.top, 10 * z)
+                    grid(downloaded, anchorFirst: available.isEmpty)
                 }
             }
         }
     }
 
-    private func packRow(_ p: SetupModel.Pack, isFirst: Bool) -> some View {
-        VStack(alignment: .leading, spacing: 6 * z) {
-            HStack(alignment: .firstTextBaseline) {
-                Text(p.name).font(f(14, .bold)).foregroundStyle(Palette.tape)
-                Spacer()
-                Text("\(p.itemCount) · \(p.runtimeLabel) · \(p.sizeLabel)")
-                    .font(f(10)).foregroundStyle(Palette.dim)
-            }
-            if !p.description.isEmpty {
-                Text(p.description).font(f(10)).foregroundStyle(Palette.peri)
-                    .fixedSize(horizontal: false, vertical: true)
-            }
+    private var available: [SetupModel.Pack] { model.packs.filter { !$0.installed } }
+    private var downloaded: [SetupModel.Pack] { model.packs.filter { $0.installed } }
 
-            if p.downloading {
-                // Progress by BYTES, not item count: a 3-item multi-gigabyte pack
-                // would otherwise sit on 0% for many minutes and look stuck.
-                ProgressView(value: p.fraction)
-                    .tint(Palette.amber)
-                    .frame(maxWidth: 380 * z)
-                Text("Downloading — \(Int(p.fraction * 100))%  ·  \(p.done)/\(p.total) file(s). Keep watching; this carries on in the background.")
-                    .font(f(10)).foregroundStyle(Palette.amber)
-                    .fixedSize(horizontal: false, vertical: true)
-            } else if let e = p.error {
-                Text("Failed: \(e)").font(f(10)).foregroundStyle(Palette.tally)
-                    .fixedSize(horizontal: false, vertical: true)
-                Button("TRY AGAIN") { Task { await model.installPack(p) } }.font(f(12))
-            } else if p.installed {
-                HStack(spacing: 12 * z) {
-                    if p.hasChannel {
-                        Text("✓ ON A CHANNEL").font(f(11, .bold)).foregroundStyle(Palette.amber)
-                    } else {
-                        Button("MAKE IT A CHANNEL") { Task { await model.makePackChannel(p) } }
-                            .font(f(13, .bold))
-                            .focused($anchor, equals: isFirst ? .pack : nil)
-                    }
-                    Button("REMOVE") { Task { await model.removePack(p) } }.font(f(11))
-                }
-                // A preloaded pack can ship a SUBSET (1 Superman short of 17), so
-                // "installed" does not mean complete — offer the rest rather than
-                // silently pretending the pack is all there.
-                if p.installedItemCount > 0, p.installedItemCount < p.itemCount {
-                    Button("DOWNLOAD THE OTHER \(p.itemCount - p.installedItemCount)") {
-                        Task { await model.installPack(p) }
-                    }
-                    .font(f(11))
-                }
-            } else {
-                Button("DOWNLOAD  (\(p.sizeLabel))") { Task { await model.installPack(p) } }
-                    .font(f(13, .bold))
-                    .focused($anchor, equals: isFirst ? .pack : nil)
+    private func grid(_ packs: [SetupModel.Pack], anchorFirst: Bool) -> some View {
+        LazyVGrid(columns: [GridItem(.adaptive(minimum: 190 * z), spacing: 16 * z)],
+                  alignment: .leading, spacing: 16 * z) {
+            ForEach(Array(packs.enumerated()), id: \.element.id) { idx, p in
+                PackTile(pack: p, z: z) { detail = p }
+                    .focused($anchor, equals: (anchorFirst && idx == 0) ? .pack : nil)
             }
         }
-        .padding(12 * z)
-        .background(Color.black.opacity(0.22))
-        .overlay(Rectangle().stroke(Palette.dim.opacity(0.28), lineWidth: 1))
     }
 
     // MARK: - O2 · Link a media server
@@ -300,7 +293,7 @@ struct SetupView: View {
     @ViewBuilder
     private var linkSection: some View {
         VStack(alignment: .leading, spacing: 12) {
-            sectionTitle("\(serverStep) · YOUR MEDIA SERVER")
+            sectionTitle("YOUR MEDIA SERVER")
 
             if let code = model.pinCode {
                 // The whole reason native setup is viable on a remote: nobody
@@ -401,7 +394,7 @@ struct SetupView: View {
     @ViewBuilder
     private var channelSection: some View {
         VStack(alignment: .leading, spacing: 12) {
-            sectionTitle("\(channelStep) · MAKE A CHANNEL")
+            sectionTitle("MAKE A CHANNEL")
 
             if model.libraries.isEmpty {
                 Text("No libraries came back from your server.")
@@ -524,8 +517,8 @@ struct SetupView: View {
 
     private var companionSection: some View {
         VStack(alignment: .leading, spacing: 10) {
-            sectionTitle("\(companionStep) · WEB COMPANION  (optional)")
-            Text("Everything above can be done right here. For bulk work — reordering hundreds of episodes, ad breaks, content packs — open this on a phone or laptop on the same network:")
+            sectionTitle("\(companionStep) · EVERYTHING ELSE — ON YOUR PHONE OR LAPTOP")
+            Text("Plex and Jellyfin, channel building, reordering, ad breaks, per-item edits — all of it lives in the web config, open on any phone or laptop on this network. Scan the code or type the address:")
                 .font(f(11)).foregroundStyle(Palette.peri)
                 .fixedSize(horizontal: false, vertical: true)
             if let url = configURL {

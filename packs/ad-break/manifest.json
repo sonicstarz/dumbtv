@@ -32,5 +32,13 @@
   "rightsBasisSummary": [
     "NR"
   ],
-  "partialSeries": false
+  "partialSeries": false,
+  "editorial": {
+    "rating": "ALL AGES",
+    "kidSafe": true,
+    "era": "1960",
+    "tint": "yellow",
+    "history": "Sponsored films — made by a company to sell something, shown in cinemas, schools and at fairs, and then thrown away. Most were never renewed because nobody thought of them as property worth keeping. They are the best surviving record of what American advertising actually sounded like.",
+    "synopsis": "Period commercials and sponsored films used as ad breaks between programmes."
+  }
 }

@@ -758,5 +758,14 @@
   "rightsBasisSummary": [
     "GOV"
   ],
-  "partialSeries": false
+  "partialSeries": false,
+  "editorial": {
+    "rating": "ADULT",
+    "kidSafe": false,
+    "era": "1943–1945",
+    "tint": "olive",
+    "history": "The US Army could not get soldiers to read training pamphlets, so it hired the Warner Bros. cartoon unit to make training films instead. Private Snafu — the name is a sanitised expansion of a piece of army slang — does everything wrong so the audience does not have to. Chuck Jones and Frank Tashlin directed, Theodor Geisel wrote most of them in rhyming verse years before he was Dr. Seuss to the general public, Mel Blanc voiced Snafu, and Carl Stalling scored them. They were classified, shown only to troops, and made without copyright because the Army made them.",
+    "synopsis": "All 26 released Private Snafu shorts, the three Mr. Hook Navy films, and three Warner-made government shorts including So Much for So Little, which won the 1949 Academy Award for Documentary Short.",
+    "advisory": "Made for an audience of adult soldiers and it shows: innuendo, pin-ups, heavy wartime propaganda and period racial caricature of Axis nations. Not for a kids' lineup."
+  }
 }

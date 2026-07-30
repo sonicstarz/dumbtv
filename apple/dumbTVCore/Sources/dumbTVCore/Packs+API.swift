@@ -14,10 +14,18 @@ struct PackCatalog: Decodable {
         var show: String?; var season: Int?; var episode: Int?; var aired: String?
         var durationMs: Millis; var url: String; var bytes: Int?; var license: License?
     }
+    /// Detail-screen copy, authored per pack (scripts/add-pack-editorial.js).
+    /// Optional throughout: an older catalog, or a pack installed before this
+    /// existed, simply has none and the UI falls back to the description.
+    struct Editorial: Decodable {
+        var rating: String?; var kidSafe: Bool?; var era: String?; var tint: String?
+        var history: String?; var synopsis: String?; var advisory: String?
+    }
     struct Entry: Decodable {
         var id: String; var name: String; var kind: String?; var description: String?
         var channel: PackManifest.Channel?
         var itemCount: Int?; var runtimeMs: Millis?; var downloadBytes: Int?
+        var editorial: Editorial?
         var items: [Item]
     }
     var version: Int?; var packs: [Entry]
@@ -114,7 +122,8 @@ extension ConfigAPI {
             .compactMap { $0.text("rating_key") })
 
         func row(id: String, name: String, kind: String, desc: String,
-                 itemCount: Int, runtimeMs: Millis, downloadBytes: Int) -> [String: Any] {
+                 itemCount: Int, runtimeMs: Millis, downloadBytes: Int,
+                 editorial: PackCatalog.Editorial? = nil) -> [String: Any] {
             let prog = packProgress.get(id)
             var o: [String: Any] = [
                 "id": id, "name": name, "kind": kind, "description": desc,
@@ -124,6 +133,20 @@ extension ConfigAPI {
                 "hasChannel": packChannels.contains(packRatingKey(id)),
                 "origin": installed[id]?.origin ?? NSNull(),
             ]
+            if let e = editorial {
+                // Built key by key, not as one literal: a dictionary literal of
+                // seven `?? NSNull()` ternaries is enough to make the Swift type
+                // checker give up ("unable to type-check in reasonable time").
+                var ed: [String: Any] = [:]
+                if let v = e.rating   { ed["rating"] = v }
+                if let v = e.kidSafe  { ed["kidSafe"] = v }
+                if let v = e.era      { ed["era"] = v }
+                if let v = e.tint     { ed["tint"] = v }
+                if let v = e.history  { ed["history"] = v }
+                if let v = e.synopsis { ed["synopsis"] = v }
+                if let v = e.advisory { ed["advisory"] = v }
+                o["editorial"] = ed
+            }
             o["progress"] = prog.map { ["state": $0.state, "done": $0.done, "total": $0.total,
                                         "error": $0.error.map { $0 as Any } ?? NSNull(),
                                         "bytesDone": $0.bytesDone, "bytesTotal": $0.bytesTotal,
@@ -147,7 +170,8 @@ extension ConfigAPI {
             seen.insert(p.id)
             out.append(row(id: p.id, name: p.name, kind: p.kind ?? "shows", desc: p.description ?? "",
                            itemCount: p.itemCount ?? p.items.count,
-                           runtimeMs: p.runtimeMs ?? 0, downloadBytes: p.downloadBytes ?? 0))
+                           runtimeMs: p.runtimeMs ?? 0, downloadBytes: p.downloadBytes ?? 0,
+                           editorial: p.editorial))
         }
         // Installed packs missing from the catalog (e.g. a bundled preload with
         // no catalog, or the catalog fetch failed) still show up + are manageable.

@@ -502,6 +502,10 @@ async function cmdCatalog() {
       ...(m.audience ? { audience: m.audience } : {}),
       ...(m.contentNote ? { contentNote: m.contentNote } : {}),
       channel: m.channel ?? null, itemCount: items.length,
+      // The detail screen's copy — rating, kid-safe, era, history, synopsis.
+      // Carried into the catalog so the pack picker can show it BEFORE the pack
+      // is downloaded, which is the only moment it matters.
+      ...(m.editorial ? { editorial: m.editorial } : {}),
       runtimeMs: items.reduce((n, i) => n + i.durationMs, 0),
       downloadBytes: items.reduce((n, i) => n + (i.bytes ?? 0), 0),
       items,

@@ -153,5 +153,13 @@
   "rightsBasisSummary": [
     "GOV"
   ],
-  "partialSeries": false
+  "partialSeries": false,
+  "editorial": {
+    "rating": "ALL AGES",
+    "kidSafe": true,
+    "era": "1969–2011",
+    "tint": "deepblue",
+    "history": "NASA has filmed and taped nearly everything it has ever done, and because a work made by a US federal employee in the course of their duties has never had copyright at all, essentially all of it is free. No renewal question, no reissue trap — this is the single most certain footing any pack here stands on.",
+    "synopsis": "A permanent loop of the Apollo programme and what came after: the Saturn V rolling out on the crawler, the launch itself, the restored moonwalk in full, the complete Apollo 11 mission film, and the last Space Shuttle launch in 2011. Channel 1, always on, never edited."
+  }
 }

@@ -92,5 +92,14 @@
   "rightsBasisSummary": [
     "AGE"
   ],
-  "partialSeries": false
+  "partialSeries": false,
+  "editorial": {
+    "rating": "ALL AGES",
+    "kidSafe": true,
+    "era": "1928–1929",
+    "tint": "cream",
+    "history": "Walt Disney lost Oswald the Lucky Rabbit to his distributor in 1928 and had to invent a replacement in a hurry. Mickey Mouse was drawn silent; two shorts were made and shopped without success before Disney gambled the studio on adding synchronised sound. Steamboat Willie was the third made and the first released, and it worked so completely that the two silent ones were re-cut with sound and released afterwards.",
+    "synopsis": "Plane Crazy and Steamboat Willie from 1928, plus The Skeleton Dance — the first Silly Symphony, and the first time Disney let the music lead the picture instead of the other way round.",
+    "advisory": "The films are public domain; the CHARACTER is not. Mickey remains a live Disney trademark, so this ships under a neutral channel name with no Disney branding anywhere."
+  }
 }

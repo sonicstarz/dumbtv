@@ -2103,5 +2103,14 @@
         "cartoon"
       ]
     }
-  ]
+  ],
+  "editorial": {
+    "rating": "PG",
+    "kidSafe": false,
+    "era": "1932–1943",
+    "tint": "orange",
+    "history": "The stretch where Warner animation stops imitating Disney and becomes itself. Bosko gives way to Porky Pig, then to a duck and a rabbit who start out loud and abrasive and are gradually refined into Daffy and Bugs. Tex Avery, Bob Clampett, Frank Tashlin and Chuck Jones are all working in the same building. The public-domain run stops dead at Puss n' Booty in 1943 — everything Warner released after it was renewed and is still under copyright.",
+    "synopsis": "The public-domain Warner run: Porky one-shots, early Daffy and early Bugs, and the Merrie Melodies musical one-offs, including The Dover Boys at Pimento University, A Corny Concerto and Falling Hare.",
+    "advisory": "Pre-Code and wartime humour throughout. A handful of titles carry racial caricature or propaganda and are tagged individually. Original black-and-white prints only — the 1970s redrawn and colorized versions were renewed in 1994 and are deliberately excluded."
+  }
 }

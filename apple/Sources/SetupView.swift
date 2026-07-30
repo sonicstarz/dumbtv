@@ -89,7 +89,7 @@ struct SetupView: View {
     /// so the remote had nothing to move between and the whole page read as
     /// frozen. Set explicitly once `refresh()` has resolved, which is also when
     /// we know whether the first real control is LINK PLEX or a library row.
-    private enum Anchor: Hashable { case link, library, done }
+    private enum Anchor: Hashable { case pack, link, library, done }
     @FocusState private var anchor: Anchor?
 
     @State private var chanName = ""
@@ -109,6 +109,7 @@ struct SetupView: View {
                     if let n = model.notice { banner(n, Palette.amber) }
                     if let b = model.busy { banner(b, Palette.dim) }
 
+                    packsSection
                     linkSection
                     if model.isLinked { channelSection }
                     diagnosticsSection
@@ -140,8 +141,24 @@ struct SetupView: View {
             if chanOrdering.isEmpty || model.orderingModes.first(where: { $0.id == chanOrdering }) == nil {
                 chanOrdering = model.orderingModes.first?.id ?? "sequential"
             }
-            // After refresh, so "is there a library to pick?" is already answered.
-            anchor = model.isLinked ? (model.libraries.isEmpty ? .done : .library) : .link
+            // After refresh, so every "is there anything here?" is answered.
+            //
+            // PACKS WIN. They are section 1, and focusing anything below them
+            // makes the ScrollView jump past them — which reproduced the exact
+            // complaint that started this ("the download packs are nowhere to be
+            // found"), except now they were off the top of the screen.
+            if model.packs.contains(where: { !$0.hasChannel }) {
+                anchor = .pack
+            } else {
+                anchor = model.isLinked ? (model.libraries.isEmpty ? .done : .library) : .link
+            }
+        }
+        // Poll only while something is actually downloading, and stop when it
+        // isn't — so it costs nothing at rest, and a pack that finishes while
+        // Setup is open flips to "make it a channel" without a keypress.
+        // `.task(id:)` restarts whenever that flips.
+        .task(id: model.anyPackDownloading) {
+            await model.pollPacksWhileDownloading()
         }
         #if os(tvOS)
         .onExitCommand(perform: onClose)
@@ -185,16 +202,105 @@ struct SetupView: View {
     /// exists once a server is linked, so hardcoding them printed a list that
     /// went 1 · 3 · 4 on a fresh install — which reads as a missing step rather
     /// than an inapplicable one.
-    private var channelStep: Int { 2 }
-    private var diagnosticsStep: Int { model.isLinked ? 3 : 2 }
-    private var companionStep: Int { model.isLinked ? 4 : 3 }
+    ///
+    /// PACKS ARE STEP 1, ahead of linking a server. They are the only path to
+    /// something watchable on a box with no Plex and no Jellyfin — no account, no
+    /// second device, no network config. Putting "link a media server" first
+    /// implied dumbTV needs one.
+    private var packsStep: Int { 1 }
+    private var serverStep: Int { 2 }
+    private var channelStep: Int { 3 }
+    private var diagnosticsStep: Int { model.isLinked ? 4 : 3 }
+    private var companionStep: Int { model.isLinked ? 5 : 4 }
+
+    // MARK: - Content packs
+
+    @ViewBuilder
+    private var packsSection: some View {
+        VStack(alignment: .leading, spacing: 12 * z) {
+            sectionTitle("\(packsStep) · CHANNEL PACKS")
+            Text("Public-domain channels, downloaded straight to this device. No server, no account — this is the fastest way to something watchable.")
+                .font(f(11)).foregroundStyle(Palette.peri)
+                .fixedSize(horizontal: false, vertical: true)
+
+            if model.packs.isEmpty {
+                Text("No packs available. dumbTV asks dumbtv.app what exists when this page opens — if the network was down, close and reopen Setup.")
+                    .font(f(11)).foregroundStyle(Palette.dim)
+                    .fixedSize(horizontal: false, vertical: true)
+                Button("CHECK AGAIN") { Task { await model.loadPacks() } }.font(f(12))
+            } else {
+                // The first pack row carries the focus anchor; the rest are
+                // reached by moving down from it.
+                ForEach(Array(model.packs.enumerated()), id: \.element.id) { idx, p in
+                    packRow(p, isFirst: idx == 0)
+                }
+            }
+        }
+    }
+
+    private func packRow(_ p: SetupModel.Pack, isFirst: Bool) -> some View {
+        VStack(alignment: .leading, spacing: 6 * z) {
+            HStack(alignment: .firstTextBaseline) {
+                Text(p.name).font(f(14, .bold)).foregroundStyle(Palette.tape)
+                Spacer()
+                Text("\(p.itemCount) · \(p.runtimeLabel) · \(p.sizeLabel)")
+                    .font(f(10)).foregroundStyle(Palette.dim)
+            }
+            if !p.description.isEmpty {
+                Text(p.description).font(f(10)).foregroundStyle(Palette.peri)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+
+            if p.downloading {
+                // Progress by BYTES, not item count: a 3-item multi-gigabyte pack
+                // would otherwise sit on 0% for many minutes and look stuck.
+                ProgressView(value: p.fraction)
+                    .tint(Palette.amber)
+                    .frame(maxWidth: 380 * z)
+                Text("Downloading — \(Int(p.fraction * 100))%  ·  \(p.done)/\(p.total) file(s). Keep watching; this carries on in the background.")
+                    .font(f(10)).foregroundStyle(Palette.amber)
+                    .fixedSize(horizontal: false, vertical: true)
+            } else if let e = p.error {
+                Text("Failed: \(e)").font(f(10)).foregroundStyle(Palette.tally)
+                    .fixedSize(horizontal: false, vertical: true)
+                Button("TRY AGAIN") { Task { await model.installPack(p) } }.font(f(12))
+            } else if p.installed {
+                HStack(spacing: 12 * z) {
+                    if p.hasChannel {
+                        Text("✓ ON A CHANNEL").font(f(11, .bold)).foregroundStyle(Palette.amber)
+                    } else {
+                        Button("MAKE IT A CHANNEL") { Task { await model.makePackChannel(p) } }
+                            .font(f(13, .bold))
+                            .focused($anchor, equals: isFirst ? .pack : nil)
+                    }
+                    Button("REMOVE") { Task { await model.removePack(p) } }.font(f(11))
+                }
+                // A preloaded pack can ship a SUBSET (1 Superman short of 17), so
+                // "installed" does not mean complete — offer the rest rather than
+                // silently pretending the pack is all there.
+                if p.installedItemCount > 0, p.installedItemCount < p.itemCount {
+                    Button("DOWNLOAD THE OTHER \(p.itemCount - p.installedItemCount)") {
+                        Task { await model.installPack(p) }
+                    }
+                    .font(f(11))
+                }
+            } else {
+                Button("DOWNLOAD  (\(p.sizeLabel))") { Task { await model.installPack(p) } }
+                    .font(f(13, .bold))
+                    .focused($anchor, equals: isFirst ? .pack : nil)
+            }
+        }
+        .padding(12 * z)
+        .background(Color.black.opacity(0.22))
+        .overlay(Rectangle().stroke(Palette.dim.opacity(0.28), lineWidth: 1))
+    }
 
     // MARK: - O2 · Link a media server
 
     @ViewBuilder
     private var linkSection: some View {
         VStack(alignment: .leading, spacing: 12) {
-            sectionTitle("1 · YOUR MEDIA SERVER")
+            sectionTitle("\(serverStep) · YOUR MEDIA SERVER")
 
             if let code = model.pinCode {
                 // The whole reason native setup is viable on a remote: nobody

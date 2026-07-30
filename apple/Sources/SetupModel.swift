@@ -38,6 +38,45 @@ final class SetupModel: ObservableObject {
 
     @Published var channels: [PickChannel] = []
 
+    /// Content packs — the reason Setup matters on a device with no media server
+    /// at all. Public-domain channels, downloaded straight to the box.
+    @Published var packs: [Pack] = []
+
+    struct Pack: Identifiable, Hashable {
+        let id: String
+        let name: String
+        let kind: String            // shows | ads
+        let description: String
+        let itemCount: Int
+        let runtimeMs: Int
+        let downloadBytes: Int
+        let installed: Bool
+        let installedItemCount: Int
+        let hasChannel: Bool
+        /// nil when idle. state is downloading | installed | error.
+        let state: String?
+        let done: Int
+        let total: Int
+        let bytesDone: Int
+        let bytesTotal: Int
+        let error: String?
+
+        var downloading: Bool { state == "downloading" }
+        /// 0…1, by BYTES where known — item count jumps in coarse steps and a
+        /// 3-item pack would show 0%, 33%, 66%, done for a multi-GB download.
+        var fraction: Double {
+            if bytesTotal > 0 { return min(1, Double(bytesDone) / Double(bytesTotal)) }
+            if total > 0 { return min(1, Double(done) / Double(total)) }
+            return 0
+        }
+        var sizeLabel: String {
+            downloadBytes > 0
+                ? String(format: "%.1f GB", Double(downloadBytes) / 1_000_000_000)
+                : "—"
+        }
+        var runtimeLabel: String { "\(runtimeMs / 60000) min" }
+    }
+
     /// Read from `/api/status`, never hardcoded — the web UI renders its ORDER
     /// dropdown from the same list, so the two surfaces cannot offer different
     /// modes or describe them differently.
@@ -81,6 +120,27 @@ final class SetupModel: ObservableObject {
     private let api: ConfigAPI?
     private var pinID: Int?
     private var pollTask: Task<Void, Never>?
+
+    /// Read a number out of an untyped JSON dictionary WITHOUT caring which
+    /// integer type it was.
+    ///
+    /// `dict["x"] as? Int` returns nil when the boxed value is an `Int64` — and
+    /// `Millis` is `Int64` throughout the core, so `runtimeMs` silently decoded
+    /// as 0 and every pack advertised "0 min" while `downloadBytes` (a plain
+    /// `Int`) came through fine. A cast that fails quietly and yields a plausible
+    /// zero is the worst kind: nothing logs, and the UI just states something
+    /// untrue. Every numeric read in this file goes through here.
+    private func num(_ v: Any?) -> Int {
+        switch v {
+        case let i as Int:      return i
+        case let i as Int64:    return Int(i)
+        case let i as Int32:    return Int(i)
+        case let d as Double:   return Int(d)
+        case let n as NSNumber: return n.intValue
+        case let s as String:   return Int(s) ?? 0
+        default:                return 0
+        }
+    }
 
     init(api: ConfigAPI?) { self.api = api }
 
@@ -146,6 +206,7 @@ final class SetupModel: ObservableObject {
             jellyfinUser = srv["name"] as? String
         }
         await loadChannels()
+        await loadPacks()
         if isLinked { await loadLibraries() }
     }
 
@@ -170,9 +231,81 @@ final class SetupModel: ObservableObject {
         guard let r = await call("GET", "/api/channels") else { return }
         let raw = (r["channels"] as? [[String: Any]]) ?? []
         channels = raw.compactMap { c in
-            guard let id = c["id"] as? Int, let n = c["number"] as? Int else { return nil }
+            let id = num(c["id"]), n = num(c["number"])
+            guard id > 0 else { return nil }
             return PickChannel(id: String(id), number: n, name: (c["name"] as? String) ?? "—")
         }.sorted { $0.number < $1.number }
+    }
+
+    // MARK: - Content packs
+
+    func loadPacks() async {
+        guard let r = await call("GET", "/api/packs") else { return }
+        let raw = (r["packs"] as? [[String: Any]]) ?? []
+        packs = raw.compactMap { p in
+            guard let id = p["id"] as? String else { return nil }
+            let prog = p["progress"] as? [String: Any]
+            return Pack(
+                id: id,
+                name: (p["name"] as? String) ?? id,
+                kind: (p["kind"] as? String) ?? "shows",
+                description: (p["description"] as? String) ?? "",
+                itemCount: num(p["itemCount"]),
+                runtimeMs: num(p["runtimeMs"]),
+                downloadBytes: num(p["downloadBytes"]),
+                installed: (p["installed"] as? Bool) ?? false,
+                installedItemCount: num(p["installedItemCount"]),
+                hasChannel: (p["hasChannel"] as? Bool) ?? false,
+                state: prog?["state"] as? String,
+                done: num(prog?["done"]),
+                total: num(prog?["total"]),
+                bytesDone: num(prog?["bytesDone"]),
+                bytesTotal: num(prog?["bytesTotal"]),
+                error: prog?["error"] as? String)
+        }
+        // Ads-only packs are commercials, not channels — they belong in the web
+        // UI's asset manager, not on a "pick something to watch" list.
+        .filter { $0.kind != "ads" }
+    }
+
+    var anyPackDownloading: Bool { packs.contains(where: \.downloading) }
+
+    /// Kick off a download. The API returns immediately and works in the
+    /// background, so the UI polls (see `pollPacksWhileDownloading`).
+    func installPack(_ p: Pack) async {
+        error = nil; notice = nil
+        guard await call("POST", "/api/packs/\(p.id)/install") != nil else { return }
+        notice = "Downloading \(p.name) — \(p.sizeLabel). You can keep watching."
+        await loadPacks()
+    }
+
+    /// Poll while anything is in flight. Stops on its own when nothing is, so it
+    /// costs nothing at rest — and a download that finishes while Setup is open
+    /// flips to "watch it" without the user touching anything.
+    func pollPacksWhileDownloading() async {
+        while !Task.isCancelled, anyPackDownloading {
+            try? await Task.sleep(nanoseconds: 1_500_000_000)
+            if Task.isCancelled { return }
+            await loadPacks()
+        }
+    }
+
+    func makePackChannel(_ p: Pack) async {
+        error = nil; notice = nil
+        // adsEnabled false: a pack channel should not inherit ad breaks unless
+        // the user asks for them. Ads default off everywhere else too.
+        guard await call("POST", "/api/packs/\(p.id)/channel", ["adsEnabled": false]) != nil else { return }
+        notice = "\(p.name) is now a channel. Close Setup and tune to it."
+        await loadPacks()
+        await loadChannels()
+    }
+
+    func removePack(_ p: Pack) async {
+        error = nil; notice = nil
+        guard await call("DELETE", "/api/packs/\(p.id)") != nil else { return }
+        notice = "\(p.name) removed."
+        await loadPacks()
+        await loadChannels()
     }
 
     func loadLibraries() async {
@@ -197,8 +330,8 @@ final class SetupModel: ObservableObject {
         busy = "Asking Plex for a code…"
         defer { busy = nil }
         guard let r = await call("POST", "/api/plex/pin") else { return }
-        guard let code = r["code"] as? String,
-              let id = (r["id"] as? Int) ?? (r["id"] as? String).flatMap(Int.init) else {
+        let id = num(r["id"])
+        guard let code = r["code"] as? String, id > 0 else {
             error = "Plex did not return a link code."; return
         }
         pinCode = code
@@ -343,10 +476,11 @@ final class SetupModel: ObservableObject {
         guard let made = await call("POST", "/api/channels",
                                     ["name": trimmed, "number": number,
                                      "orderingMode": ordering]) else { return false }
-        guard let chanID = (made["id"] as? Int) else {
+        let chanID = num(made["id"])
+        guard chanID > 0 else {
             error = "The channel was created but returned no id."; return false
         }
-        let assigned = (made["number"] as? Int) ?? number
+        let assigned = num(made["number"]) > 0 ? num(made["number"]) : number
 
         busy = "Adding \(items.count) title(s)…"
         guard await call("POST", "/api/channels/\(chanID)/sources", ["items": items]) != nil else {

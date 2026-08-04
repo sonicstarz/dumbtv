@@ -46,6 +46,48 @@ without hand-building anything.
 
 ---
 
+## ✅ BUILT AND VERIFIED — 2026-08-04
+
+A2 is done and on `build-25`. What follows below is still the design of record;
+this section is what actually exists and what reality corrected.
+
+**Shipped:** `src/lineup/{digest,rule-based,claude,ollama,hybrid,validate,commit}.js`,
+seven routes in `src/routes/api.js`, the **Build a Lineup** view in the web UI,
+and `scripts/test-lineup.mjs` (19 checks, `npm run test:lineup`).
+
+**Verified against the real Plex library and the real Anthropic API:**
+
+| | result |
+|---|---|
+| rule-based, over HTTP | 5 channels, 0 repairs, **0.36s**, free |
+| claude haiku-4.5 | 5 channels, 0 repairs, **11s**, **$0.016** |
+| make-me-a-channel | "a rainy sunday afternoon when you don't want to think" → 1 channel, 35 sources |
+| commit → rollback on the live 10-channel db | all 10 owner channels **byte-identical** afterwards |
+| the committed channel | 909 programs, 14 days, "Friends" joined 15 min in |
+
+**Four things reality corrected:**
+
+1. **The first commit produced dead air.** A channel with 33 sources and ONE
+   program. `channel_sources` is a pointer; the generator schedules from
+   `media`, which `cacheSource` populates. The API said ok and the channel
+   played nothing — the worst failure mode, because nothing reported it.
+   `generateCommitted` now caches first (through `media/backend.js`, so
+   Jellyfin works too) and reports any channel that ends up empty.
+2. **V12's "too thin" lane hardcoded `< 2`**, which made §17 always fatal.
+   Now `minChannels`: 2 for a lineup, 1 for one channel and for commit.
+3. **Names truncated mid-word** — "Sunday Afternoon Comfort" → "SUNDAY
+   AFTERNOON COM", the exact failure `hybrid.js` documents a 3B model doing to
+   itself. Cut at a word boundary and listed as a repair.
+4. **Claude emitted no dayparting rules** even when the answers asked for a
+   rhythm, where the rule-based planner produces 1–2 per channel. Not fixed —
+   a prompt problem, filed as the next thing to improve.
+
+**Still open:** the $5 unlock (A2c), the weekly cap on *our* key, and the
+privacy policy rewrite (A0b), which **gates shipping** — the UI already makes
+specific claims about what leaves the device and the policy must match them.
+
+---
+
 ## 0 · The one rule
 
 > **The model emits channel definitions — rows for `channels`,

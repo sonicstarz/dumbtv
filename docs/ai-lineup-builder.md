@@ -9,17 +9,35 @@ track execution. Read `docs/manual-schedule-editor.md` for the sibling problem
 
 | # | Question | Call |
 |---|---|---|
-| 1 | Privacy | Delegated → **local-first stands.** Apple on-device + Ollama only; no cloud path built now. Privacy policy untouched. |
-| 2 | Tag visibility | Delegated → **visible, read-only chips from A1** (invisible data steering the schedule would feel haunted). |
-| 3 | Re-run cadence | Delegated → **manual only.** Matches no-phone-home. |
+| 1 | Privacy | **SUPERSEDED 2026-08-04 — see the pivot below.** (Was: local-first, no cloud path.) |
+| 2 | Tag visibility | **Visible, read-only chips from A1** (invisible data steering the schedule would feel haunted). |
+| 3 | Re-run cadence | **Manual only.** |
 | 4 | Scope | **"Ship as much as possible. We build build build."** A4 ships in v1.x; nothing waits for the Pi. |
-| 5 | Providers | **Apple on-device AI is the primary provider** (iPhone/Mac — the phone is already in the setup flow). **Ollama is the Pi/Node-self-host provider**, not the default. Cloud: not built. |
+| 5 | Providers | **SUPERSEDED 2026-08-04 — see the pivot below.** (Was: Apple on-device primary, Ollama for Pi.) |
 
-One constraint decision #5 must respect (verified in the SDK): FoundationModels
-is **absent on tvOS**. "On the Apple TV" therefore means *the phone runs the
-planner during the link-with-your-phone flow and pushes the result to the TV* —
-the TV never runs a model itself. Rule-based remains the only planner that runs
-literally everywhere, which is why it stays the floor and the fallback.
+---
+
+## ⚡ THE API PIVOT — owner decisions 2026-08-04 (supersedes #1 and #5)
+
+**What forced it: A0 ran, and the local path lost decisively.** `llama3.2:3b`
+returned five sensibly-themed channels with **zero sources** — it understood the
+job and could not ground a choice in a 520-line catalog. Haiku 4.5, same digest,
+same prompt, same validator, placed **340 real sources** on profile A and **185
+with zero excluded-genre leaks** on the kids profile, inventing a MAGICAL
+HOLIDAYS channel out of seasonal titles scattered through the library — a
+grouping the rule-based planner has no vocabulary for. $0.016–0.026 per call.
+
+| # | Decision | Call |
+|---|---|---|
+| 6 | **Provider** | **Anthropic API is the primary planner** (Haiku 4.5). Ollama and apple-fm are retired from the plan — the hybrid was a workaround for a limitation that no longer applies. Rule-based stays as the permanent floor. |
+| 7 | **Privacy** | **Catalog titles may leave the house**, to Anthropic only, on an explicit per-run consent. Reverses #1. The privacy policy and in-app blurb must be rewritten *before* this ships. Media never leaves — titles and metadata only. |
+| 8 | **Access model** | **$5 one-time unlock**, two doors at the same price — see §16. |
+| 9 | **BYO key limits** | **None.** Owner: *"they can do whatever they want cause they are paying for it."* Their key, their quota, their money. Runaway-loop protection lives in our code (no retry storms, one attempt per user action), **not** in a cap on someone else's spend. |
+| 10 | **Our-key limits** | **Consumable bundle, plus a hard server-side global spend ceiling.** The one non-negotiable limit. |
+
+Because a network call is the same on every platform, **tvOS calls the planner
+directly** — the phone-handoff was never about the network, it was about there
+being no local model on tvOS. That whole mechanism is now unnecessary.
 
 The pitch: a questionnaire plus a model that reads the media catalog and builds
 an entire lineup — channels, groupings, dayparts, original-airdate scheduling —
@@ -343,12 +361,14 @@ Algorithm:
 Every step is a pure function of (digest, answers) — same inputs, same lineup,
 which also makes A0's judging reproducible.
 
-> **Provider hierarchy per owner decision #5:** on Apple platforms the primary
-> provider is **`apple-fm`** (§8c — runs on the phone/Mac, result pushed to the
-> TV). **`ollama` is the Pi / Node-self-host provider** — the Pi has no Apple
-> silicon and Node has no FoundationModels, so the LAN model box is its
-> natural planner. `rule-based` is the floor everywhere. `cloud-byok` is not
-> built (decision #1).
+> **⚡ SUPERSEDED 2026-08-04 by decisions #6–#10.** The hierarchy is now
+> **`claude` (Haiku 4.5) primary on every platform, `rule-based` as the floor.**
+> A0 measured the local path losing decisively (zero grounded sources from a 3B
+> model vs 340 from Haiku), and a network call works identically everywhere —
+> so `ollama`, `apple-fm` and the whole `hybrid` workaround are **retired from
+> the plan**. `src/lineup/{ollama,hybrid}.js` stay in the tree as A0 evidence
+> and are not part of the product path. The sections below are kept for the
+> record; read §8e and §16 for what actually ships.
 
 ### 8b · `ollama` (the Pi / Node-self-host provider)
 
@@ -483,10 +503,13 @@ Same as web (it is the web UI), plus the A5 on-device option when spiked.
 |---|---|---|---|
 | **A0 · spike** | Digest builder (incl. Plex genre enrichment) + `scripts/lineup-spike.mjs`: dump real 518-title catalog, run **rule-based + Apple FM (spikeable on this Mac — macOS 26.5 has the framework) + 1–2 Ollama models** on the same three answer-sets, print proposals for hand-judging | M | Owner judges blind: is any model output **clearly better** than rule-based? If no → ship A1 alone, park the rest. Also picks the blessed Ollama model for the Pi |
 | **A1 · rule-based** | `src/lineup/` provider + validator + committer + web questionnaire + review UI. Ships end-to-end value with zero AI | M | A fresh install goes link → questionnaire → watching in < 3 min; selftest gains lineup invariant checks (seeded determinism, additive-only, SPACE untouched) |
-| **A2 · providers + interface** | Provider interface; **`apple-fm` `@Generable` planner on iOS/macOS (primary Apple path, incl. the hybrid draft-refine shape)**; Ollama client for Node/Pi with model pin + test button; `_repairs` surfacing | M–L | Same library + same answers → committed lineup through the on-device model on a Mac AND through Ollama on Node; all validator lanes exercised by fixture tests |
+| **A2 · Claude provider + key entry** | `src/lineup/claude.js` (**done** — committed 123c4ae) wired into the product path; BYO key entry in the web UI with validation-on-save and console.anthropic.com links; per-run consent copy; `_repairs` surfacing | M | A fresh install with a pasted key goes questionnaire → review → committed lineup; all validator lanes exercised by fixture tests |
+| **A2b · Make me a channel** | One free-text box → a one-channel proposal through the same validator/review/committer | S | *"a channel that feels like a 1990s Saturday afternoon"* produces a committed channel |
+| **A2c · $5 unlock (Door A)** | StoreKit one-time IAP; unlock gates the AI paths only, never the rule-based builder; App Review notes naming rule-based as the no-key demo path | M | Purchase → unlock persists across reinstall (restore purchases); reviewer can exercise the feature with no key |
 | **A3 · review polish + diff** | Re-run diffs, rollback UX, repair explanations | S–M | Re-run on a grown library produces a sane additive diff |
-| **A4 · tvOS + phone handoff** | Chip questionnaire on the TV; planner runs on the phone (apple-fm) reached via the existing link flow, result pushed to the TV; rule-based direct on the TV when no phone is present | M | Real-remote pass per the input doctrine checklist; the phone→TV push works on real hardware |
-| cloud-byok | **Not built** (owner decision #1/#5). Revisit only if on-device quality disappoints | — | — |
+| **A4 · tvOS** | Chip questionnaire on the TV calling the planner **directly** (no phone handoff — that existed only because tvOS had no local model); free text stays web-only | M | Real-remote pass per the input doctrine checklist |
+| **A5 · Door B (our key)** | Netlify relay holding our key, consumable 20-build bundles, Apple receipt validation, per-device caps, **global monthly spend ceiling that fails closed** | M | Ceiling proven by test: over budget → relay refuses, UI offers Door A or rule-based |
+| ~~apple-fm / ollama / hybrid~~ | **Retired** by decision #6 | — | — |
 
 Sequencing vs the rest of the docket: A0/A1 slot into **P2** (they are
 Presentation-tier wins — "the TV builds itself" is the single most
@@ -494,6 +517,117 @@ demo-able thing on the roadmap after the guide). A2+ sit in **P3** with the
 scheduler tier they exercise (R1/R5 get their UI *through* this feature).
 **H2 (manual editor) should follow A3**, inheriting its review-screen
 patterns.
+
+---
+
+## 16 · Access model — what you buy, and what it costs us
+
+**Framing is load-bearing.** The product is *the AI Lineup Builder* — the
+digest, the validator, the committer, the prompt work and the review UI. It is
+NOT "the ability to use an API key". "$5 to use your own key" reads as
+rent-seeking to exactly the audience the BYO path exists to court; "$5 for the
+builder, bring your own key or use our credits" is the same money and reads as
+ordinary. Copy must never phrase it the first way.
+
+The defence that makes the whole thing fair: **dumbTV stays free and fully
+functional.** The rule-based builder turns "linked to Plex" into a working
+television for nothing, no key, no account, no calls. The AI is an enhancement,
+never a hostage.
+
+### The two doors, one price
+
+| | Door A — bring your key | Door B — use ours |
+|---|---|---|
+| Price | $5 one-time | $5 one-time |
+| Runs | **Unlimited** | 20 builds, consumable, no expiry |
+| Needs | An Anthropic API key | Nothing |
+| Infrastructure | **None** | A relay holding our key |
+
+Deliberately, **Door A is the better deal at the same price.** The technical
+user is rewarded rather than taxed, which inverts the "paying to use my own key"
+complaint instead of arguing with it.
+
+### What counts as a build
+
+| Action | Cost to user | Cost to us |
+|---|---|---|
+| Full lineup | 1 build | ~$0.026 |
+| Make me a channel (§17) | 1 build | ~$0.005 |
+| Fix this channel / why is this here | **free** | fractions of a cent |
+
+Fix and explain are deliberately unmetered. They are the interactions that make
+the purchase feel worth it, they cost almost nothing, and metering them would
+kill the exact behaviour that sells the feature.
+
+### Limits
+
+- **Door A: no limit.** Owner decision #9. Their key, their quota, their money.
+  Protection against a runaway loop belongs in OUR code — one API attempt per
+  explicit user action, no automatic retries, no background re-planning — not in
+  a cap on someone else's spend.
+- **Door B: the bundle is the limit**, plus a **hard global monthly spend
+  ceiling on the relay**. That ceiling is the one non-negotiable control: it is
+  what stops a bug or a bad actor becoming a surprise invoice. It fails
+  *closed* — over the ceiling, the relay refuses and the UI offers Door A or the
+  rule-based builder.
+- No weekly windows anywhere. A one-time purchase with a recurring allowance is
+  unbounded liability (~$34/yr of our cost against a single $5 sale), and a
+  resetting clock is a support thread nobody needs.
+
+### Sequencing — Door A first
+
+**v1 ships Door A only, and therefore ships with no server at all.** Door B is a
+Netlify function holding our key, per-device caps, Apple receipt validation, and
+a support surface — a week of work for a feature people use two or three times.
+Ship A, watch real usage, then decide B with data. It also puts the feature in
+front of the open-source audience first, which is the best early-feedback group
+we have.
+
+### Key entry (Door A)
+
+- Stored per-device in the same durable settings the Plex token uses; **never**
+  synced, never logged, never included in a config export (Config v3 must
+  explicitly strip it — the export/import path is how secrets escape).
+- Entered in the **web UI**, not on the TV. Typing `sk-ant-...` on a D-pad is
+  cruel; the QR hand-off already exists for exactly this.
+- The screen links out to console.anthropic.com with a plain-language
+  three-step: create an account, create a key, paste it here. Recommend
+  Anthropic explicitly — it is what the planner is tuned and tested against.
+- **Validate on save** with one trivial call, and report the result plainly. A
+  key that is wrong should say so at paste time, not at build time.
+- Show the real cost per build so nobody is surprised: *"about 2–3 cents a
+  build, billed by Anthropic to you."*
+
+### App Review notes
+
+- A one-time IAP for an in-app feature is ordinary; the unlock must go through
+  IAP, not an external payment link.
+- Door A is a user supplying their own third-party service credential, which is
+  not a bypass of IAP — the $5 unlock is still purchased through IAP.
+- The reviewer must be able to see the feature work without a key: the
+  rule-based builder is the demo path, and the App Review notes should say so.
+
+---
+
+## 17 · "Make me a channel" — the repeatable one
+
+The full lineup is used two or three times in a device's life. **This is the one
+people use twenty times**, and it should be treated as a first-class feature
+rather than a footnote of the setup wizard.
+
+> *"A channel that feels like a 1990s Saturday afternoon on TNT."*
+> *"All my black-and-white films, but skip the silents."*
+> *"Something for when I can't sleep."*
+
+One free-text box, one channel out. Same digest, same validator, same committer,
+same review step — a `LineupProposal` with exactly one channel in it, so nothing
+new is needed downstream. It is a fifth of the cost of a full lineup, and it is
+the demo that sells the feature, so it belongs in v1 next to the full build, not
+after it.
+
+Where it lives: the web UI (free text needs a keyboard) and as a chip-driven
+variant on tvOS later. It is included in the unlock and **counts as one build**;
+it is not a separate purchase.
 
 ---
 

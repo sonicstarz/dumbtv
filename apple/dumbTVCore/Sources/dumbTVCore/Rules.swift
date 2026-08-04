@@ -130,6 +130,10 @@ public struct ChannelConfig: Identifiable, Hashable, Sendable, PlaylistChannel {
     /// `enabled` can still be turned off. A channel you can neither remove nor
     /// hide would be a hostage.
     public var locked: Bool
+    /// The channel's CRT/VHS look, or nil to inherit the global default (L-V1).
+    /// Stored as a whole JSON document in `channels.vibe` — see Vibe.swift for
+    /// why it is a document and not a spread of columns.
+    public var vibe: Vibe?
 
     public init(id: Int, number: Int, name: String, slotMinutes: Int = 30,
                 orderingMode: OrderingMode = .sequential, marathonSize: Int = 3,
@@ -137,14 +141,15 @@ public struct ChannelConfig: Identifiable, Hashable, Sendable, PlaylistChannel {
                 darkEnd: String? = nil, adsEnabled: Bool = true, maxAdsPerBreak: Int = 10,
                 adTags: String = "", timingMode: TimingMode = .continuous, adsBetween: Int = 4,
                 cooldownDays: Int = 0, overrunPolicy: OverrunPolicy = .protect,
-                enabled: Bool = true, generatedThru: Millis = 0, locked: Bool = false) {
+                enabled: Bool = true, generatedThru: Millis = 0, locked: Bool = false,
+                vibe: Vibe? = nil) {
         self.id = id; self.number = number; self.name = name; self.slotMinutes = slotMinutes
         self.orderingMode = orderingMode; self.marathonSize = marathonSize; self.cursor = cursor
         self.shuffleSeed = shuffleSeed; self.darkStart = darkStart; self.darkEnd = darkEnd
         self.adsEnabled = adsEnabled; self.maxAdsPerBreak = maxAdsPerBreak; self.adTags = adTags
         self.timingMode = timingMode; self.adsBetween = adsBetween; self.cooldownDays = cooldownDays
         self.overrunPolicy = overrunPolicy; self.enabled = enabled; self.generatedThru = generatedThru
-        self.locked = locked
+        self.locked = locked; self.vibe = vibe
     }
 
     public var spec: ChannelSpec {

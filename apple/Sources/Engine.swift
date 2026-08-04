@@ -10,6 +10,8 @@ struct ChannelRuntime {
     var assetsById: [Int: Asset] = [:]
     /// Poster art for the channel (its first source's Plex thumb path).
     var artThumb: String? = nil
+    /// This channel's CRT/VHS look, or nil to inherit the global default (L-V1).
+    var vibe: Vibe? = nil
 }
 
 /// A single row of the guide at a moment in time.
@@ -113,6 +115,18 @@ final class Engine: ObservableObject {
     /// the guide stays open (showing the press was acknowledged) until the new
     /// channel's picture is actually up, then it dismisses. Nil the rest of the time.
     @Published var guideTuning: Int?
+    /// The global CRT/VHS default, read from the `vibe_default` setting the web
+    /// UI writes. A channel's own vibe overrides it (L-V1).
+    @Published var vibeDefault: Vibe?
+
+    /// The look to draw right now: this channel's, else the global default,
+    /// else nothing. A per-ITEM scope slots in ahead of these as one more
+    /// argument when Track M's tapes arrive — which is the whole reason
+    /// `Vibe.resolve` takes a list.
+    var vibe: Vibe {
+        let channelVibe = channels.indices.contains(currentIndex) ? channels[currentIndex].vibe : nil
+        return Vibe.resolve(channelVibe, vibeDefault)
+    }
 
     private var currentStart: Millis = -1
     private var tick: Timer?
@@ -183,6 +197,11 @@ final class Engine: ObservableObject {
     /// restarts — sync() sees the same airing).
     func reloadFromStore() {
         guard let store else { return }
+        // The global look rides the same config-changed broadcast as everything
+        // else, so dragging a slider in the web UI reaches a playing television
+        // without a relaunch. Read BEFORE the early return below: a vibe change
+        // on a box with no channels configured is still a change worth applying.
+        vibeDefault = Vibe.parse(store.getSetting("vibe_default"))
         let tunedId = channels.indices.contains(currentIndex) ? channels[currentIndex].spec.id : nil
         guard loadFromStore(store) else { return }   // nothing configured yet — keep what's playing
         if let tunedId, let idx = channels.firstIndex(where: { $0.spec.id == tunedId }) {
@@ -272,6 +291,7 @@ final class Engine: ObservableObject {
         showGuideHintOnce()     // no-op while the popup is doing the teaching
         if let store {
             setupCardVisible = store.getSetting("setup_seen") == nil   // D3: nudge until first web-UI open
+            vibeDefault = Vibe.parse(store.getSetting("vibe_default"))  // L-V1 global look
             bootStage = "seeding preload packs"
             seedPreloadPacks(store)                                    // register bundled packs; seed channels once
             bootStage = "loading channels from store"
@@ -404,7 +424,8 @@ final class Engine: ObservableObject {
             let lookup = store.library(forChannel: c.id).mediaByKey
             built.append(ChannelRuntime(spec: c.spec, programs: programs, mediaByKey: lookup,
                                         assetsById: assetsById,
-                                        artThumb: store.sources(c.id).first?.thumb))
+                                        artThumb: store.sources(c.id).first?.thumb,
+                                        vibe: c.vibe))
         }
         guard !built.isEmpty else { return false }
         channels = built

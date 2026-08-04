@@ -393,6 +393,9 @@ public final class ConfigAPI {
         if b.keys.contains("darkStart") { c.darkStart = b.emptyToNilString("darkStart") }
         if b.keys.contains("darkEnd") { c.darkEnd = b.emptyToNilString("darkEnd") }
         if let v = b.bool("adsEnabled") { c.adsEnabled = v }
+        // A vibe is stored WHOLE. `null` clears it so the channel falls back to
+        // the global default (L-V1 resolution order).
+        if b.keys.contains("vibe") { c.vibe = Vibe.fromAny(b["vibe"]) }
         if let v = b.int("maxAdsPerBreak") { c.maxAdsPerBreak = v }
         if let v = b.string("adTags") { c.adTags = v }
         if let v = b.string("timingMode"), let tm = TimingMode(rawValue: v) { c.timingMode = tm }
@@ -595,6 +598,13 @@ public final class ConfigAPI {
             "loudnessTarget": Int(store.getSetting("loudness_target") ?? "") ?? -23,
             "displayFill": store.getSetting("display_fill") ?? "fit",
             "captions": store.getInt("captions", 0),
+            // L-V1. The web UI is the ONLY place a vibe is configured (owner
+            // 2026-08-03), so if these are missing the feature has no control
+            // surface at all on Apple — which is exactly how it shipped: the
+            // renderer existed, the endpoint silently ignored the field, and a
+            // look set in the browser never reached the television.
+            "vibeDefault": Vibe.parse(store.getSetting("vibe_default")).map { $0.asDictionary as Any } ?? NSNull(),
+            "vibePresets": Vibe.presets.mapValues { $0.asDictionary },
         ])
     }
     private func postSettings(_ req: Request) -> Response {
@@ -604,6 +614,12 @@ public final class ConfigAPI {
         if let v = b.int("loudnessTarget") { store.setSetting("loudness_target", String(v)) }
         if let v = b.string("displayFill") { store.setSetting("display_fill", v == "fill" ? "fill" : "fit") }
         if let v = b.bool("captions") { store.setSetting("captions", v ? "1" : "0") }
+        // `null` clears the global look; anything else is normalised through the
+        // model so a hand-rolled request can't store nonsense. Mirrors
+        // `if (b.vibeDefault !== undefined)` in src/routes/api.js.
+        if b.keys.contains("vibeDefault") {
+            store.setSetting("vibe_default", Vibe.fromAny(b["vibeDefault"])?.encoded())
+        }
         return .ok()
     }
 

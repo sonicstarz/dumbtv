@@ -120,6 +120,18 @@ struct TVView: View {
                     .allowsHitTesting(false)
                     .animation(.easeInOut(duration: 0.25), value: engine.guideOpen)
                     .animation(.easeInOut(duration: 0.25), value: guideSlot)
+                // L-V1 — the CRT/VHS layers, over the picture and UNDER the
+                // chrome, matching the browser TV's z-order. Scanlines across
+                // guide text would be unreadable at 480 lines, which is exactly
+                // what the safe-area rules exist to prevent.
+                //
+                // Not drawn on the setup channel (there is no picture there) or
+                // while the guide owns the screen — the guide is a UI surface,
+                // not the programme.
+                if !engine.onSetupChannel && !engine.guideOpen {
+                    VibeOverlay(vibe: engine.vibe, rect: r)
+                        .animation(.easeInOut(duration: 0.25), value: guideSlot)
+                }
             }
 
             GeometryReader { geo in
@@ -338,9 +350,18 @@ struct TVView: View {
     private func videoRect(_ geo: GeometryProxy) -> CGRect {
         if engine.guideOpen, guideSlot != .zero { return guideSlot }
         let i = geo.safeAreaInsets
-        return CGRect(x: -i.leading, y: -i.top,
-                      width: geo.size.width + i.leading + i.trailing,
-                      height: geo.size.height + i.top + i.bottom)
+        let full = CGRect(x: -i.leading, y: -i.top,
+                          width: geo.size.width + i.leading + i.trailing,
+                          height: geo.size.height + i.top + i.bottom)
+        // L-V1 `crop43`: pillarbox to the shape a television actually was. This
+        // reshapes the PICTURE, not just the overlay — the same rule the web
+        // applies to #video, #vibe and #snow together, so the effects track the
+        // image and never spill onto the black bars.
+        guard engine.vibe.crop43 else { return full }
+        let side = min(full.width * 3 / 4, full.height)      // height of a 4:3 box
+        let box = CGSize(width: side * 4 / 3, height: side)
+        return CGRect(x: full.midX - box.width / 2, y: full.midY - box.height / 2,
+                      width: box.width, height: box.height)
     }
 
     // Full-screen video with the channel banner and a GUIDE button.

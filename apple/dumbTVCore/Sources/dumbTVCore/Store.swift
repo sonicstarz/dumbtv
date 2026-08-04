@@ -15,6 +15,10 @@ public final class Store {
         sql.exec("ALTER TABLE channel_sources ADD COLUMN thumb TEXT;")
         // S3: system channels (SPACE at 1). Hideable, not editable.
         sql.exec("ALTER TABLE channels ADD COLUMN locked INTEGER NOT NULL DEFAULT 0;")
+        // L-V1: the per-channel CRT/VHS look, stored as a whole JSON document.
+        // Mirrors addColumnIfMissing('channels','vibe','TEXT') in src/db.js so a
+        // database written by either engine is readable by the other.
+        sql.exec("ALTER TABLE channels ADD COLUMN vibe TEXT;")
         restoreDurableSettings()
     }
 
@@ -80,8 +84,8 @@ public final class Store {
             INSERT INTO channels
               (number,name,slot_minutes,ordering_mode,marathon_size,cursor,shuffle_seed,
                dark_start,dark_end,ads_enabled,max_ads_per_break,ad_tags,timing_mode,
-               ads_between,cooldown_days,overrun_policy,enabled,generated_thru,locked,created_at)
-            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+               ads_between,cooldown_days,overrun_policy,enabled,generated_thru,locked,vibe,created_at)
+            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
             """, channelParams(c) + [.int(nowMs())])) ?? 0
         return Int(id)
     }
@@ -92,7 +96,7 @@ public final class Store {
             UPDATE channels SET
               number=?,name=?,slot_minutes=?,ordering_mode=?,marathon_size=?,cursor=?,shuffle_seed=?,
               dark_start=?,dark_end=?,ads_enabled=?,max_ads_per_break=?,ad_tags=?,timing_mode=?,
-              ads_between=?,cooldown_days=?,overrun_policy=?,enabled=?,generated_thru=?,locked=?
+              ads_between=?,cooldown_days=?,overrun_policy=?,enabled=?,generated_thru=?,locked=?,vibe=?
             WHERE id=?
             """, channelParams(c) + [.int(Int64(c.id))])
     }
@@ -399,7 +403,7 @@ public final class Store {
             adsBetween: r.intOr("ads_between", 4), cooldownDays: r.intOr("cooldown_days", 0),
             overrunPolicy: OverrunPolicy(rawValue: r.text("overrun_policy") ?? "") ?? .protect,
             enabled: r.bool("enabled"), generatedThru: r.int("generated_thru") ?? 0,
-            locked: r.bool("locked"))
+            locked: r.bool("locked"), vibe: Vibe.parse(r.text("vibe")))
     }
 
     static func rule(_ r: Row) -> ScheduleRule {
@@ -438,7 +442,7 @@ public final class Store {
          .int(c.adsEnabled ? 1 : 0), .int(Int64(c.maxAdsPerBreak)), .text(c.adTags),
          .text(c.timingMode.rawValue), .int(Int64(c.adsBetween)), .int(Int64(c.cooldownDays)),
          .text(c.overrunPolicy.rawValue), .int(c.enabled ? 1 : 0), .int(c.generatedThru),
-         .int(c.locked ? 1 : 0)]
+         .int(c.locked ? 1 : 0), c.vibe?.encoded().map { SQLite.Value.text($0) } ?? .null]
     }
 
     private func ruleParams(_ r: ScheduleRule) -> [SQLite.Value] {

@@ -233,6 +233,39 @@ await acheck('no media server is an ordinary state — packs alone still build',
   assert.equal(d.counts.shows, 0);
 });
 
+await acheck('packs alone still make a LINEUP — the fresh-Apple-TV first run', async () => {
+  // Found on the tvOS simulator: a device with two preloaded packs and no media
+  // server planned "only 0 usable channels survived validation", because the
+  // planner grouped by genre and packs carry none. That is what a new owner
+  // would have met on first launch.
+  const api = async (p) => {
+    if (p === '/api/packs') return { packs: [
+      { id: 'space', name: 'SPACE', installed: true, itemCount: 5, editorial: { era: '1969–2011', kidSafe: true } },
+      { id: 'early-disney', name: 'EARLY DISNEY', installed: true, itemCount: 3, editorial: { era: '1928–1929', kidSafe: true } },
+    ] };
+    if (p === '/api/channels') return { channels: [] };
+    throw new Error('no server linked');
+  };
+  const d = await buildDigest({ api });
+  const v = validateProposal(planRuleBased(d, { ads: 'only-retro', channelCountN: 5 }), d,
+    { maxChannels: 5, minChannels: 1, never: [] });
+  assert.equal(v.fatal, null, 'a device with only packs must still get channels');
+  assert.equal(v.proposal.channels.length, 2);
+  assert.deepEqual(v.proposal.channels.map((c) => c.name), ['SPACE', 'EARLY DISNEY']);
+  // 1928 and 1969 are both pre-1980, so retro ads belong on both.
+  assert.ok(v.proposal.channels.every((c) => c.ads), 'pack era should drive the ad policy');
+});
+
+check('a pack keeps its own identity instead of dissolving into a genre', () => {
+  const d = { ...digest, packs: [{ key: 'pack:space', title: 'SPACE', genres: [], year: 1969, items: 5 }] };
+  const p = planRuleBased(d, { channelCountN: 12, loves: [], never: [] });
+  const pack = p.channels.find((c) => c.name === 'SPACE');
+  assert.ok(pack, 'the pack lost its own channel');
+  assert.deepEqual(pack.sources, [{ key: 'pack:space', type: 'pack' }]);
+  // Packs come last so the channel cap trims them before the person's library.
+  assert.equal(p.channels.at(-1).name, 'SPACE');
+});
+
 const planned = validateProposal(planRuleBased(digest, answers), digest, { maxChannels: 5, never: answers.never });
 
 check('the rule-based planner produces a usable lineup with no AI at all', () => {

@@ -186,10 +186,41 @@ export function planRuleBased(digest, answers = {}) {
     };
   });
 
+  // ── installed packs are channels in their own right ────────────────────────
+  //
+  // A pack is CURATED — a named, ordered set with its own editorial voice.
+  // Folding it into a genre bucket alongside four hundred cartoons throws that
+  // away, so each one gets its own number instead.
+  //
+  // This is also what makes a fresh install work at all. On an Apple TV with no
+  // media server, packs are the ONLY sources, and the genre grouping above sees
+  // nothing: planning against two preloaded packs returned "only 0 usable
+  // channels survived validation", which is what a new owner would have met on
+  // first run. Verified on the tvOS simulator.
+  const packChannels = (digest.packs || [])
+    .filter((p) => !(answers.kids && p.kidSafe === false))
+    .map((p) => ({
+      name: String(p.title || 'PACK').toUpperCase(),
+      rationale: `${p.items ? `${p.items} titles, ` : ''}kept together the way the pack curates them.`,
+      number: null,
+      ordering: 'sequential',   // curated order is the point
+      marathonSize: 3,
+      ads: answers.ads === 'yes' || (answers.ads === 'only-retro' && !!p.year && p.year < 1980),
+      dark: null,
+      sources: [{ key: p.key, type: 'pack' }],
+      tags: ['pack'],
+      rules: [],
+      _loved: false,
+    }));
+
+  // Packs go LAST so that when there are more channels than asked for, the
+  // validator's cap trims packs before it trims the person's own library.
+  const all = [...channels, ...packChannels].slice(0, maxChannels);
+
   return {
     version: 1,
     provider: 'rule-based',
-    channels,
+    channels: all,
     itemTags: titles.map((t) => ({
       key: t.key,
       tags: [...(t.genres || []).map(normGenre), t.decade].filter(Boolean),

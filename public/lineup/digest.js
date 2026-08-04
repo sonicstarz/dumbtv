@@ -84,7 +84,17 @@ export async function buildDigest({ api, onProgress } = {}) {
   try {
     packs = ((await api('/api/packs')).packs || [])
       .filter((p) => p.installed)
-      .map((p) => ({ key: `pack:${p.id}`, title: p.name, genres: [] }));
+      .map((p) => ({
+        key: `pack:${p.id}`,
+        title: p.name,
+        genres: [],
+        // A pack carries curated editorial the planner would otherwise have to
+        // guess at. `era` is a range like "1928–1929"; the first year in it is
+        // enough to decide whether retro commercials belong.
+        year: Number(String(p.editorial?.era || '').match(/\d{4}/)?.[0]) || null,
+        items: p.itemCount ?? null,
+        kidSafe: p.editorial?.kidSafe ?? null,
+      }));
   } catch { packs = []; }
 
   // What already exists, so the validator can refuse to collide with it.

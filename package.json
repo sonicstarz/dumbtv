@@ -17,7 +17,8 @@
     "selftest": "node scripts/selftest.js",
     "reset": "node scripts/reset.js",
     "build-pack": "node scripts/build-pack.js",
-    "install-starter-packs": "node scripts/install-starter-packs.js"
+    "install-starter-packs": "node scripts/install-starter-packs.js",
+    "test:lineup": "node scripts/test-lineup.mjs"
   },
   "keywords": [
     "plex",

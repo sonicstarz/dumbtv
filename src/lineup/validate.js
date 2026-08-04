@@ -25,12 +25,17 @@ const tagOk = (t) =>
 /**
  * @param {object} proposal  raw, straight from a provider
  * @param {object} digest    the ground truth for what exists
- * @param {object} opts      { maxChannels, never }
+ * @param {object} opts      { maxChannels, minChannels, never }
  * @returns {{proposal:object|null, repairs:string[], fatal:string|null}}
  */
 export function validateProposal(proposal, digest, opts = {}) {
   const repairs = [];
   const maxChannels = opts.maxChannels ?? 12;
+  // Two, for a LINEUP. The make-me-a-channel path (§17) asks for exactly one and
+  // passes 1, and commit passes 1 because by then a person has already looked at
+  // it and said yes — "too thin" is a judgement about a draft, not about
+  // something already approved.
+  const minChannels = opts.minChannels ?? 2;
   const never = new Set((opts.never || []).map((g) => String(g).toLowerCase()));
 
   if (!proposal || typeof proposal !== 'object' || !Array.isArray(proposal.channels)) {
@@ -72,7 +77,7 @@ export function validateProposal(proposal, digest, opts = {}) {
     if (!kept.length) { repairs.push(`dropped "${raw.name || '?'}" — no valid sources left`); continue; }
 
     // V5 — name: present, trimmed, unique, and short enough for the guide gutter.
-    let name = String(raw.name || '').trim().toUpperCase().slice(0, 20);
+    let name = fitName(String(raw.name || '').trim().toUpperCase().replace(/\s+/g, ' '), repairs);
     if (!name) { name = `CHANNEL ${out.length + 1}`; repairs.push('a channel had no name'); }
     if (seenNames.has(name)) {
       const base = name.slice(0, 17);
@@ -122,7 +127,7 @@ export function validateProposal(proposal, digest, opts = {}) {
   // V12 — a proposal that thin is a failure, not a result. The caller falls back
   // to rule-based rather than showing someone two channels and calling it a
   // lineup.
-  if (out.length < 2) {
+  if (out.length < minChannels) {
     return { proposal: null, repairs, fatal: `only ${out.length} usable channel(s) survived validation` };
   }
 
@@ -150,6 +155,26 @@ export function validateProposal(proposal, digest, opts = {}) {
 function clampInt(v, lo, hi, dflt) {
   const n = Math.round(Number(v));
   return Number.isFinite(n) ? Math.max(lo, Math.min(hi, n)) : dflt;
+}
+
+/**
+ * Twenty characters is what the guide gutter can hold. Cutting there blindly
+ * produces "SUNDAY AFTERNOON COM" — a real result from a real run, and the same
+ * mid-word truncation hybrid.js documents a small model doing to itself.
+ *
+ * Cut at a word boundary instead, and SAY SO. A silently mangled channel name
+ * looks like the model's fault forever; a listed repair is something the review
+ * screen can show and the person can fix in the box provided.
+ */
+function fitName(name, repairs) {
+  if (name.length <= 20) return name;
+  const cut = name.slice(0, 21);
+  const atSpace = cut.slice(0, cut.lastIndexOf(' ')).trim();
+  // Only keep the word-boundary cut if enough survives to still read as a name;
+  // otherwise a hard 20 is the lesser evil (one very long word).
+  const out = atSpace.length >= 6 ? atSpace : name.slice(0, 20);
+  repairs.push(`shortened "${name}" → "${out}" to fit the guide`);
+  return out;
 }
 
 function validDark(d, name, repairs) {

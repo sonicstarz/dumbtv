@@ -65,6 +65,39 @@ const PROPOSAL_FORMAT = {
 };
 
 /**
+ * Is this key real? One trivial call, so a wrong key fails at PASTE time rather
+ * than twenty seconds into someone's first lineup build.
+ *
+ * Returns a plain {ok, error} — the caller shows the error verbatim, so it has
+ * to read as something a person can act on rather than an HTTP status.
+ */
+export async function validateKey(apiKey) {
+  try {
+    const res = await fetch(API, {
+      method: 'POST',
+      headers: {
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+        'content-type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'claude-haiku-4-5',
+        max_tokens: 1,
+        messages: [{ role: 'user', content: 'hi' }],
+      }),
+      signal: AbortSignal.timeout(20_000),
+    });
+    if (res.ok) return { ok: true };
+    if (res.status === 401) return { ok: false, error: 'Anthropic rejected that key. Check you copied all of it.' };
+    if (res.status === 429) return { ok: false, error: 'That key is rate limited or out of credit right now.' };
+    const body = await res.text().catch(() => '');
+    return { ok: false, error: `Anthropic said ${res.status}. ${body.slice(0, 120)}` };
+  } catch (e) {
+    return { ok: false, error: `Couldn't reach Anthropic: ${e.message}` };
+  }
+}
+
+/**
  * Ask Claude for a lineup. Returns the RAW parsed object plus usage/cost —
  * validation is the caller's job, deliberately, so every provider goes through
  * the same gate and none is graded on trust.
@@ -72,8 +105,15 @@ const PROPOSAL_FORMAT = {
 export async function planWithClaude(digest, answers, {
   model = 'claude-haiku-4-5',
   apiKey = process.env.ANTHROPIC_API_KEY,
+  channels,
 } = {}) {
   if (!apiKey) throw new Error('no ANTHROPIC_API_KEY');
+
+  // The make-me-a-channel path (§17): one free-text wish, one channel out. Same
+  // digest, same schema, same validator — it is a LineupProposal that happens to
+  // have length 1, so nothing downstream needs to know it is different.
+  const one = channels === 1;
+  const wish = String(answers.wish ?? '').trim();
 
   const res = await fetch(API, {
     method: 'POST',
@@ -90,9 +130,16 @@ export async function planWithClaude(digest, answers, {
       messages: [{
         role: 'user',
         content:
-          `PREFERENCES:\n${JSON.stringify(answers, null, 1)}\n\n` +
+          (one && wish
+            ? `THE CHANNEL THEY ASKED FOR, in their words:\n"${wish}"\n\n`
+            : '') +
+          `PREFERENCES:\n${JSON.stringify({ ...answers, wish: undefined }, null, 1)}\n\n` +
           `CATALOG (key<TAB>kind<TAB>title):\n${promptCatalog(digest)}\n\n` +
-          `Build at most ${answers.channelCountN ?? 8} channels.`,
+          (one
+            ? 'Build EXACTLY ONE channel that answers the request above. Draw on '
+              + 'anything in the catalog that fits, even loosely — the point is the '
+              + 'feeling they described, not a genre filter.'
+            : `Build at most ${answers.channelCountN ?? 8} channels.`),
       }],
     }),
     signal: AbortSignal.timeout(TIMEOUT_MS),

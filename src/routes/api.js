@@ -61,6 +61,11 @@ import { guide, nowOnAll, nowOn, upNextShow, publicChannel } from '../schedule/r
 import { ORDERING_MODES } from '../schedule/ordering.js';
 import { hashString } from '../util/rng.js';
 import { normalizeVibe, parseVibe, VIBE_PRESETS } from '../vibe.js';
+import { buildDigest, estimateTokens } from '../lineup/digest.js';
+import { planRuleBased } from '../lineup/rule-based.js';
+import { validateProposal } from '../lineup/validate.js';
+import { planWithClaude, validateKey } from '../lineup/claude.js';
+import { commitProposal, generateCommitted, rollbackLast, forgetAiTags, lastRun } from '../lineup/commit.js';
 import { allTags, setTags, tagsFor, refreshDerivedTags } from '../media/tags.js';
 import { scanAssets } from '../assets.js';
 import { buildSchedulePdf } from '../print.js';
@@ -1251,4 +1256,152 @@ export default async function api(fastify) {
     }
     return { ok: true };
   });
+
+  // ---- AI Lineup Builder -------------------------------------------------
+  //
+  // Nothing here runs at boot, on a timer, or in the background. Every call to
+  // a model is the direct result of someone pressing a button — the same
+  // discipline the pack catalogue fetch follows, and the thing that makes the
+  // privacy line ("nothing is sent unless you ask") literally true.
+  //
+  // The API key is stored under `ai_api_key` and is DELIBERATELY ABSENT from
+  // the config export above, which builds an explicit allowlist of settings.
+  // Any future export that switches to "everything except…" must re-check that.
+
+  const aiKey = () => getSetting('ai_api_key', null);
+
+  /** Never return the key. Enough to render "connected", nothing more. */
+  const keyStatus = () => {
+    const k = aiKey();
+    return { configured: !!k, hint: k ? `…${String(k).slice(-4)}` : null };
+  };
+
+  fastify.get('/api/lineup/status', async () => ({
+    key: keyStatus(),
+    // Rule-based is always available: no key, no account, no calls. It is the
+    // free tier and the reason the app stays honest about being free.
+    providers: { ruleBased: true, claude: !!aiKey() },
+    last: lastRun(),
+  }));
+
+  fastify.post('/api/lineup/key', async (req, reply) => {
+    const key = String(req.body?.key ?? '').trim();
+    if (!key) {
+      // DELETE the row rather than storing a null in it. A settings row named
+      // ai_api_key that still exists invites the question "is anything in
+      // there?" every time someone reads the table or a backup of it; the
+      // honest answer should be visible without having to check the value.
+      db.prepare("DELETE FROM settings WHERE key='ai_api_key'").run();
+      return { ok: true, key: keyStatus() };
+    }
+    if (!key.startsWith('sk-ant-')) {
+      return reply.code(400).send({ error: 'That does not look like an Anthropic key — they start with sk-ant-' });
+    }
+    // Validate at PASTE time, not at build time. A wrong key discovered twenty
+    // seconds into a lineup build is a much worse experience than one caught here.
+    const check = await validateKey(key);
+    if (!check.ok) return reply.code(400).send({ error: check.error });
+    setSetting('ai_api_key', key);
+    return { ok: true, key: keyStatus() };
+  });
+
+  fastify.get('/api/lineup/digest', async (req, reply) => {
+    try {
+      const digest = await buildDigest({ enrich: true });
+      return { digest, tokens: estimateTokens(digest) };
+    } catch (err) {
+      return reply.code(502).send({ error: err.message });
+    }
+  });
+
+  /**
+   * Plan a lineup. NO SIDE EFFECTS — nothing is written until /commit.
+   *
+   * `scope: 'channel'` is the make-me-a-channel path: same digest, same
+   * validator, same review, a proposal with exactly one channel in it.
+   */
+  fastify.post('/api/lineup/plan', async (req, reply) => {
+    const b = req.body || {};
+    const answers = b.answers || {};
+    const provider = b.provider === 'claude' ? 'claude' : 'rule-based';
+    const wantOne = b.scope === 'channel';
+
+    let digest;
+    try { digest = await buildDigest({ enrich: true }); }
+    catch (err) { return reply.code(502).send({ error: `Couldn't read the library: ${err.message}` }); }
+
+    let raw;
+    let usage = null;
+    if (provider === 'claude') {
+      const key = aiKey();
+      if (!key) return reply.code(400).send({ error: 'No API key set' });
+      try {
+        // ONE attempt. No retry loop — decision #9 put runaway protection in
+        // our code rather than in a cap on someone else's spend, and a silent
+        // retry is exactly the thing that turns one press into three charges.
+        raw = await planWithClaude(digest, { ...answers, wish: b.wish ?? null }, {
+          apiKey: key,
+          channels: wantOne ? 1 : undefined,
+        });
+        usage = raw._usage ?? null;
+      } catch (err) {
+        return reply.code(502).send({ error: err.message, fellBackTo: null });
+      }
+    } else {
+      raw = planRuleBased(digest, answers);
+    }
+
+    const { proposal, repairs, fatal } = validateProposal(raw, digest, {
+      maxChannels: wantOne ? 1 : (answers.channelCountN ?? 8),
+      minChannels: wantOne ? 1 : 2,
+      never: answers.never || [],
+    });
+
+    // A proposal too thin to be a lineup is a failure, not a result — fall back
+    // rather than showing someone two channels and calling it done.
+    if (fatal) {
+      if (provider === 'claude') {
+        const fb = planRuleBased(digest, answers);
+        const v = validateProposal(fb, digest, {
+          maxChannels: wantOne ? 1 : (answers.channelCountN ?? 8),
+          minChannels: wantOne ? 1 : 2,
+          never: answers.never || [],
+        });
+        if (v.proposal) return { proposal: v.proposal, repairs: v.repairs, usage, fellBackTo: 'rule-based', reason: fatal };
+      }
+      return reply.code(422).send({ error: fatal, repairs });
+    }
+    return { proposal, repairs, usage, fellBackTo: null };
+  });
+
+  fastify.post('/api/lineup/commit', async (req, reply) => {
+    const proposal = req.body?.proposal;
+    if (!proposal || !Array.isArray(proposal.channels) || !proposal.channels.length) {
+      return reply.code(400).send({ error: 'No proposal to commit' });
+    }
+    // Re-validate what actually arrived. The review screen can edit it, and a
+    // client is not a trustworthy source of channel definitions.
+    let digest;
+    try { digest = await buildDigest({ enrich: false }); }
+    catch (err) { return reply.code(502).send({ error: err.message }); }
+    const { proposal: clean, fatal } = validateProposal(proposal, digest, {
+      maxChannels: proposal.channels.length,
+      minChannels: 1,
+      never: req.body?.answers?.never || [],
+    });
+    if (fatal) return reply.code(422).send({ error: fatal });
+
+    const { channelIds, numbers } = commitProposal(clean, {
+      answers: req.body?.answers ?? null,
+      provider: proposal.provider,
+    });
+    // Caching every source can take a while on a big proposal, so this is the
+    // one slow call in the flow — the review screen shows a progress line for it.
+    const built = await generateCommitted(channelIds);
+    return { ok: true, channelIds, numbers, ...built };
+  });
+
+  fastify.post('/api/lineup/rollback', async () => rollbackLast());
+  fastify.post('/api/lineup/forget-tags', async () => ({ removed: forgetAiTags() }));
+
 }

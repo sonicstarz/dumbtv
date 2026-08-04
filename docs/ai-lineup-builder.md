@@ -46,6 +46,30 @@ without hand-building anything.
 
 ---
 
+## ⚡ ARCHITECTURE CHANGE — 2026-08-04 (supersedes §2 and §10)
+
+**The builder runs in the PAGE, not on the server.** It lives in
+`public/lineup/` as plain ESM and calls only endpoints that Node and ConfigAPI
+have both served for months. There is no `/api/lineup/*` and no Swift port —
+one implementation, every platform.
+
+Why: the seven Node routes meant the Apple apps, which are the v1 product,
+needed a second implementation in Swift that would always have been behind.
+Verified on the tvOS simulator by building a lineup against the Apple TV's own
+embedded server.
+
+Also settled here: **no metered runs on a dumbTV key.** The user brings their
+own Anthropic key, free, on any device. The paid tier is the account/headend
+(fleet config, one key in one place, push to devices) — not the AI itself.
+That makes the subscription pure software margin with no inference cost, no
+caps, and no "you've used your 25 runs" failure mode. See
+`docs/headend.md` for that design.
+
+The key now lives in the BROWSER, not on the television — it never reaches the
+device, is never in its config, and cannot appear in a config export.
+
+---
+
 ## ✅ BUILT AND VERIFIED — 2026-08-04
 
 A2 is done and on `build-25`. What follows below is still the design of record;

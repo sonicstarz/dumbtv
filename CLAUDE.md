@@ -57,6 +57,21 @@ Re-derive from the clock instead.
 8. **No build step.** Plain ESM JavaScript, vanilla frontend. Do not add
    TypeScript, React, Vite, or a bundler. `npm install && npm start` has to
    work on a stranger's machine on a Saturday.
+9. **Logic that must run on every platform goes in `public/`, not `src/`.**
+   The Apple apps serve the same config UI from an embedded Swift server, so
+   anything living in `src/` exists only on the Node build and needs a second
+   implementation in Swift to reach the actual v1 product. The AI lineup
+   builder was seven Node routes and would have needed ~900 lines of Swift;
+   moved into the page against endpoints BOTH backends already serve, it works
+   everywhere with no port. Before adding a server route, ask whether it could
+   be a shared module calling endpoints that already exist. `npm run
+   test:lineup` fails if the builder ever calls an endpoint ConfigAPI lacks.
+10. **Cross-device determinism.** The shuffle seed is derived from the
+   channel's identity (`channel:<name>:<number>`), never randomly, in BOTH
+   `src/routes/api.js` and `ConfigAPI.swift` — verified byte-identical. Two
+   devices given the same lineup then play the same programme at the same
+   moment with no coordination. ConfigAPI used to use `UInt32.random`, which
+   silently broke this.
 
 ---
 
@@ -87,6 +102,12 @@ public/
   index.html/app.js      config app
   tv.html/tv.js          the television
   style.css
+  lineup/                THE AI LINEUP BUILDER — shared, runs in the page
+    digest.js            reads the library over the device's own HTTP API
+    rules.js             the no-AI planner, and the fallback
+    validate.js          the gate every provider passes through
+    claude.js            Anthropic, called straight from the browser
+    apply.js             creates channels; can ONLY add
 scripts/
   selftest.js            16 engine checks, no Plex needed — run this often
   demo.js                whole lineup with generated content, no Plex

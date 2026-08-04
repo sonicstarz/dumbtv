@@ -21,10 +21,22 @@
 //             dayparting works out of the box with no user effort.
 //   derived — computed from what we know (decade from `aired`). Recomputed
 //             freely, never worth preserving.
+//   plex    — what the MEDIA SERVER says a title is. Genres, essentially.
+//             Deliberately its own source and not 'derived': a derived tag is
+//             something we worked out and may recompute differently tomorrow,
+//             whereas this is a third party's claim that we are relaying. It
+//             refreshes on rescan like 'derived', but if it is ever wrong the
+//             answer is to fix it upstream, not to argue with it here.
+//   ai      — a model's opinion, from the lineup builder. Same refresh
+//             behaviour as 'pack'; kept separate so every AI-applied tag can be
+//             removed in one statement by someone who disagrees with all of it.
+//
+// Provenance is the whole point of the column: `user` outranks everything and
+// is never touched by any automated pass.
 
 import { db } from '../db.js';
 
-export const TAG_SOURCES = ['user', 'pack', 'derived'];
+export const TAG_SOURCES = ['user', 'pack', 'derived', 'plex', 'ai'];
 
 const insertTag = db.prepare(
   'INSERT OR REPLACE INTO media_tags (rating_key, tag, source) VALUES (?,?,?)'

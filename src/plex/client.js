@@ -55,6 +55,14 @@ export async function getSectionItems(sectionKey, type) {
     childCount: m.childCount,
     leafCount: m.leafCount,
     duration: m.duration,
+    // Plex has carried these all along and we simply never read them. They are
+    // the one piece of metadata the AI lineup builder cannot do without and
+    // cannot honestly invent: `tags.js` refuses to guess a genre on principle
+    // ("a decade is a fact, a genre is a guess"), so Plex saying so is the fact
+    // that fills the gap. Absent on some items — that is reported, not guessed.
+    genres: (m.Genre || []).map((g) => g.tag).filter(Boolean),
+    contentRating: m.contentRating || null,
+    originallyAvailableAt: m.originallyAvailableAt || null,
   }));
 }
 

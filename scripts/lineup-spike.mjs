@@ -22,6 +22,7 @@ import { planRuleBased } from '../src/lineup/rule-based.js';
 import { validateProposal } from '../src/lineup/validate.js';
 import { planWithOllama, listModels } from '../src/lineup/ollama.js';
 import { planHybrid } from '../src/lineup/hybrid.js';
+import { planWithClaude } from '../src/lineup/claude.js';
 
 const arg = (k, d) => {
   const i = process.argv.indexOf(k);
@@ -94,6 +95,21 @@ const main = async () => {
     const t = Date.now();
     const raw = planRuleBased(digest, answers);
     results.push(show('RULE-BASED (the baseline to beat)', { raw, ms: Date.now() - t }, digest, answers));
+  }
+
+  // The Anthropic provider, when a key is present. Runs FIRST so the judgement
+  // reads baseline -> frontier-small -> local, strongest claim up front.
+  if (!only.startsWith('rule') && process.env.ANTHROPIC_API_KEY) {
+    const t = Date.now();
+    try {
+      const raw = await planWithClaude(digest, answers);
+      const r = show(`CLAUDE · haiku-4.5`, { raw, ms: Date.now() - t }, digest, answers);
+      if (raw._usage) console.log(`\n  tokens: ${raw._usage.in} in / ${raw._usage.out} out · $${raw._usage.cost.toFixed(4)}`);
+      results.push(r);
+    } catch (e) {
+      console.log(`\n${'─'.repeat(74)}\n▌ CLAUDE · haiku-4.5\n  ✘ ${e.message}`);
+      results.push({ title: 'claude:haiku', fatal: e.message });
+    }
   }
 
   if (!only.startsWith('rule')) {

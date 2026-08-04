@@ -182,11 +182,15 @@ public actor JellyfinClient {
         let s = try require()
         let kind = (type == "movie") ? "Movie" : "Series"
         let j = try await get("/Users/\(s.userId)/Items?ParentId=\(key)&IncludeItemTypes=\(kind)"
-                              + "&Recursive=true&SortBy=SortName&Fields=ChildCount,RecursiveItemCount")
+                              + "&Recursive=true&SortBy=SortName&Fields=ChildCount,RecursiveItemCount,Genres")
         return ((j["Items"] as? [[String: Any]]) ?? []).compactMap { m in
             guard let id = m["Id"] as? String else { return nil }
             return PlexItem(ratingKey: id, title: m["Name"] as? String ?? "",
-                            type: type == "movie" ? "movie" : "show", thumb: Self.thumbOf(m))
+                            type: type == "movie" ? "movie" : "show", thumb: Self.thumbOf(m),
+                            year: m["ProductionYear"] as? Int,
+                            leafCount: m["RecursiveItemCount"] as? Int ?? m["ChildCount"] as? Int,
+                            // Jellyfin only sends Genres if the field is requested.
+                            genres: m["Genres"] as? [String] ?? [])
         }
     }
 

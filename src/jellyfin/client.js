@@ -58,7 +58,7 @@ export async function getSectionItems(sectionKey, type) {
   const s = requireServer();
   const kind = type === 'movie' ? 'Movie' : 'Series';
   const data = await jfGet(
-    `/Users/${s.userId}/Items?ParentId=${sectionKey}&IncludeItemTypes=${kind}&Recursive=true&SortBy=SortName&Fields=ChildCount,RecursiveItemCount`
+    `/Users/${s.userId}/Items?ParentId=${sectionKey}&IncludeItemTypes=${kind}&Recursive=true&SortBy=SortName&Fields=ChildCount,RecursiveItemCount,Genres`
   );
   return (data.Items || []).map((m) => ({
     ratingKey: m.Id,
@@ -68,6 +68,11 @@ export async function getSectionItems(sectionKey, type) {
     thumb: thumbOf(m), // imageUrl() builds from the item id; null = no artwork
     leafCount: m.RecursiveItemCount ?? m.ChildCount,
     duration: ticksToMs(m.RunTimeTicks),
+    // The AI lineup builder's one irreplaceable field. `tags.js` refuses to
+    // guess a genre on principle, so the server saying so is the fact that
+    // fills the gap — and Jellyfin only sends it if you ask for the field.
+    genres: (m.Genres || []).filter(Boolean),
+    contentRating: m.OfficialRating || null,
   }));
 }
 

@@ -1,4 +1,30 @@
-// rule-based.js — build a lineup with no AI at all.
+// ─────────────────────────────────────────────────────────────────────────────
+// SHARED MODULE. Loaded by the browser from public/, and imported directly by
+// scripts/ under Node for tests. It must therefore use nothing platform-
+// specific: no fs, no db, no DOM. Anything that touches the outside world
+// arrives as an injected `api` or `fetch`.
+//
+// This is deliberate and it is the whole point. The lineup builder used to live
+// in src/ and run on the Node server, which meant the Apple apps — the actual
+// v1 product — could not have it without a second implementation in Swift. The
+// builder only ever needs endpoints that BOTH backends already serve, so
+// running it in the config UI makes it work everywhere with no port at all,
+// and there is only ever one copy of the logic to be wrong.
+// ─────────────────────────────────────────────────────────────────────────────
+
+// rules.js — build a lineup with no AI at all.
+//
+// NO TAG FILTERS ON RULES. The server-side ancestor of this file emitted
+// `selectTags` on its dayparts and wrote matching rows into `media_tags`. Both
+// halves of that are gone: ConfigAPI has no selectTags field and the Swift
+// schema has no media_tags table, so on an Apple TV the filter would be
+// silently dropped — and on Node it would match nothing, because nothing writes
+// the tags any more, blanking that daypart into dead air.
+//
+// It was redundant anyway. A filter saying "during mornings, pick the
+// animation" is pointless on a channel whose every source is animation. The
+// channel already IS the theme; the rule only needs to say WHEN.
+
 //
 // This exists for three reasons, and it would be worth shipping for any one of
 // them:
@@ -15,7 +41,6 @@
 // That is not incidental — it is what lets A0 compare providers repeatably, and
 // it matches invariant #5's spirit at the layer above scheduling.
 
-import { hashString } from '../util/rng.js';
 
 /** Channel-count bands, from the questionnaire's Q8. */
 const COUNT_BANDS = { 'a-few': 5, 'a-dial-full': 10, 'cable-box': 16 };
@@ -189,14 +214,12 @@ function buildRules(group, list, answers) {
       rules.push({
         kind: 'recurring', name: 'Mornings',
         daysOfWeek: [0, 6], startTime: '07:00', durationMin: 300,
-        selectTags: [group], selectMode: 'any',
       });
     }
     if (evening.includes(group)) {
       rules.push({
         kind: 'recurring', name: 'Evenings',
         daysOfWeek: [0, 1, 2, 3, 4, 5, 6], startTime: '20:00', durationMin: 180,
-        selectTags: [group], selectMode: 'any',
       });
     }
   }
@@ -207,12 +230,9 @@ function buildRules(group, list, answers) {
   if (answers.airdates && answers.airdates !== 'no') {
     const withYear = list.filter((t) => t.year).length;
     if (withYear / list.length >= 0.8) {
-      rules.push({ kind: 'airdate', airdateMode: 'original_weekday', selectTags: [group] });
+      rules.push({ kind: 'airdate', airdateMode: 'original_weekday' });
     }
   }
   return rules;
 }
 
-/** A stable seed, so the same accepted lineup plays identically on two devices. */
-export const seedFor = (name, sources) =>
-  hashString(`ai:${name}:${sources.map((s) => s.key).sort().join(',')}`) & 0x7fffffff;

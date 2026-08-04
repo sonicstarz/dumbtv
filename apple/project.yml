@@ -46,6 +46,12 @@ targetTemplates:
              "${SRCROOT}/../public/app.js" \
              "${SRCROOT}/../public/esc.js" \
              "${SRCROOT}/../public/style.css" "$DEST/"
+          # The AI lineup builder. It runs in the PAGE, against endpoints
+          # ConfigAPI already serves, which is the only reason it works on tvOS
+          # at all — a server-side builder would have needed a second
+          # implementation in Swift, permanently behind the Node one.
+          mkdir -p "$DEST/lineup"
+          cp "${SRCROOT}/../public/lineup/"*.js "$DEST/lineup/"
       # Bundle preload content packs (Track I). A pack ships in the binary when
       # its source dir has a PRELOAD marker AND has been built (dist/pack.json).
       # Copied at build time so folder structure is preserved (no resource

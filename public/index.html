@@ -25,7 +25,7 @@
   <nav class="rail">
     <h2>OPERATE</h2>
     <button class="navlink active" data-view="channels">Channels <span class="badge" id="navChannels"></span></button>
-    <button class="navlink" data-view="lineup" data-native-hide>Build a Lineup</button>
+    <button class="navlink" data-view="lineup">Build a Lineup</button>
     <button class="navlink" data-view="packs">Channel Packs</button>
     <button class="navlink" data-view="guide">Guide</button>
     <button class="navlink" data-view="schedule">Schedule</button>
@@ -66,7 +66,7 @@
     <!-- ---------------- channel packs ---------------- -->
 
     <!-- ---------------- build a lineup ---------------- -->
-    <section class="view" id="view-lineup" data-native-hide>
+    <section class="view" id="view-lineup">
       <h2 class="title">Build a Lineup</h2>
       <p class="lede">Answer a few questions about what you want on the air. dumbTV reads your library, groups it into channels, and shows you the result before anything is created. Nothing is changed until you say build.</p>
 
@@ -128,7 +128,7 @@
             <option value="claude">Claude — reads your whole library and names things properly</option>
           </select>
         </div>
-        <p class="hint" id="lqProviderHint">Groups your library by genre and era using rules that run on this machine. Nothing leaves the device.</p>
+        <p class="hint" id="lqProviderHint">Groups your library by genre and era using rules that run right here in this page. Nothing leaves your network.</p>
 
         <div id="lqKeyBox" style="display:none;margin-top:18px;padding-top:18px;border-top:1px solid var(--rule)">
           <p class="sub" id="lqKeyStatus">—</p>
@@ -148,9 +148,10 @@
             A lineup costs about <span class="mono">$0.02</span>.
           </p>
           <p class="hint">
-            The key is stored on this device only. It is never synced, never written to a log, and is left out
-            of config exports on purpose — export a config, hand it to a friend, and your key does not go with it.
-            It is sent to <span class="mono">api.anthropic.com</span> and nowhere else, only when you press Plan.
+            The key stays <strong>in this browser</strong> — it is never sent to the television, never written to
+            its config, and cannot appear in a config export because the device never has it. Configuring an
+            Apple TV from your laptop? The key stays on the laptop; the TV only receives finished channels.
+            It goes to <span class="mono">api.anthropic.com</span> and nowhere else, only when you press Plan.
           </p>
         </div>
       </div>

@@ -356,14 +356,26 @@ public final class ConfigAPI {
 
     private func createChannel(_ req: Request) -> Response {
         let b = req.body ?? [:]
+        let number = store.freeChannelNumber(preferred: b.int("number"))   // N2: never collide
+        let name = b.string("name") ?? "New Channel"
         let c = ChannelConfig(
             id: 0,
-            number: store.freeChannelNumber(preferred: b.int("number")),   // N2: never collide
-            name: b.string("name") ?? "New Channel",
+            number: number,
+            name: name,
             slotMinutes: b.int("slotMinutes") ?? 30,
             orderingMode: OrderingMode(rawValue: b.string("orderingMode") ?? "") ?? .sequential,
             marathonSize: b.int("marathonSize") ?? 3,
-            shuffleSeed: UInt32.random(in: 1...UInt32.max),
+            // Seed from the channel's IDENTITY, not the clock — mirrors
+            // `channelSeed` in src/routes/api.js, and the primitives match
+            // (FNV-1a over UTF-16 on both sides), so the same name at the same
+            // number produces the same seed on a Pi and on an Apple TV.
+            //
+            // This used to be `UInt32.random`. The schedule was still
+            // deterministic ON a device, but the SAME lineup built on two boxes
+            // played in a different order — which breaks cloning a config, makes
+            // a printed guide device-specific, and would have made a pushed
+            // fleet lineup show different programmes in different rooms.
+            shuffleSeed: Self.channelSeed(name, number),
             darkStart: b.string("darkStart"), darkEnd: b.string("darkEnd"),
             adsEnabled: b.bool("adsEnabled") ?? false,   // ads OFF by default
             maxAdsPerBreak: b.int("maxAdsPerBreak") ?? 10,
@@ -371,6 +383,15 @@ public final class ConfigAPI {
         let id = store.insertChannel(c)
         guard id > 0 else { return .bad("couldn't create channel") }   // N2: id 0 = failure, not success
         return .ok(["id": id, "number": c.number])
+    }
+
+    /// The stored shuffle seed, derived from what the channel IS rather than
+    /// when it was made. Must stay byte-identical to `channelSeed` in
+    /// src/routes/api.js — `hashString` is FNV-1a over UTF-16 on both sides, and
+    /// the mask keeps it inside a signed 32-bit range so SQLite stores the same
+    /// integer either implementation wrote it.
+    static func channelSeed(_ name: String, _ number: Int) -> UInt32 {
+        hashString("channel:\(name):\(number)") & 0x7fffffff
     }
 
     /// S3: a system channel (SPACE at 1) is hideable, not editable. `enabled` is
@@ -1242,7 +1263,13 @@ public final class ConfigAPI {
                 : try await plex.sectionItems(key: key, type: type)
             return .ok(["items": items.map { i -> [String: Any] in
                 var o: [String: Any] = ["ratingKey": i.ratingKey, "title": i.title,
-                                        "type": i.type, "thumb": i.thumb ?? NSNull()]
+                                        "type": i.type, "thumb": i.thumb ?? NSNull(),
+                                        // The lineup builder runs in the browser
+                                        // against this endpoint, so what it needs
+                                        // to ground a decision has to come out here.
+                                        "genres": i.genres,
+                                        "year": i.year ?? NSNull(),
+                                        "leafCount": i.leafCount ?? NSNull()]
                 // A browser-loadable poster URL, proxied so no server token leaks.
                 // Plex thumbs are paths; Jellyfin thumbs are item ids. Both ride the
                 // same query param — fetchImage() dispatches on the active backend.

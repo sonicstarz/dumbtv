@@ -43,6 +43,20 @@ public struct PlexItem: Sendable {
     public let title: String
     public let type: String    // show | movie
     public let thumb: String?
+    /// Both servers have carried these all along and we simply never read them.
+    /// The genre is the one piece of metadata the AI lineup builder cannot do
+    /// without and must not invent — a decade is a fact, a genre is a guess, so
+    /// the server saying so is what fills the gap. Empty is reported, not faked.
+    public var year: Int?
+    public var leafCount: Int?
+    public var genres: [String]
+
+    public init(ratingKey: String, title: String, type: String, thumb: String?,
+                year: Int? = nil, leafCount: Int? = nil, genres: [String] = []) {
+        self.ratingKey = ratingKey; self.title = title; self.type = type
+        self.thumb = thumb; self.year = year; self.leafCount = leafCount
+        self.genres = genres
+    }
 }
 
 public enum PlexError: Error { case http(Int), badResponse, noServerSelected }
@@ -154,7 +168,12 @@ public actor PlexClient {
         let mc = try await containerGet("/library/sections/\(key)/all?type=\(t)")
         return (mc["Metadata"] as? [[String: Any]] ?? []).map {
             PlexItem(ratingKey: "\($0["ratingKey"] ?? "")", title: $0["title"] as? String ?? "",
-                     type: type, thumb: $0["thumb"] as? String)
+                     type: type, thumb: $0["thumb"] as? String,
+                     year: $0["year"] as? Int,
+                     leafCount: $0["leafCount"] as? Int ?? $0["childCount"] as? Int,
+                     // Plex returns these inline on /all — no extra request.
+                     genres: ($0["Genre"] as? [[String: Any]] ?? [])
+                        .compactMap { $0["tag"] as? String })
         }
     }
 

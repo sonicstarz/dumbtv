@@ -1,3 +1,17 @@
+// ─────────────────────────────────────────────────────────────────────────────
+// SHARED MODULE. Loaded by the browser from public/, and imported directly by
+// scripts/ under Node for tests. It must therefore use nothing platform-
+// specific: no fs, no db, no DOM. Anything that touches the outside world
+// arrives as an injected `api` or `fetch`.
+//
+// This is deliberate and it is the whole point. The lineup builder used to live
+// in src/ and run on the Node server, which meant the Apple apps — the actual
+// v1 product — could not have it without a second implementation in Swift. The
+// builder only ever needs endpoints that BOTH backends already serve, so
+// running it in the config UI makes it work everywhere with no port at all,
+// and there is only ever one copy of the logic to be wrong.
+// ─────────────────────────────────────────────────────────────────────────────
+
 // validate.js — make a proposal safe before anyone sees it.
 //
 // This is load-bearing, not defensive. A small local model WILL invent rating
@@ -215,11 +229,9 @@ function validRule(r, name, repairs) {
     }
   }
 
-  const tags = (r.selectTags || []).map((t) => String(t).toLowerCase()).filter(tagOk);
-  if (tags.length) {
-    out.selectTags = tags;
-    out.selectMode = r.selectMode === 'all' ? 'all' : 'any';
-  }
+  // selectTags is deliberately NOT carried through — see the note at the top
+  // of rules.js. A filter that matches nothing is worse than no filter at all.
+
   if (r.name) out.name = String(r.name).slice(0, 40);
   if (r.ordering && ORDERINGS.has(r.ordering)) out.ordering = r.ordering;
   return out;

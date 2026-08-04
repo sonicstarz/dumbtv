@@ -2345,14 +2345,36 @@ boot();
 
 // ---------------------------------------------------------------- build a lineup
 //
-// The whole flow is: answer → plan → LOOK AT IT → build. The look-at-it step is
-// not a nicety. A planner that writes channels straight into the database is one
-// bad afternoon away from someone losing a lineup they spent a month on, so the
-// review screen is the product, and `plan` is deliberately a route with no side
-// effects at all.
+// The builder runs HERE, in the page, not on the server. That is the whole
+// reason it works on an Apple TV: the same config UI is served by the Node
+// build and by the Swift embedded server, and every endpoint it needs
+// (/api/library/*, /api/channels, /api/packs) has existed on both since long
+// before this feature. A server-side builder would have meant a second
+// implementation in Swift, permanently behind the first — which is exactly the
+// mess this replaces.
+//
+// The flow is: answer → plan → LOOK AT IT → build. The review step is the
+// product, not a nicety. `plan` touches nothing.
 
-let lineupPlan = null;      // the proposal on screen, or null
-let lineupScope = 'lineup'; // 'lineup' | 'channel'
+import { buildDigest, estimateTokens } from './lineup/digest.js';
+import { planRuleBased } from './lineup/rules.js';
+import { validateProposal } from './lineup/validate.js';
+import { planWithClaude, validateKey } from './lineup/claude.js';
+import { applyProposal, findEmpty, undoLast, lastRun } from './lineup/apply.js';
+
+// The key lives in THIS BROWSER, not on the television.
+//
+// It never reaches the device, is never written to its config, and cannot
+// appear in a config export because the device never had it. On an Apple TV —
+// which has no browser and is configured from a phone or laptop — that means
+// the key stays on the machine you typed it on, and the TV only ever receives
+// finished channel definitions.
+const KEY_STORE = 'dumbtv_anthropic_key';
+const getKey = () => { try { return localStorage.getItem(KEY_STORE) || ''; } catch { return ''; } };
+const setKey = (v) => { try { v ? localStorage.setItem(KEY_STORE, v) : localStorage.removeItem(KEY_STORE); } catch {} };
+
+let lineupPlan = null;
+let lineupDigest = null;
 
 const csv = (s) => String(s || '')
   .split(',').map((x) => x.trim().toLowerCase()).filter(Boolean).slice(0, 12);
@@ -2373,40 +2395,101 @@ function lineupAnswers() {
 }
 
 const PROVIDER_HINT = {
-  'rule-based': 'Groups your library by genre and era using rules that run on this machine. Nothing leaves the device.',
-  claude: 'Sends a list of your show and film TITLES — no files, no viewing history, no account details — to Anthropic, and gets a lineup back. Roughly $0.02 a run, billed to your own key.',
+  'rule-based': 'Groups your library by genre and era using rules that run right here in this page. Nothing leaves your network.',
+  claude: 'Sends a list of your show and film TITLES — no files, no viewing history, no account details — from this browser straight to Anthropic, and gets a lineup back. About $0.02 a run on your own key.',
 };
-
-async function refreshLineupStatus() {
-  let s;
-  try { s = await api('/api/lineup/status'); } catch { return; }
-
-  const key = s.key.configured;
-  $('#lqKeyStatus').textContent = key
-    ? `A key ending ${s.key.hint} is saved on this device.`
-    : 'No key saved. Claude needs one before it can plan anything.';
-  $('#lqKeyClear').style.display = key ? '' : 'none';
-  $('#lqKey').placeholder = key ? 'sk-ant-…  (saved — paste a new one to replace it)' : 'sk-ant-…';
-
-  const last = s.last;
-  const built = last.channelIds?.length;
-  $('#lqLast').style.display = built ? '' : 'none';
-  if (built) {
-    const when = last.committedAt ? new Date(last.committedAt).toLocaleString() : 'earlier';
-    $('#lqLastNote').textContent =
-      `${built} channel${built === 1 ? '' : 's'} built ${when} by ${last.provider || 'dumbTV'}.`;
-  }
-}
 
 function syncProviderUI() {
   const p = $('#lqProvider').value;
+  const key = getKey();
   $('#lqKeyBox').style.display = p === 'claude' ? '' : 'none';
   $('#lqProviderHint').textContent = PROVIDER_HINT[p];
-  // Say the cost out loud on the button that spends it. Someone should never be
-  // surprised by a charge they authorised without being told the number.
+  $('#lqKeyStatus').textContent = key
+    ? `A key ending …${key.slice(-4)} is saved in this browser.`
+    : 'No key saved. Claude needs one before it can plan anything.';
+  $('#lqKeyClear').style.display = key ? '' : 'none';
+  $('#lqKey').placeholder = key ? 'sk-ant-…  (saved — paste a new one to replace it)' : 'sk-ant-…';
+  // Say the cost out loud on the button that spends it.
   $('#lqPlanNote').textContent = p === 'claude'
     ? 'Nothing is created yet — you’ll see it first. This run costs about $0.02 on your key.'
     : 'Nothing is created yet — you’ll see it first.';
+}
+
+function paintLastRun() {
+  const r = lastRun();
+  const n = r.created?.length;
+  $('#lqLast').style.display = n ? '' : 'none';
+  if (n) {
+    $('#lqLastNote').textContent =
+      `${n} channel${n === 1 ? '' : 's'} built ${r.at ? new Date(r.at).toLocaleString() : 'earlier'}` +
+      `${r.provider ? ` by ${r.provider}` : ''}.`;
+  }
+}
+
+async function ensureDigest(say) {
+  // Cached for the session: reading a 500-title library is the slow part, and
+  // planning twice in a row should not pay for it twice.
+  if (lineupDigest) return lineupDigest;
+  lineupDigest = await buildDigest({
+    api,
+    onProgress: (done, total, label) =>
+      say(total ? `Reading your library… ${label || ''}`.trim() : 'Reading your library…'),
+  });
+  return lineupDigest;
+}
+
+async function planLineup(scope) {
+  const one = scope === 'channel';
+  const btn = one ? $('#lqWishGo') : $('#lqPlan');
+  const label = btn.textContent;
+  const wish = $('#lqWish').value.trim();
+  if (one && !wish) return toast('Describe the channel first', true);
+
+  const provider = $('#lqProvider').value;
+  const answers = { ...lineupAnswers(), wish: one ? wish : null };
+  const say = (t) => { btn.textContent = t; };
+
+  btn.disabled = true;
+  try {
+    const digest = await ensureDigest(say);
+    if (!digest.counts.shows && !digest.counts.movies && !digest.counts.packs) {
+      return toast('Nothing to build from — link a media server or install a pack first', true);
+    }
+
+    say(provider === 'claude' ? 'Asking Claude…' : 'Building…');
+    let raw;
+    let usage = null;
+    if (provider === 'claude') {
+      const key = getKey();
+      if (!key) return toast('Paste your Anthropic key first', true);
+      raw = await planWithClaude(digest, answers, { apiKey: key, channels: one ? 1 : undefined });
+      usage = raw._usage;
+    } else {
+      raw = planRuleBased(digest, answers);
+    }
+
+    const opts = {
+      maxChannels: one ? 1 : answers.channelCountN,
+      minChannels: one ? 1 : 2,
+      never: answers.never,
+    };
+    let { proposal, repairs, fatal } = validateProposal(raw, digest, opts);
+
+    // A proposal too thin to be a lineup is a failure, not a result. Fall back
+    // to the rules rather than showing someone two channels and calling it done.
+    let fellBackTo = null;
+    if (fatal && provider === 'claude') {
+      const v = validateProposal(planRuleBased(digest, answers), digest, opts);
+      if (v.proposal) { ({ proposal, repairs } = v); fellBackTo = 'rule-based'; fatal = null; }
+    }
+    if (fatal) return toast(fatal, true);
+
+    renderLineupReview({ proposal, repairs, usage, fellBackTo });
+  } catch (err) {
+    toast(err.message, true);
+  } finally {
+    btn.disabled = false; btn.textContent = label;
+  }
 }
 
 function renderLineupReview(res) {
@@ -2416,8 +2499,8 @@ function renderLineupReview(res) {
   const cost = res.usage?.cost ? ` · $${res.usage.cost.toFixed(3)}` : '';
 
   const fell = res.fellBackTo
-    ? `<p class="hint" style="color:var(--amber)">Claude couldn't produce a usable lineup (${escapeHtml(res.reason || 'no reason given')}),
-       so this is dumbTV's own attempt. You have not been charged for a result you can't use.</p>`
+    ? `<p class="hint" style="color:var(--amber)">Claude couldn't produce a usable lineup from your library,
+       so this is dumbTV's own attempt.</p>`
     : '';
 
   const repairs = res.repairs?.length ? `
@@ -2447,7 +2530,7 @@ function renderLineupReview(res) {
     </div>`;
 
   paintLineupChannels();
-  $('#lqBuild').onclick = commitLineup;
+  $('#lqBuild').onclick = buildLineup;
   $('#lqDiscard').onclick = () => { lineupPlan = null; host.style.display = 'none'; host.innerHTML = ''; };
   host.style.display = '';
   host.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -2483,61 +2566,43 @@ function paintLineupChannels() {
   });
 }
 
-async function planLineup(scope) {
-  lineupScope = scope;
-  const btn = scope === 'channel' ? $('#lqWishGo') : $('#lqPlan');
-  const label = btn.textContent;
-  const wish = $('#lqWish').value.trim();
-  if (scope === 'channel' && !wish) return toast('Describe the channel first', true);
-
-  btn.disabled = true;
-  // Say what is happening. A model call takes ten seconds or so, and a button
-  // that just goes dead reads as a broken app — invariant #7's reasoning applies
-  // to the config UI too, even though this is not the television.
-  btn.textContent = 'Reading your library…';
-  try {
-    const res = await api('/api/lineup/plan', {
-      method: 'POST',
-      body: { provider: $('#lqProvider').value, scope, wish, answers: lineupAnswers() },
-    });
-    renderLineupReview(res);
-  } catch (err) {
-    toast(err.message, true);
-  } finally {
-    btn.disabled = false; btn.textContent = label;
-  }
-}
-
-async function commitLineup() {
+async function buildLineup() {
   const btn = $('#lqBuild');
   btn.disabled = true;
-  btn.textContent = 'Building…';
-  // Caching every source is the slow part, and on a big lineup it is a genuine
-  // minute or two. Tell them why they are waiting rather than spinning silently.
-  $('#lqBuildNote').textContent = 'Reading every show on these channels, then scheduling two weeks ahead.';
+  const note = $('#lqBuildNote');
   try {
-    const res = await api('/api/lineup/commit', {
-      method: 'POST', body: { proposal: lineupPlan, answers: lineupAnswers() },
+    const res = await applyProposal(lineupPlan, {
+      api,
+      onProgress: (done, total, label) => {
+        // `done` is the count COMPLETED and is called once more at the end with
+        // done === total, so a naive done+1 reads "Building 4 of 3".
+        btn.textContent = `Building ${Math.min(done + 1, total)} of ${total}…`;
+        // Caching every show and scheduling two weeks is the slow part. Say why
+        // they're waiting rather than spinning silently at them.
+        note.textContent = label ? `${label} — reading its episodes, then scheduling two weeks ahead.` : '';
+      },
     });
-    const total = res.channels.reduce((n, c) => n + c.programs, 0);
-    toast(`${res.channels.length} channel${res.channels.length === 1 ? '' : 's'} on the air — ${total.toLocaleString()} programs scheduled`);
 
-    // A channel with nothing on it is dead air, and finding that out by tuning
-    // to it is the worst way. Say it here, plainly.
-    if (res.empty?.length) {
-      toast(`Nothing playable on: ${res.empty.join(', ')}. Check those sources.`, true);
+    const n = res.created.length;
+    if (n) toast(`${n} channel${n === 1 ? '' : 's'} on the air`);
+    if (res.partial) toast(`Stopped partway: ${res.error}. What was built is yours to keep or undo.`, true);
+    if (res.failed.length) {
+      toast(`${res.failed.length} timed rule${res.failed.length === 1 ? '' : 's'} wouldn't apply`, true);
     }
-    if (res.failed?.length) {
-      toast(`${res.failed.length} source${res.failed.length === 1 ? '' : 's'} wouldn't load from your server`, true);
-    }
+
+    // A channel that reports success and plays nothing is the worst outcome
+    // this feature has. Ask the server what actually landed.
+    const empty = await findEmpty(res.created, { api });
+    if (empty.length) toast(`Nothing playable on: ${empty.join(', ')}. Check those sources.`, true);
 
     lineupPlan = null;
     $('#lqReview').style.display = 'none';
     $('#lqReview').innerHTML = '';
-    await refreshLineupStatus();
+    paintLastRun();
     await loadStatus();
   } catch (err) {
     toast(err.message, true);
+  } finally {
     btn.disabled = false; btn.textContent = 'Build it';
   }
 }
@@ -2550,36 +2615,32 @@ $('#lqWish').onkeydown = (e) => { if (e.key === 'Enter') planLineup('channel'); 
 $('#lqKeySave').onclick = async () => {
   const key = $('#lqKey').value.trim();
   if (!key) return toast('Paste a key first', true);
+  if (!key.startsWith('sk-ant-')) return toast('That doesn’t look like an Anthropic key — they start with sk-ant-', true);
   const btn = $('#lqKeySave');
   btn.disabled = true; btn.textContent = 'Checking…';
-  try {
-    await api('/api/lineup/key', { method: 'POST', body: { key } });
-    $('#lqKey').value = '';
-    toast('Key saved and working');
-    await refreshLineupStatus();
-  } catch (err) {
-    toast(err.message, true);
-  } finally { btn.disabled = false; btn.textContent = 'Save'; }
+  // Validated at PASTE time, not twenty seconds into someone's first build.
+  const check = await validateKey(key);
+  btn.disabled = false; btn.textContent = 'Save';
+  if (!check.ok) return toast(check.error, true);
+  setKey(key);
+  $('#lqKey').value = '';
+  toast('Key saved and working');
+  syncProviderUI();
 };
 
-$('#lqKeyClear').onclick = async () => {
-  await api('/api/lineup/key', { method: 'POST', body: { key: '' } });
+$('#lqKeyClear').onclick = () => {
+  setKey('');
   $('#lqKey').value = '';
-  toast('Key removed from this device');
-  refreshLineupStatus();
+  toast('Key removed from this browser');
+  syncProviderUI();
 };
 
 $('#lqRollback').onclick = async () => {
-  const { removed } = await api('/api/lineup/rollback', { method: 'POST' });
+  const { removed } = await undoLast({ api });
   toast(removed ? `Removed ${removed} channel${removed === 1 ? '' : 's'}` : 'Nothing left to undo');
-  await refreshLineupStatus();
+  paintLastRun();
   await loadStatus();
 };
 
-$('#lqForget').onclick = async () => {
-  const { removed } = await api('/api/lineup/forget-tags', { method: 'POST' });
-  toast(removed ? `Forgot ${removed} tag${removed === 1 ? '' : 's'}` : 'No tags to forget');
-};
-
 syncProviderUI();
-refreshLineupStatus();
+paintLastRun();

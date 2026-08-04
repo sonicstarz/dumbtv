@@ -31,10 +31,10 @@ struct SetupCard: View {
             }
             VStack(alignment: .leading, spacing: 6) {
                 Text("SET UP dumbTV")
-                    .font(.system(.subheadline, design: .monospaced)).bold()
+                    .font(Palette.meta(.subheadline, .bold))
                     .foregroundStyle(Palette.amber)
                 Text("Open this on your phone or laptop:")
-                    .font(.system(.caption, design: .monospaced))
+                    .font(Palette.meta(.caption))
                     .foregroundStyle(Palette.dim)
                     .fixedSize(horizontal: false, vertical: true)
                 // On phone/tablet/Mac the config lives on THIS device, so make the
@@ -42,7 +42,7 @@ struct SetupCard: View {
                 // there's no browser, so it stays plain text to scan with a phone.)
                 #if os(tvOS)
                 Text(url)
-                    .font(.system(.callout, design: .monospaced)).bold()
+                    .font(Palette.meta(.callout, .bold))
                     .foregroundStyle(.white)
                     .lineLimit(2).minimumScaleFactor(0.5)
                     .fixedSize(horizontal: false, vertical: true)
@@ -51,7 +51,7 @@ struct SetupCard: View {
                     Link(destination: link) {
                         HStack(spacing: 6) {
                             Text(url)
-                                .font(.system(.callout, design: .monospaced)).bold()
+                                .font(Palette.meta(.callout, .bold))
                                 .lineLimit(2).minimumScaleFactor(0.5)
                                 .fixedSize(horizontal: false, vertical: true)
                             Image(systemName: "arrow.up.right.square")
@@ -59,7 +59,7 @@ struct SetupCard: View {
                         .foregroundStyle(Palette.amber)
                     }
                     Text("Tap to open the setup page")
-                        .font(.system(.caption2, design: .monospaced))
+                        .font(Palette.meta(.caption2))
                         .foregroundStyle(Palette.dim)
                         .fixedSize(horizontal: false, vertical: true)
                 }
@@ -83,7 +83,7 @@ struct SetupCard: View {
                 if let onOpenSetup {
                     Button(action: onOpenSetup) {
                         Text("— or SET UP ON THIS DEVICE")
-                            .font(.system(.caption, design: .monospaced)).bold()
+                            .font(Palette.meta(.caption, .bold))
                             .foregroundStyle(Palette.amber)
                     }
                     .padding(.top, 4)
@@ -95,7 +95,7 @@ struct SetupCard: View {
                     // dial UI at all, so this told most users to do something
                     // impossible. The ⚙ row in the guide works everywhere.
                     Text("Open the ⚙ row at the top of the guide to bring this back.")
-                        .font(.system(.caption2, design: .monospaced))
+                        .font(Palette.meta(.caption2))
                         .foregroundStyle(Palette.dim)
                         .fixedSize(horizontal: false, vertical: true)
                         .padding(.top, 2)

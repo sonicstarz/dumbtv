@@ -42,7 +42,14 @@ final class Player: ObservableObject {
     /// Held for the app's life so the display never sleeps mid-broadcast — a TV
     /// stays on. Released on deinit.
     private var awakeToken: NSObjectProtocol?
+    #else
+    /// didBecomeActive observer that re-asserts the idle-timer flag (tvOS/iOS).
+    private var idleObserver: NSObjectProtocol?
     #endif
+    /// How many times the idle-timer flag has had to be set because it was
+    /// found cleared. 1 is the expected value (the initial set at launch).
+    /// Surfaced on channel 00 — see `keepAwake()`.
+    @Published private(set) var idleReasserts = 0
     /// If the incoming channel can't produce a frame in this long, cut over
     /// anyway — the bars + "please stand by" are more honest than a stale freeze.
     private let swapTimeout: TimeInterval = 15
@@ -104,9 +111,47 @@ final class Player: ObservableObject {
         awakeToken = ProcessInfo.processInfo.beginActivity(
             options: [.idleDisplaySleepDisabled, .userInitiated], reason: "dumbTV is a television")
         #elseif canImport(UIKit)
-        UIApplication.shared.isIdleTimerDisabled = true
+        keepAwake()
+        // Re-assert when the app becomes active. Setting the flag once from an
+        // initializer is not enough: `Player()` is built as a stored property of
+        // Engine, which runs before the app is necessarily active, and the flag
+        // does not reliably take hold that early. Nothing else in the app
+        // observed the lifecycle at all, so once it was lost it stayed lost.
+        idleObserver = NotificationCenter.default.addObserver(
+            forName: UIApplication.didBecomeActiveNotification,
+            object: nil, queue: .main
+        ) { _ in MainActor.assumeIsolated { UIApplication.shared.isIdleTimerDisabled = true } }
         #endif
     }
+
+    #if canImport(UIKit) && !os(macOS)
+    /// Stop tvOS/iOS putting up the screen saver over a channel that is playing.
+    ///
+    /// THE SCREEN SAVER APPEARED OVER LIVE VIDEO on a real Apple TV: with no
+    /// remote input for a few minutes, tvOS drew its screen saver while the
+    /// programme carried on playing and the audio kept going, which is about the
+    /// least television-like thing the app could do.
+    ///
+    /// tvOS suppresses the screen saver automatically for AVPlayer-backed
+    /// playback, and it cannot tell that a third-party renderer (VLCKit, drawing
+    /// into a plain view) is showing a picture — so `isIdleTimerDisabled` is the
+    /// only lever, and it has to actually STAY set. It is re-asserted here, on
+    /// didBecomeActive, and defensively from the 0.25s tick, because the system
+    /// can clear it and a one-shot assignment silently stops being true.
+    private func keepAwake() {
+        if !UIApplication.shared.isIdleTimerDisabled {
+            UIApplication.shared.isIdleTimerDisabled = true
+            // Counted, and shown on channel 00, because the fix and the
+            // diagnosis are different questions. If the screen saver still
+            // appears on a real Apple TV AND this reads 1, the system is not
+            // clearing the flag and tvOS is simply ignoring it for a
+            // non-AVPlayer renderer — which is a different problem with a
+            // different answer. A number above 1 means it IS being cleared and
+            // this self-heal is what is holding it.
+            idleReasserts += 1
+        }
+    }
+    #endif
 
     deinit {
         #if os(macOS)
@@ -117,6 +162,13 @@ final class Player: ObservableObject {
     private func tick() {
         state = VLCMediaPlayerStateToString(vlcs[front].state) ?? "?"
         videoActive = vlcs[front].hasVideoOut
+        #if canImport(UIKit) && !os(macOS)
+        // Self-heal: whatever cleared the flag (an early set that never took, a
+        // system reset, an app-state transition), this puts it back within a
+        // quarter second. Guarded on the current value so it is a comparison,
+        // not a write, on all but the first tick after a reset.
+        keepAwake()
+        #endif
         if pendingSwap {
             let back = 1 - front
             let timedOut = pendingSince.map { Date().timeIntervalSince($0) > swapTimeout } ?? false
@@ -244,7 +296,7 @@ struct ColorBars: View {
                     Text(title)
                         .font(Palette.display(titleSize)).foregroundStyle(Palette.amber)
                     Text(message)
-                        .font(Palette.mono(max(9, titleSize * 0.5))).foregroundStyle(Palette.dim)
+                        .font(Palette.meta(max(9, titleSize * 0.5))).foregroundStyle(Palette.dim)
                 }
                 .frame(maxWidth: .infinity)
                 .frame(height: footerH)

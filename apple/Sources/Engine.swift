@@ -521,10 +521,26 @@ final class Engine: ObservableObject {
     }
     func guideMove(_ delta: Int) {
         guard !channels.isEmpty else { return }
-        // -1 is the SETUP row (channel 00), always sitting above channel index 0.
-        guideSelection = min(max(guideSelection + delta, -1), channels.count - 1)
+        // Two rows sit above channel index 0, in screen order:
+        //   -2  the NOW PLAYING panel — "put me back on what I was watching"
+        //   -1  the SETUP row (⚙)
+        // Keeping them in the same index space as the channels means one set of
+        // arrow handling covers the whole guide, which is why the guide runs its
+        // own selection instead of using the focus engine (see docs/tvos-input.md).
+        guideSelection = min(max(guideSelection + delta, -2), channels.count - 1)
     }
     func guideSelect() {
+        // The NOW PLAYING panel — the way back to what you were already watching.
+        //
+        // Arrowing up past the top of the channel list lands here, which is the
+        // one direction that previously dead-ended. No retune: this channel is
+        // already on, so the only job is to get the guide out of the way.
+        if guideSelection == -2 {
+            guideTuning = nil
+            guideTuneTask?.cancel()
+            guideOpen = false
+            return
+        }
         // The SETUP row — open native Setup.
         //
         // It used to tune to channel 00 instead, which on tvOS was a dead end:
@@ -553,10 +569,16 @@ final class Engine: ObservableObject {
         guard channels.indices.contains(guideSelection) else { return }
         // Selecting the channel you're already watching is just "get me out of
         // here" — dismiss the guide, no retune, no reload, no playback restart.
+        //
+        // It DOES still raise the channel card, though (B25-3). Picking a channel
+        // and getting nothing back reads as a press that didn't register, and the
+        // card is the answer to "what am I watching?" — which is a fair question
+        // whether or not the channel changed.
         if guideSelection == currentIndex {
             guideTuning = nil
             guideTuneTask?.cancel()
             guideOpen = false
+            showBanner()
             return
         }
         // A different channel: acknowledge the press (highlight stays, a spinner-
@@ -578,8 +600,11 @@ final class Engine: ObservableObject {
                     self.guideTuning = nil
                     self.guideOpen = false
                     // F4: the banner rides the handoff, so the channel you just
-                    // picked names itself as the guide gets out of the way.
-                    self.showBanner()
+                    // picked names itself as the guide gets out of the way — and
+                    // it now holds until the picture is genuinely up plus the
+                    // full five seconds, rather than counting down over a black
+                    // screen that is still buffering (B25-4).
+                    self.showBannerWhenPlaying()
                     break
                 }
                 try? await Task.sleep(nanoseconds: 100_000_000)
@@ -676,6 +701,35 @@ final class Engine: ObservableObject {
         // (the sim can't be tapped from the CLI). Dev-only, env-gated.
         if ProcessInfo.processInfo.environment["DUMBTV_SCREENSHOT"] == "1" { return }
         bannerTask = after(bannerSeconds) { [weak self] in self?.bannerVisible = false }
+    }
+
+    /// Show the channel card and hold it until the picture is ACTUALLY up, then
+    /// keep it for the full `bannerSeconds` (B25-4).
+    ///
+    /// `showBanner()` starts its countdown the moment it is called, which for a
+    /// guide tune is the moment the guide gets out of the way — not the moment
+    /// the programme appears. On a slow join those are seconds apart, so the
+    /// card could be most of the way through its five seconds before the first
+    /// frame landed and you were left watching something unlabelled. The clock
+    /// now starts on the player's first-frame signal.
+    func showBannerWhenPlaying() {
+        bannerVisible = true
+        bannerTask?.cancel()
+        if ProcessInfo.processInfo.environment["DUMBTV_SCREENSHOT"] == "1" { return }
+        bannerTask = Task { @MainActor [weak self] in
+            guard let self else { return }
+            // Backstop: a channel that never produces a frame (off-air, an
+            // unplayable file) must still retire its card rather than pinning it
+            // to the screen forever.
+            let deadline = Date().addingTimeInterval(12)
+            while !self.player.videoActive && Date() < deadline {
+                try? await Task.sleep(nanoseconds: 100_000_000)
+                if Task.isCancelled { return }
+            }
+            try? await Task.sleep(nanoseconds: UInt64(self.bannerSeconds * 1_000_000_000))
+            if Task.isCancelled { return }
+            self.bannerVisible = false
+        }
     }
 
     /// How long the banner stays up. Back-to-back showBanner() calls (tune() runs

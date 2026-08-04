@@ -2,8 +2,12 @@ import SwiftUI
 import CoreText
 
 /// The dumbTV retro palette + type — the same design language as the web TV
-/// (`public/tv.html`): Archivo Black for channel numbers and idents, a mono
-/// face for all meta text, prevue blues, amber, square corners everywhere.
+/// (`public/tv.html`): Archivo Black for channel numbers and idents, Archivo for
+/// all meta text, prevue blues, amber, square corners everywhere.
+///
+/// Both faces are one superfamily on purpose. The meta face used to be the
+/// system monospace, which made every screen read like a terminal rather than a
+/// television.
 enum Palette {
     static let amber = Color(red: 0.949, green: 0.694, blue: 0.204)   // #F2B134
     static let tape = Color(red: 0.910, green: 0.894, blue: 0.851)    // #E8E4D9
@@ -23,18 +27,73 @@ enum Palette {
         return .custom("Archivo Black", size: size)
     }
 
-    /// The meta face — mono, like IBM Plex Mono on the web.
-    static func mono(_ size: CGFloat, _ weight: Font.Weight = .regular) -> Font {
-        .system(size: size, weight: weight, design: .monospaced)
+    /// The meta face — Archivo (bundled, OFL), the regular-width sibling of the
+    /// display face.
+    ///
+    /// This used to be `.system(design: .monospaced)`. Every label, title and
+    /// caption in the app was therefore set in SF Mono, which made a television
+    /// read like a code editor — the single biggest reason the UI looked
+    /// generic (build 24 owner review). Archivo shares its skeleton with Archivo
+    /// Black, so the guide is now ONE family rather than two unrelated faces.
+    ///
+    /// Weights map to real static cuts, not a variable axis: SwiftUI's
+    /// `.weight()` does not reliably drive variation axes on a custom face, and
+    /// the failure is silent — you get the regular cut and no error.
+    static func meta(_ size: CGFloat, _ weight: Font.Weight = .regular) -> Font {
+        registerFontsOnce
+        return .custom(cut(weight), size: size)
     }
 
-    /// Register the bundled TTF with CoreText, once, lazily on first use.
-    private static let registerFontsOnce: Void = {
-        guard let url = Bundle.main.url(forResource: "ArchivoBlack-Regular", withExtension: "ttf") else {
-            print("dumbTV: ArchivoBlack-Regular.ttf not bundled — falling back to system font")
-            return
+    /// The meta face at a Dynamic Type text style, for the views that size
+    /// semantically rather than in points (`SetupCard`).
+    static func meta(_ style: Font.TextStyle, _ weight: Font.Weight = .regular) -> Font {
+        registerFontsOnce
+        return .custom(cut(weight), size: basePoints(style), relativeTo: style)
+    }
+
+    /// Meta face with tabular figures — the clock, and any digits that sit in a
+    /// column. A tuner's numbers should not jitter as they tick; that is
+    /// different from setting the whole interface in a monospace.
+    static func digits(_ size: CGFloat, _ weight: Font.Weight = .regular) -> Font {
+        meta(size, weight).monospacedDigit()
+    }
+
+    /// PostScript names, verified against CoreText rather than assumed — a
+    /// wrong name here falls back to the system face silently.
+    private static func cut(_ w: Font.Weight) -> String {
+        switch w {
+        case .bold, .heavy, .black:      return "Archivo-Bold"
+        case .semibold, .medium:         return "Archivo-SemiBold"
+        default:                         return "Archivo-Regular"
         }
-        CTFontManagerRegisterFontsForURL(url as CFURL, .process, nil)
+    }
+
+    /// Apple's default point size per text style, so `relativeTo:` scales from
+    /// the size the system would have used.
+    private static func basePoints(_ s: Font.TextStyle) -> CGFloat {
+        switch s {
+        case .largeTitle: return 34
+        case .title:      return 28
+        case .title2:     return 22
+        case .title3:     return 20
+        case .headline, .body: return 17
+        case .callout:    return 16
+        case .subheadline: return 15
+        case .footnote:   return 13
+        case .caption:    return 12
+        default:          return 11
+        }
+    }
+
+    /// Register the bundled TTFs with CoreText, once, lazily on first use.
+    private static let registerFontsOnce: Void = {
+        for name in ["ArchivoBlack-Regular", "Archivo-Regular", "Archivo-SemiBold", "Archivo-Bold"] {
+            guard let url = Bundle.main.url(forResource: name, withExtension: "ttf") else {
+                print("dumbTV: \(name).ttf not bundled — falling back to system font")
+                continue
+            }
+            CTFontManagerRegisterFontsForURL(url as CFURL, .process, nil)
+        }
     }()
 }
 

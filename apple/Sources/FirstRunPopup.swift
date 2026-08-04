@@ -47,6 +47,17 @@ struct FirstRunPopup: View {
         if isLast { onDone() } else { withAnimation(.easeInOut(duration: 0.2)) { page += 1 } }
     }
 
+    /// The NEXT/DONE affordance. Wrapped in a Button everywhere EXCEPT tvOS,
+    /// where the root view owns SELECT — see the note at the call site.
+    private var nextLabel: some View {
+        Text(isLast ? "DONE" : "NEXT")
+            .font(Palette.meta(15 * s, .bold)).tracking(3)
+            .foregroundStyle(.black)
+            .padding(.horizontal, 38 * s).padding(.vertical, 12 * s)
+            .background(Palette.amber)
+            .clipShape(RoundedRectangle(cornerRadius: 4))
+    }
+
     var body: some View {
         ZStack {
             // Opaque enough to read against a moving picture, not so opaque that
@@ -69,18 +80,28 @@ struct FirstRunPopup: View {
                     }
                 }
 
-                Button(action: advance) {
-                    Text(isLast ? "DONE" : "NEXT")
-                        .font(Palette.mono(15 * s, .bold)).tracking(3)
-                        .foregroundStyle(.black)
-                        .padding(.horizontal, 38 * s).padding(.vertical, 12 * s)
-                        .background(Palette.amber)
-                        .clipShape(RoundedRectangle(cornerRadius: 4))
-                }
-                .buttonStyle(.plain)
+                // NOT A BUTTON ON tvOS, AND THIS IS LOAD-BEARING. Third time.
+                //
+                // tvOS focuses exactly ONE thing. TVView owns `.focusable()` and
+                // reads SELECT through `.onTapGesture`, so a Button here is a
+                // SECOND focusable: the first SELECT press is spent moving focus
+                // onto it and only the second one fires it. That is exactly the
+                // "single click does nothing on the carousel, a double click
+                // works" report — the same failure SetupCard carries a warning
+                // about (build 23) and the same one Engine.swift documents.
+                //
+                // The remote is already wired without a control here:
+                // TVView.selectPressed → firstRunAdvance(), and left/right page
+                // the card. tvOS needs the LABEL, not the button.
+                #if os(tvOS)
+                nextLabel
+                #else
+                Button(action: advance) { nextLabel }
+                    .buttonStyle(.plain)
+                #endif
             }
-            .padding(28 * s)
-            .frame(maxWidth: 520 * s)
+            .padding(34 * s)
+            .frame(maxWidth: 720 * s)
             .background(Palette.band)
             .overlay(RoundedRectangle(cornerRadius: 8).stroke(Palette.amber.opacity(0.4), lineWidth: 2))
             .clipShape(RoundedRectangle(cornerRadius: 8))
@@ -97,11 +118,11 @@ struct FirstRunPopup: View {
             Text("dumbTV")
                 .font(Palette.display(34 * s)).foregroundStyle(Palette.amber).tracking(2)
             Text("IT'S ALREADY ON")
-                .font(Palette.mono(13 * s, .bold)).foregroundStyle(Palette.dim).tracking(4)
+                .font(Palette.meta(13 * s, .bold)).foregroundStyle(Palette.dim).tracking(4)
             para("Channels are already playing behind this card. dumbTV is a television, not an app you have to set up before it does anything.")
             para("What's on is what's on. You join a show part-way through, the way you used to.")
             Text("No pause. That's the point.")
-                .font(Palette.mono(14 * s, .bold)).foregroundStyle(Palette.amber)
+                .font(Palette.meta(14 * s, .bold)).foregroundStyle(Palette.amber)
                 .multilineTextAlignment(.center)
                 .padding(.top, 2 * s)
         }
@@ -124,7 +145,7 @@ struct FirstRunPopup: View {
     private var setupPage: some View {
         VStack(spacing: 14 * s) {
             Text("ADD YOUR OWN CHANNELS")
-                .font(Palette.mono(13 * s, .bold)).foregroundStyle(Palette.dim).tracking(3)
+                .font(Palette.meta(13 * s, .bold)).foregroundStyle(Palette.dim).tracking(3)
             if let configURL {
                 SetupCard(url: configURL)
                 dim("Scan that, or open the address on a phone or laptop, to build channels from Plex, Jellyfin, or your own files.")
@@ -136,10 +157,10 @@ struct FirstRunPopup: View {
                 ForEach(Self.controls, id: \.0) { key, what in
                     HStack(alignment: .top, spacing: 10 * s) {
                         Text(key)
-                            .font(Palette.mono(12 * s, .bold)).foregroundStyle(Palette.amber)
+                            .font(Palette.meta(12 * s, .bold)).foregroundStyle(Palette.amber)
                             .frame(width: 118 * s, alignment: .leading)
                         Text(what)
-                            .font(Palette.mono(12 * s)).foregroundStyle(Palette.tape)
+                            .font(Palette.meta(12 * s)).foregroundStyle(Palette.tape)
                     }
                 }
             }
@@ -179,13 +200,13 @@ struct FirstRunPopup: View {
 
     private func para(_ t: String) -> some View {
         Text(.init(t))
-            .font(Palette.mono(13 * s)).foregroundStyle(Palette.tape)
+            .font(Palette.meta(13 * s)).foregroundStyle(Palette.tape)
             .multilineTextAlignment(.center)
             .fixedSize(horizontal: false, vertical: true)
     }
     private func dim(_ t: String) -> some View {
         Text(.init(t))
-            .font(Palette.mono(11.5 * s)).foregroundStyle(Palette.dim)
+            .font(Palette.meta(11.5 * s)).foregroundStyle(Palette.dim)
             .multilineTextAlignment(.center)
             .fixedSize(horizontal: false, vertical: true)
     }

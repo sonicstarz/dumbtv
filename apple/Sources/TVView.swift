@@ -196,8 +196,18 @@ struct TVView: View {
             // Setup owns the remote while it is up.
             if setupShowing { return }
             // The first-run card owns the screen until it's paged through — don't
-            // surf channels or scroll a guide the user can't see.
-            if engine.showFirstRun { return }
+            // surf channels or scroll a guide the user can't see. LEFT/RIGHT page
+            // the card itself: the arrows used to be swallowed here and do
+            // nothing at all, so the only way through was the centre button
+            // (B25-1). Up/down stay swallowed — there is nothing above or below.
+            if engine.showFirstRun {
+                switch direction {
+                case .right: _ = firstRunAdvance()
+                case .left:  firstRunBack()
+                default:     break
+                }
+                return
+            }
             if engine.guideOpen {
                 switch direction {
                 case .up:    engine.guideMove(-1)
@@ -302,6 +312,13 @@ struct TVView: View {
         }
     }
 
+    /// Page the first-run card BACK one. Never finishes the sequence and never
+    /// goes below the first page — you cannot reverse off the front of it.
+    private func firstRunBack() {
+        guard engine.showFirstRun, firstRunPage > 0 else { return }
+        withAnimation(.easeInOut(duration: 0.2)) { firstRunPage -= 1 }
+    }
+
     /// Page the first-run card forward from the remote/keyboard, finishing on the
     /// last page. Returns true if it consumed the press, so the caller knows not
     /// to also change channel or open the guide behind the card.
@@ -383,14 +400,14 @@ struct TVView: View {
                 HStack {
                     if engine.demo {
                         Text("DEMO")
-                            .font(Palette.mono(11, .bold))
+                            .font(Palette.meta(11, .bold))
                             .foregroundStyle(.black)
                             .padding(.horizontal, 8).padding(.vertical, 4)
                             .background(Palette.amber)
                     }
                     if engine.kidsMode {
                         Text("KIDS")
-                            .font(Palette.mono(11, .bold))
+                            .font(Palette.meta(11, .bold))
                             .foregroundStyle(.white)
                             .padding(.horizontal, 8).padding(.vertical, 4)
                             .background(Palette.prevue1)
@@ -428,7 +445,7 @@ struct TVView: View {
                         #endif
                         Spacer()
                     }
-                    .font(Palette.mono(13 * s, .bold))
+                    .font(Palette.meta(13 * s, .bold))
                     .foregroundStyle(Palette.amber).tracking(2)
                     .padding(.bottom, 8 * s)
                     .transition(.opacity)
@@ -460,7 +477,7 @@ struct TVView: View {
                             .transition(.opacity)
                     } else if !engine.status.isEmpty {
                         Text(engine.status)
-                            .font(.system(.headline, design: .monospaced))
+                            .font(Palette.meta(.headline))
                             .foregroundStyle(Palette.dim)
                             .padding(.bottom, 40 * s)
                     }
@@ -525,8 +542,8 @@ struct TVView: View {
                 // Channel 00 has no dial on tvOS/iOS, so say how to get BACK here
                 // rather than leaving it as a screen you can only reach once.
                 Text("The ⚙ row at the top of the guide opens packs & setup.")
-                    .font(Palette.mono(12 * s)).foregroundStyle(Palette.dim)
-                .font(Palette.mono(13 * s)).foregroundStyle(Palette.dim)
+                    .font(Palette.meta(12 * s)).foregroundStyle(Palette.dim)
+                .font(Palette.meta(13 * s)).foregroundStyle(Palette.dim)
                 .multilineTextAlignment(.center)
             }
             .padding(30 * s)
@@ -541,16 +558,23 @@ struct TVView: View {
         VStack(alignment: .leading, spacing: 5 * s) {
             if let fallback = diag.storageFallback {
                 Text("⚠ TEMPORARY STORAGE")
-                    .font(Palette.mono(12 * s, .bold)).foregroundStyle(Palette.tally).tracking(2)
+                    .font(Palette.meta(12 * s, .bold)).foregroundStyle(Palette.tally).tracking(2)
                 Text(fallback)
-                    .font(Palette.mono(11 * s)).foregroundStyle(Palette.tally)
+                    .font(Palette.meta(11 * s)).foregroundStyle(Palette.tally)
                     .fixedSize(horizontal: false, vertical: true)
             }
             Text("storage  \(diag.dbAgeDescription)")
-                .font(Palette.mono(11 * s))
+                .font(Palette.meta(11 * s))
                 .foregroundStyle(diag.dbExists ? Palette.dim : Palette.tally)
             Text("data     \(diag.dbRowSummary)")
-                .font(Palette.mono(11 * s)).foregroundStyle(Palette.dim)
+                .font(Palette.meta(11 * s)).foregroundStyle(Palette.dim)
+            #if os(tvOS) || os(iOS)
+            // Evidence for the screen-saver-over-live-video report. 1 = set once
+            // at launch and never cleared; more = the system keeps clearing it
+            // and the 0.25s self-heal is what's putting it back.
+            Text("awake    idle-timer held (\(engine.player.idleReasserts))")
+                .font(Palette.meta(11 * s)).foregroundStyle(Palette.dim)
+            #endif
         }
         .frame(maxWidth: 520 * s, alignment: .leading)
     }
@@ -568,7 +592,7 @@ struct TVView: View {
         }
         return VStack(alignment: .leading, spacing: 7 * s) {
             Text("SETUP SERVER UNAVAILABLE")
-                .font(Palette.mono(14 * s, .bold)).foregroundStyle(Palette.tally).tracking(2)
+                .font(Palette.meta(14 * s, .bold)).foregroundStyle(Palette.tally).tracking(2)
             row("platform", diag.platform)
             if diag.storeOpened {
                 row("store", "open")
@@ -593,7 +617,7 @@ struct TVView: View {
             row("channels", "\(engine.channels.count)  ·  playing: \(engine.now?.program.title ?? "—")")
             row("player", engine.player.state)
         }
-        .font(Palette.mono(13 * s))
+        .font(Palette.meta(13 * s))
         .padding(18 * s)
         .background(Color.black.opacity(0.6))
         .overlay(RoundedRectangle(cornerRadius: 6).stroke(Palette.tally.opacity(0.5), lineWidth: 2))
@@ -620,9 +644,19 @@ struct TVView: View {
                             }
                         )
                         .border(Palette.amber, width: 3)
-                    NowPlayingPanel(engine: engine, s: s)
+                    NowPlayingPanel(engine: engine, s: s,
+                                    isSelected: engine.guideSelection == -2)
+                        .contentShape(Rectangle())
+                        // A tap, not a Button — the root view owns SELECT while
+                        // the guide is open, so a Button here would be a second
+                        // focusable and re-create the double-press bug
+                        // (docs/tvos-input.md). Same pattern the guide rows use.
+                        .onTapGesture { engine.guideSelection = -2; engine.guideSelect() }
                 }
-                .frame(height: geo.size.height * 0.34)
+                // 0.34 → 0.30. The guide below wanted more room and this block
+                // had it: the video slot is aspect-fitted, so the panel beside it
+                // was carrying the slack.
+                .frame(height: geo.size.height * 0.30)
                 .padding(.horizontal, 16 * s)
                 .padding(.top, 14 * s)
 
@@ -644,48 +678,60 @@ struct BannerView: View {
         return String(format: "S%02dE%02d  ", se, ep)
     }
 
+    /// EVERY LINE IS ALWAYS DRAWN, EVEN WHEN IT IS EMPTY (B25-3).
+    ///
+    /// The subtitle and NEXT lines used to be `if let`, so the band's height was
+    /// a function of how much metadata a channel happened to carry: a movie with
+    /// no episode tag and nothing scheduled after it produced a visibly shorter
+    /// card than the channel beside it, and surfing made the thing jump around.
+    /// A broadcaster's lower-third does not resize per programme. Rendering a
+    /// space keeps the line box, so the geometry is identical on every channel.
+    private func reserved(_ text: String) -> String { text.isEmpty ? " " : text }
+
+    private var subtitleLine: String {
+        guard let sub = airing.program.subtitle else { return "" }
+        return episodeTag + sub
+    }
+
     var body: some View {
         HStack(spacing: 0) {
-            Rectangle().fill(Palette.amber).frame(width: 6 * s)
+            Rectangle().fill(Palette.amber).frame(width: 7 * s)
             HStack(alignment: .center, spacing: 0) {
-                VStack(alignment: .leading, spacing: 10 * s) {
-                    HStack(alignment: .firstTextBaseline, spacing: 16 * s) {
+                VStack(alignment: .leading, spacing: 11 * s) {
+                    HStack(alignment: .firstTextBaseline, spacing: 18 * s) {
                         Text(String(format: "%02d", engine.channelNumber))
-                            .font(Palette.display(46 * s)).foregroundStyle(Palette.amber)
+                            .font(Palette.display(54 * s)).foregroundStyle(Palette.amber)
                         Text(engine.channelName.uppercased())
-                            .font(Palette.mono(19 * s, .semibold)).foregroundStyle(Palette.dim)
-                            .tracking(4 * s)
+                            .font(Palette.meta(22 * s, .semibold)).foregroundStyle(Palette.dim)
+                            .tracking(4 * s).lineLimit(1).minimumScaleFactor(0.7)
                     }
                     Text(airing.program.title)
-                        .font(.system(size: 36 * s, weight: .semibold)).foregroundStyle(Palette.tape)
+                        .font(Palette.meta(42 * s, .semibold)).foregroundStyle(Palette.tape)
                         .lineLimit(1).minimumScaleFactor(0.6)
-                    if let sub = airing.program.subtitle {
-                        Text(episodeTag + sub)
-                            .font(.system(size: 20 * s)).foregroundStyle(Palette.dim)
-                            .lineLimit(1)
-                    }
+                    Text(reserved(subtitleLine))
+                        .font(Palette.meta(23 * s)).foregroundStyle(Palette.dim)
+                        .lineLimit(1).minimumScaleFactor(0.7)
                 }
                 Spacer(minLength: 24 * s)
                 VStack(alignment: .trailing, spacing: 12 * s) {
                     Text(hhmm(engine.wallClock))
-                        .font(Palette.mono(26 * s, .semibold)).foregroundStyle(.white)
+                        .font(Palette.digits(30 * s, .semibold)).foregroundStyle(.white)
                     Text("\(hhmm(airing.program.startUtc)) – \(hhmm(airing.program.endUtc))")
-                        .font(Palette.mono(19 * s, .semibold)).foregroundStyle(Palette.amber)
-                    if let n = engine.nextUp {
-                        HStack(spacing: 10 * s) {
-                            Text("NEXT").foregroundStyle(Palette.dim)
-                            Text(n.title).foregroundStyle(Palette.tape)
-                        }
-                        .font(Palette.mono(17 * s, .semibold))
-                        .lineLimit(1)
+                        .font(Palette.digits(22 * s, .semibold)).foregroundStyle(Palette.amber)
+                    HStack(spacing: 10 * s) {
+                        Text(engine.nextUp == nil ? " " : "NEXT").foregroundStyle(Palette.dim)
+                        Text(reserved(engine.nextUp?.title ?? "")).foregroundStyle(Palette.tape)
                     }
+                    .font(Palette.meta(19 * s, .semibold))
+                    .lineLimit(1)
                 }
             }
-            .padding(.horizontal, 30 * s).padding(.vertical, 22 * s)
+            .padding(.horizontal, 34 * s).padding(.vertical, 26 * s)
         }
         .frame(maxWidth: .infinity)
         // Hug the content height — without this the amber bar (a greedy
-        // Rectangle) stretches the band to fill the whole screen.
+        // Rectangle) stretches the band to fill the whole screen. With every line
+        // reserved above, "content height" is now the same on every channel.
         .fixedSize(horizontal: false, vertical: true)
         // rgba(6,6,10,.82), square — the web TV's banner band, no rounding.
         .background(Palette.band)
@@ -717,7 +763,7 @@ struct ControlBar: View {
         Button(action: action) {
             HStack(spacing: 7 * s) {
                 Image(systemName: icon).font(.system(size: 13 * s, weight: .bold))
-                Text(title).font(Palette.mono(12 * s, .bold)).tracking(2)
+                Text(title).font(Palette.meta(12 * s, .bold)).tracking(2)
             }
             .foregroundStyle(active ? Color.black : Palette.amber)
             .padding(.horizontal, 14 * s).padding(.vertical, 9 * s)

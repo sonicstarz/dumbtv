@@ -1337,24 +1337,38 @@ async function openPicker(channelId) {
     state.sections.map((s) => `<option value="${s.key}|${s.type}">${escapeHtml(s.title)}</option>`).join('')
     + '<option value="__packs__|pack">📦 Content packs</option>';
 
+  // BUILD THE GRID ONCE PER SECTION. Filtering hides tiles (see applyFilter)
+  // rather than re-running innerHTML.
+  //
+  // This used to re-render every tile on EVERY KEYSTROKE, which is what the
+  // "I have to scroll before the images load" report was really about: each
+  // rebuild destroyed every <img> mid-flight and started the loads again from
+  // scratch, so on a library of any size the artwork never got to finish while
+  // you were still typing. Scrolling afterwards was simply the first moment the
+  // DOM stood still long enough. Keeping the nodes alive also makes typing
+  // instant and stops re-attaching a click listener per tile per keystroke.
   const draw = () => {
-    const q = $('#pFilter', back).value.toLowerCase();
-    const shown = items.filter((i) => i.title.toLowerCase().includes(q));
     $('#pGrid', back).innerHTML =
-      shown
-        .map((i) => {
+      items
+        .map((i, idx) => {
           const on = selected.has(String(i.ratingKey));
+          // The first screenful loads eagerly so something is on screen without
+          // touching the scroll wheel; the rest stays lazy so a 2000-title
+          // library doesn't fire 2000 requests at once. Every one of these is a
+          // server-side round trip to Plex through /api/image.
           const art = i.image
-            ? `<img src="${i.image}" alt="" loading="lazy">`
+            ? `<img src="${i.image}" alt=""${idx < 24 ? '' : ' loading="lazy"'}>`
             : `<div class="ph">no art</div>`;
           const count =
             i.leafCount != null ? `${i.leafCount} eps` : i.year ? String(i.year) : '';
-          return `<button class="pick ${on ? 'on' : ''}" data-k="${i.ratingKey}">
+          return `<button class="pick ${on ? 'on' : ''}" data-k="${i.ratingKey}"
+                    data-title="${escapeHtml(i.title.toLowerCase())}">
             ${art}
             <span class="cap">${escapeHtml(i.title)}<br><small>${count}</small></span>
           </button>`;
         })
-        .join('') || '<div style="color:var(--dim);padding:20px">Nothing matches that.</div>';
+        .join('')
+      + '<div id="pNone" hidden style="color:var(--dim);padding:20px">Nothing matches that.</div>';
 
     $$('.pick', back).forEach((b) =>
       b.addEventListener('click', () => {
@@ -1369,6 +1383,21 @@ async function openPicker(channelId) {
         $('#pAdd', back).disabled = selected.size === 0;
       })
     );
+    applyFilter();   // a section loaded while the box has text in it still filters
+  };
+
+  /// Show/hide the tiles that already exist. No DOM rebuild, so artwork that has
+  /// loaded stays loaded and in-flight requests are never cancelled.
+  const applyFilter = () => {
+    const q = $('#pFilter', back).value.trim().toLowerCase();
+    let any = false;
+    $$('.pick', back).forEach((b) => {
+      const hit = !q || (b.dataset.title || '').includes(q);
+      b.hidden = !hit;
+      if (hit) any = true;
+    });
+    const none = $('#pNone', back);
+    if (none) none.hidden = any;
   };
 
   // C3: the "Content packs" pseudo-library — installed packs are selectable
@@ -1384,19 +1413,24 @@ async function openPicker(channelId) {
     $('#pGrid', back).innerHTML = packs.map((p) => {
       const key = `pack:${p.id}`;
       const sub = `${p.installedItemCount ?? p.itemCount} items · ${Math.round((p.runtimeMs || 0) / 60000)} min`;
+      // data-title on both branches: the packs pseudo-library shares #pGrid with
+      // the Plex grid, so it goes through the same applyFilter — without it,
+      // typing anything here would hide every pack.
+      const t = escapeHtml(p.name.toLowerCase());
       if (!p.installed) {
         const dl = p.progress && p.progress.state === 'downloading'
           ? `<span class="pack-state" style="font-size:11px">${downloadStatus(p.progress)}</span>`
           : `<button class="ghost" data-pack-dl="${p.id}" style="font-size:11px;padding:4px 8px">Download</button>`;
-        return `<div class="pick off" style="opacity:.55;cursor:default">
+        return `<div class="pick off" data-title="${t}" style="opacity:.55;cursor:default">
           <div class="ph">not installed</div>
           <span class="cap">${escapeHtml(p.name)}<br><small>${sub}</small><br>${dl}</span></div>`;
       }
       const on = selected.has(key);
-      return `<button class="pick ${on ? 'on' : ''}" data-k="${key}">
+      return `<button class="pick ${on ? 'on' : ''}" data-k="${key}" data-title="${t}">
         <div class="ph">📦</div>
         <span class="cap">${escapeHtml(p.name)}<br><small>${sub}</small></span></button>`;
-    }).join('') || '<div style="color:var(--dim);padding:20px">No content packs yet.</div>';
+    }).join('')
+      + '<div id="pNone" hidden style="color:var(--dim);padding:20px">Nothing matches that.</div>';
 
     $$('.pick[data-k]', back).forEach((b) => b.addEventListener('click', () => {
       const k = b.dataset.k;
@@ -1410,6 +1444,7 @@ async function openPicker(channelId) {
       try { await api(`/api/packs/${b.dataset.packDl}/install`, { method: 'POST' }); toast('Downloading pack…'); }
       catch (e) { toast(e.message, true); }
     }));
+    applyFilter();
   };
 
   const loadSection = async () => {
@@ -1426,7 +1461,7 @@ async function openPicker(channelId) {
   };
 
   $('#pSection', back).addEventListener('change', loadSection);
-  $('#pFilter', back).addEventListener('input', draw);
+  $('#pFilter', back).addEventListener('input', applyFilter);
   await loadSection();
 
   $('#pAdd', back).addEventListener('click', async () => {
@@ -1934,15 +1969,99 @@ async function loadSetup() {
   }
 }
 
+/// Copy to the clipboard, on a page that is NOT a secure context.
+///
+/// The config UI is served over plain http on a LAN address, so
+/// `navigator.clipboard` is frequently undefined here — the modern API is gated
+/// on https/localhost. Falls back to a throwaway textarea + execCommand, which
+/// still works on insecure origins. Returns false if both routes fail, so the
+/// button can say "select it yourself" rather than lying.
+async function copyText(text) {
+  try {
+    if (navigator.clipboard && window.isSecureContext) {
+      await navigator.clipboard.writeText(text);
+      return true;
+    }
+  } catch { /* fall through to the old way */ }
+  try {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.setAttribute('readonly', '');
+    ta.style.cssText = 'position:fixed;top:-1000px;opacity:0';
+    document.body.appendChild(ta);
+    ta.select();
+    const ok = document.execCommand('copy');
+    document.body.removeChild(ta);
+    return ok;
+  } catch { return false; }
+}
+
+/// Pick a Plex server without asking — and PROVE it works before settling on it.
+///
+/// Linking used to drop the user on a list with one entry and a "Use this one"
+/// button: a question with a single possible answer, asked at the exact moment
+/// they expected to be finished.
+///
+/// Choosing for them is only an improvement if the choice is right, and the
+/// obvious implementation gets it wrong. `local` is a Plex flag meaning "this
+/// connection is on the same LAN as the SERVER" — not "reachable from the
+/// machine you are sitting at". On the development Mac here, the local address
+/// is unreachable and only the WAN one works, so picking the preferred entry
+/// blind would have replaced a working link with a broken one and reported
+/// success.
+///
+/// So: walk the candidates best-first and keep the first that actually answers.
+/// `POST /api/plex/server` already pings and returns `reachable`, so this costs
+/// nothing but the round trips, and only at link time.
+async function autoPickServer() {
+  try {
+    const { servers } = await api('/api/plex/servers');
+    if (!servers || !servers.length) return false;
+
+    // Servers: direct before relay-only. Connections inside each are already
+    // sorted local → direct remote → relay by /api/plex/servers.
+    const ranked = servers.slice().sort((a, b) => (a.relayOnly ? 1 : 0) - (b.relayOnly ? 1 : 0));
+    const candidates = [];
+    for (const sv of ranked) {
+      const conns = sv.connections?.length ? sv.connections : [{ uri: sv.uri, local: sv.local }];
+      for (const c of conns) candidates.push({ ...sv, uri: c.uri, local: !!c.local, connections: undefined });
+    }
+
+    let first = null;
+    for (const cand of candidates) {
+      const r = await api('/api/plex/server', { method: 'POST', body: cand });
+      if (!first) first = cand;
+      if (r && r.reachable) return true;
+    }
+    // Nothing answered. Leave the preferred one selected so the library screen
+    // has something to report on, and let them switch by hand.
+    if (first) await api('/api/plex/server', { method: 'POST', body: first });
+    return false;
+  } catch {
+    // Leave the picker on screen and let them choose by hand.
+    return false;
+  }
+}
+
 $('#startLink').addEventListener('click', async () => {
   const btn = $('#startLink');
   btn.disabled = true;
   try {
     const pin = await api('/api/plex/pin', { method: 'POST' });
     $('#linkBody').innerHTML = `
-      <div class="pin">${pin.code}</div>
-      <p>Go to <a href="https://plex.tv/link" target="_blank" rel="noopener">plex.tv/link</a> and enter that code.</p>
+      <div class="pin">${escapeHtml(pin.code)}</div>
+      <p class="row" style="gap:8px;align-items:center">
+        <button class="sm" id="copyPin">Copy code</button>
+        <a class="sm" href="https://plex.tv/link" target="_blank" rel="noopener">Open plex.tv/link</a>
+      </p>
+      <p>Enter that code at <a href="https://plex.tv/link" target="_blank" rel="noopener">plex.tv/link</a>.</p>
       <p class="hint" id="pinStatus">Waiting for you…</p>`;
+
+    $('#copyPin').addEventListener('click', async () => {
+      const ok = await copyText(pin.code);
+      $('#copyPin').textContent = ok ? 'Copied' : 'Press ⌘/Ctrl+C';
+      setTimeout(() => { const b = $('#copyPin'); if (b) b.textContent = 'Copy code'; }, 2000);
+    });
 
     const started = Date.now();
     const poll = setInterval(async () => {
@@ -1955,7 +2074,8 @@ $('#startLink').addEventListener('click', async () => {
         const r = await api(`/api/plex/pin/${pin.id}`);
         if (r.linked) {
           clearInterval(poll);
-          toast('Linked to Plex.');
+          const picked = await autoPickServer();
+          toast(picked ? 'Linked to Plex — server selected.' : 'Linked to Plex.');
           await loadStatus();
           loadSetup();
         }

@@ -67,7 +67,7 @@ struct PackTile: View {
                             .lineLimit(2).minimumScaleFactor(0.6)
                             .fixedSize(horizontal: false, vertical: true)
                         Text(pack.era.isEmpty ? "\(pack.itemCount) titles" : pack.era)
-                            .font(Palette.mono(10 * z))
+                            .font(Palette.meta(10 * z))
                             .foregroundStyle(.white.opacity(0.75))
                     }
                     .padding(10 * z)
@@ -87,12 +87,12 @@ struct PackTile: View {
                     }
                     .frame(height: 6 * z)
                     Text("\(Int(pack.fraction * 100))%")
-                        .font(Palette.mono(9 * z, .bold))
+                        .font(Palette.meta(9 * z, .bold))
                         .foregroundStyle(Palette.amber)
                         .padding(.top, 2 * z)
                 } else {
                     Text(statusLine)
-                        .font(Palette.mono(9 * z))
+                        .font(Palette.meta(9 * z))
                         .foregroundStyle(pack.error != nil ? Palette.tally : Palette.dim)
                         .lineLimit(1)
                         .padding(.top, 4 * z)
@@ -135,7 +135,7 @@ struct PackDetail: View {
                             .font(Palette.display(30 * z)).foregroundStyle(Palette.amber)
                         Spacer()
                         Button("‹ BACK", action: onBack)
-                            .font(Palette.mono(13 * z, .bold))
+                            .font(Palette.meta(13 * z, .bold))
                             .focused($focus, equals: .back)
                     }
 
@@ -194,48 +194,48 @@ struct PackDetail: View {
                     }
                     .frame(width: 320 * z, height: 8 * z)
                     Text("Downloading — \(Int(pack.fraction * 100))% · \(pack.done)/\(pack.total) files. Keep watching; this carries on in the background.")
-                        .font(Palette.mono(10 * z)).foregroundStyle(Palette.amber)
+                        .font(Palette.meta(10 * z)).foregroundStyle(Palette.amber)
                         .fixedSize(horizontal: false, vertical: true)
                 }
             } else if pack.hasChannel {
                 HStack(spacing: 6 * z) {
                     Image(systemName: "checkmark.circle.fill").foregroundStyle(.green)
-                    Text("ON A CHANNEL").font(Palette.mono(14 * z, .bold)).foregroundStyle(.green)
+                    Text("ON A CHANNEL").font(Palette.meta(14 * z, .bold)).foregroundStyle(.green)
                 }
                 Button("REMOVE") { Task { await model.removePack(pack); onBack() } }
-                    .font(Palette.mono(12 * z))
+                    .font(Palette.meta(12 * z))
                     .focused($focus, equals: .primary)
             } else if pack.installed {
                 Button("ADD TO CHANNEL") { Task { await model.makePackChannel(pack) } }
-                    .font(Palette.mono(15 * z, .bold))
+                    .font(Palette.meta(15 * z, .bold))
                     .focused($focus, equals: .primary)
                 Button("REMOVE") { Task { await model.removePack(pack); onBack() } }
-                    .font(Palette.mono(12 * z))
+                    .font(Palette.meta(12 * z))
                 if pack.installedItemCount > 0, pack.installedItemCount < pack.itemCount {
                     Button("GET THE OTHER \(pack.itemCount - pack.installedItemCount)") {
                         Task { await model.installPack(pack) }
                     }
-                    .font(Palette.mono(12 * z))
+                    .font(Palette.meta(12 * z))
                 }
             } else {
                 Button("DOWNLOAD  ·  \(pack.sizeLabel)") { Task { await model.installPack(pack) } }
-                    .font(Palette.mono(15 * z, .bold))
+                    .font(Palette.meta(15 * z, .bold))
                     .focused($focus, equals: .primary)
             }
         }
     }
 
     private func badge(_ t: String, _ c: Color) -> some View {
-        Text(t).font(Palette.mono(10 * z, .bold)).foregroundStyle(c)
+        Text(t).font(Palette.meta(10 * z, .bold)).foregroundStyle(c)
             .padding(.horizontal, 8 * z).padding(.vertical, 4 * z)
             .overlay(Rectangle().stroke(c.opacity(0.55), lineWidth: 1))
     }
     private func heading(_ t: String) -> some View {
-        Text(t).font(Palette.mono(11 * z, .bold)).foregroundStyle(Palette.ice)
+        Text(t).font(Palette.meta(11 * z, .bold)).foregroundStyle(Palette.ice)
             .padding(.top, 4 * z)
     }
     private func para(_ t: String, _ c: Color) -> some View {
-        Text(t).font(Palette.mono(12 * z)).foregroundStyle(c)
+        Text(t).font(Palette.meta(12 * z)).foregroundStyle(c)
             .fixedSize(horizontal: false, vertical: true)
             .lineSpacing(3 * z)
     }

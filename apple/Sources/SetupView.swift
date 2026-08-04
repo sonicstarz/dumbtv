@@ -76,9 +76,9 @@ struct SetupView: View {
     private let columnWidth: CGFloat = 760
     #endif
 
-    /// Scaled monospace. Every size in this file goes through here.
+    /// Scaled meta face (Archivo). Every size in this file goes through here.
     private func f(_ size: CGFloat, _ weight: Font.Weight = .regular) -> Font {
-        Palette.mono(size * z, weight)
+        Palette.meta(size * z, weight)
     }
 
     @State private var jfURL = ""
@@ -93,8 +93,17 @@ struct SetupView: View {
     /// so the remote had nothing to move between and the whole page read as
     /// frozen. Set explicitly once `refresh()` has resolved, which is also when
     /// we know whether the first real control is LINK PLEX or a library row.
-    private enum Anchor: Hashable { case pack, link, library, done }
+    ///
+    /// `pack` carries the pack's own id. Every tile used to share ONE anchor —
+    /// only the first got `.pack` and every other tile bound to `nil` — so the
+    /// grid had a single focus identity and returning from a detail screen had
+    /// nowhere specific to hand focus back to (B25-2).
+    private enum Anchor: Hashable { case pack(String), link, library, done }
     @FocusState private var anchor: Anchor?
+
+    /// The tile the remote was on when the detail overlay opened, so Back returns
+    /// you to the pack you were looking at rather than to the top of the grid.
+    @State private var lastTile: String?
 
     /// The pack whose detail screen is open, if any. An overlay rather than a
     /// sheet or a NavigationStack push: same reason Setup itself is an overlay —
@@ -163,8 +172,8 @@ struct SetupView: View {
             // makes the ScrollView jump past them — which reproduced the exact
             // complaint that started this ("the download packs are nowhere to be
             // found"), except now they were off the top of the screen.
-            if model.packs.contains(where: { !$0.hasChannel }) {
-                anchor = .pack
+            if model.packs.contains(where: { !$0.hasChannel }), let id = firstTileID {
+                anchor = .pack(id)
             } else {
                 anchor = model.isLinked ? (model.libraries.isEmpty ? .done : .library) : .link
             }
@@ -179,6 +188,31 @@ struct SetupView: View {
                 PackDetail(pack: model.packs.first(where: { $0.id == d.id }) ?? d,
                            model: model, z: z) { detail = nil }
                     .transition(.opacity)
+            }
+        }
+        // COMING BACK FROM THE DETAIL SCREEN HAS TO HAND FOCUS BACK.
+        //
+        // PackDetail is an overlay owning its own @FocusState. While it is up it
+        // holds focus; when it unmounts, nothing on this screen claims focus
+        // again — SetupView's `anchor` still names a tile, but tvOS has already
+        // dropped focus and does not restore it on its own. The remote went
+        // completely dead and Menu was the only way out (B25-2).
+        //
+        // Re-anchoring on the tile the user opened both revives the remote and
+        // puts them back where they were. Written as a change handler rather than
+        // inside the Back closure because the assignment has to land AFTER the
+        // overlay is torn down, not during the same update that removes it.
+        // Fall back to the first tile if the one we came from has since vanished
+        // (REMOVE on the detail screen does exactly that). Never anchor on an id
+        // no tile carries — that is indistinguishable from having no focus at all,
+        // which is the bug being fixed.
+        .onChange(of: detail?.id) { id in
+            guard id == nil else { return }
+            let stillThere = model.packs.contains { $0.id == lastTile }
+            if let id = (stillThere ? lastTile : nil) ?? firstTileID {
+                anchor = .pack(id)
+            } else {
+                anchor = model.isLinked ? (model.libraries.isEmpty ? .done : .library) : .link
             }
         }
         // Poll only while something is actually downloading, and stop when it
@@ -276,12 +310,12 @@ struct SetupView: View {
                 // AVAILABLE first, DOWNLOADED beneath it. Finished packs sink to
                 // the bottom so the top of the grid is always "what could I add?"
                 // — the question you opened this screen to answer.
-                if !available.isEmpty { grid(available, anchorFirst: true) }
+                if !available.isEmpty { grid(available) }
                 if !downloaded.isEmpty {
                     Text("DOWNLOADED")
                         .font(f(12, .bold)).foregroundStyle(Palette.ice)
                         .padding(.top, 10 * z)
-                    grid(downloaded, anchorFirst: available.isEmpty)
+                    grid(downloaded)
                 }
             }
         }
@@ -290,12 +324,17 @@ struct SetupView: View {
     private var available: [SetupModel.Pack] { model.packs.filter { !$0.installed } }
     private var downloaded: [SetupModel.Pack] { model.packs.filter { $0.installed } }
 
-    private func grid(_ packs: [SetupModel.Pack], anchorFirst: Bool) -> some View {
+    /// The first tile actually rendered — AVAILABLE leads, DOWNLOADED follows.
+    /// Must track `packsSection`'s ordering, or the opening focus lands on a tile
+    /// that isn't the one at the top of the grid.
+    private var firstTileID: String? { (available.first ?? downloaded.first)?.id }
+
+    private func grid(_ packs: [SetupModel.Pack]) -> some View {
         LazyVGrid(columns: [GridItem(.adaptive(minimum: 190 * z), spacing: 16 * z)],
                   alignment: .leading, spacing: 16 * z) {
-            ForEach(Array(packs.enumerated()), id: \.element.id) { idx, p in
-                PackTile(pack: p, z: z) { detail = p }
-                    .focused($anchor, equals: (anchorFirst && idx == 0) ? .pack : nil)
+            ForEach(packs, id: \.id) { p in
+                PackTile(pack: p, z: z) { lastTile = p.id; detail = p }
+                    .focused($anchor, equals: .pack(p.id))
             }
         }
     }

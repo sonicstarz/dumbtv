@@ -73,7 +73,13 @@ export function validateProposal(proposal, digest, opts = {}) {
     const sources = [];
     for (const s of raw.sources || []) {
       const key = String(s?.key ?? s ?? '');
-      if (known.has(key)) sources.push({ key, type: known.get(key).type });
+      // Title comes from the DIGEST, not the proposal — ground truth the
+      // model cannot misspell, and without it every source a build creates
+      // would be listed in the config UI by its raw key ("601", "pack:space").
+      if (known.has(key)) {
+        const k = known.get(key);
+        sources.push({ key, type: k.type, title: k.title });
+      }
       else repairs.push(`"${raw.name || '?'}": dropped unknown source ${JSON.stringify(key).slice(0, 40)}`);
     }
 

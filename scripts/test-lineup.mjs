@@ -288,6 +288,17 @@ check('a daily rhythm produces timed rules, and none of them filter by tag', () 
   assert.ok(rules.every((r) => !('selectTags' in r)));
 });
 
+check('sources carry their TRUE title from the digest, not their key', () => {
+  // Without this, every channel a build creates lists its sources in the
+  // config UI as raw keys — "601", "pack:space" — because neither the planner
+  // nor a model supplies titles, and apply.js falls back to the key.
+  const { proposal } = validateProposal({
+    channels: [{ name: 'X', ordering: 'shuffle', ads: false, tags: [], sources: [{ key: 'm1' }] }],
+    notes: '',
+  }, digest, { maxChannels: 1, minChannels: 1, never: [] });
+  assert.equal(proposal.channels[0].sources[0].title, 'Film 1');
+});
+
 check('hallucinated keys are dropped, not built', () => {
   const { proposal, repairs } = validateProposal({
     channels: [{ name: 'X', ordering: 'shuffle', ads: false, tags: [],

@@ -16,6 +16,8 @@ jobs:
       - run: npm install
       - name: Engine invariants (selftest)
         run: npm run selftest
+      - name: Lineup builder invariants
+        run: npm run test:lineup
 
   swift:
     name: dumbTVCore tests + Apple build

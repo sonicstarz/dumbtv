@@ -2374,7 +2374,6 @@ const getKey = () => { try { return localStorage.getItem(KEY_STORE) || ''; } cat
 const setKey = (v) => { try { v ? localStorage.setItem(KEY_STORE, v) : localStorage.removeItem(KEY_STORE); } catch {} };
 
 let lineupPlan = null;
-let lineupDigest = null;
 
 const csv = (s) => String(s || '')
   .split(',').map((x) => x.trim().toLowerCase()).filter(Boolean).slice(0, 12);
@@ -2427,15 +2426,16 @@ function paintLastRun() {
 }
 
 async function ensureDigest(say) {
-  // Cached for the session: reading a 500-title library is the slow part, and
-  // planning twice in a row should not pay for it twice.
-  if (lineupDigest) return lineupDigest;
-  lineupDigest = await buildDigest({
+  // Rebuilt on EVERY plan, deliberately. A cached digest looked cheap until the
+  // obvious sequence broke it: open this page, realise Plex isn't linked yet,
+  // link it, press Plan again — and plan against the stale empty snapshot. The
+  // read costs ~0.4s on a 500-title library; a plan that ignores the library
+  // costs the person's trust in the whole feature.
+  return buildDigest({
     api,
     onProgress: (done, total, label) =>
       say(total ? `Reading your library… ${label || ''}`.trim() : 'Reading your library…'),
   });
-  return lineupDigest;
 }
 
 async function planLineup(scope) {
@@ -2454,6 +2454,13 @@ async function planLineup(scope) {
     const digest = await ensureDigest(say);
     if (!digest.counts.shows && !digest.counts.movies && !digest.counts.packs) {
       return toast('Nothing to build from — link a media server or install a pack first', true);
+    }
+
+    // The digest computes this guard; without the check here it was decorative.
+    // ~120k tokens is where a send stops being a $0.02 run and starts being a
+    // context-window gamble on someone else's money.
+    if (provider === 'claude' && digest.tooLargeForOnePass) {
+      return toast(`Your library is very large (~${Math.round(estimateTokens(digest) / 1000)}k tokens) — too big to send in one pass. Use the dumbTV builder, or ask for one channel at a time below.`, true);
     }
 
     say(provider === 'claude' ? 'Asking Claude…' : 'Building…');

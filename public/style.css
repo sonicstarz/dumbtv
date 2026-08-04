@@ -228,6 +228,15 @@ p.lede { color: var(--dim); margin: 0 0 26px; max-width: 62ch; }
 
 .row { display: flex; gap: 14px; flex-wrap: wrap; align-items: flex-end; }
 .field { display: flex; flex-direction: column; gap: 6px; }
+/* A field laid out ACROSS instead of down — a label+input next to a button.
+   Eleven places used to do this with an inline `display:flex`, which does not
+   override the `flex-direction: column` above (inline styles only win for the
+   properties they actually set). The result was a column with
+   `align-items:flex-end`, so every one of them rendered right-shoved against
+   the card edge with the button orphaned on its own line — visibly wrong in
+   Settings for as long as it has been there. Set the direction explicitly. */
+.field-row { flex-direction: row; align-items: flex-end; flex-wrap: wrap; gap: 10px; }
+.field-row.centred { align-items: center; }
 .field label {
   font-family: var(--mono);
   font-size: 10px;

@@ -2342,3 +2342,244 @@ async function boot() {
 }
 
 boot();
+
+// ---------------------------------------------------------------- build a lineup
+//
+// The whole flow is: answer → plan → LOOK AT IT → build. The look-at-it step is
+// not a nicety. A planner that writes channels straight into the database is one
+// bad afternoon away from someone losing a lineup they spent a month on, so the
+// review screen is the product, and `plan` is deliberately a route with no side
+// effects at all.
+
+let lineupPlan = null;      // the proposal on screen, or null
+let lineupScope = 'lineup'; // 'lineup' | 'channel'
+
+const csv = (s) => String(s || '')
+  .split(',').map((x) => x.trim().toLowerCase()).filter(Boolean).slice(0, 12);
+
+function lineupAnswers() {
+  const n = Number($('#lqCount').value);
+  return {
+    purpose: $('#lqPurpose').value,
+    loves: csv($('#lqLoves').value),
+    never: csv($('#lqNever').value),
+    kids: $('#lqPurpose').value === 'kids',
+    rhythm: $('#lqRhythm').value,
+    ads: $('#lqAds').value,
+    channelCountN: n,
+    channelCount: n <= 3 ? 'a-handful' : n <= 5 ? 'a-few' : n <= 8 ? 'a-lineup' : 'a-dial-full',
+    airdates: 'where-it-fits',
+  };
+}
+
+const PROVIDER_HINT = {
+  'rule-based': 'Groups your library by genre and era using rules that run on this machine. Nothing leaves the device.',
+  claude: 'Sends a list of your show and film TITLES — no files, no viewing history, no account details — to Anthropic, and gets a lineup back. Roughly $0.02 a run, billed to your own key.',
+};
+
+async function refreshLineupStatus() {
+  let s;
+  try { s = await api('/api/lineup/status'); } catch { return; }
+
+  const key = s.key.configured;
+  $('#lqKeyStatus').textContent = key
+    ? `A key ending ${s.key.hint} is saved on this device.`
+    : 'No key saved. Claude needs one before it can plan anything.';
+  $('#lqKeyClear').style.display = key ? '' : 'none';
+  $('#lqKey').placeholder = key ? 'sk-ant-…  (saved — paste a new one to replace it)' : 'sk-ant-…';
+
+  const last = s.last;
+  const built = last.channelIds?.length;
+  $('#lqLast').style.display = built ? '' : 'none';
+  if (built) {
+    const when = last.committedAt ? new Date(last.committedAt).toLocaleString() : 'earlier';
+    $('#lqLastNote').textContent =
+      `${built} channel${built === 1 ? '' : 's'} built ${when} by ${last.provider || 'dumbTV'}.`;
+  }
+}
+
+function syncProviderUI() {
+  const p = $('#lqProvider').value;
+  $('#lqKeyBox').style.display = p === 'claude' ? '' : 'none';
+  $('#lqProviderHint').textContent = PROVIDER_HINT[p];
+  // Say the cost out loud on the button that spends it. Someone should never be
+  // surprised by a charge they authorised without being told the number.
+  $('#lqPlanNote').textContent = p === 'claude'
+    ? 'Nothing is created yet — you’ll see it first. This run costs about $0.02 on your key.'
+    : 'Nothing is created yet — you’ll see it first.';
+}
+
+function renderLineupReview(res) {
+  lineupPlan = res.proposal;
+  const p = res.proposal;
+  const host = $('#lqReview');
+  const cost = res.usage?.cost ? ` · $${res.usage.cost.toFixed(3)}` : '';
+
+  const fell = res.fellBackTo
+    ? `<p class="hint" style="color:var(--amber)">Claude couldn't produce a usable lineup (${escapeHtml(res.reason || 'no reason given')}),
+       so this is dumbTV's own attempt. You have not been charged for a result you can't use.</p>`
+    : '';
+
+  const repairs = res.repairs?.length ? `
+    <details style="margin-top:10px">
+      <summary style="cursor:pointer;font:600 12px var(--mono);letter-spacing:.08em;color:var(--dim)">
+        ${res.repairs.length} THING${res.repairs.length === 1 ? '' : 'S'} DUMBTV HAD TO FIX
+      </summary>
+      <ul class="hint" style="margin-top:8px;padding-left:18px">
+        ${res.repairs.map((r) => `<li>${escapeHtml(r)}</li>`).join('')}
+      </ul>
+    </details>` : '';
+
+  host.innerHTML = `
+    <div class="card">
+      <h3>${p.channels.length === 1 ? 'Your channel' : `Your lineup — ${p.channels.length} channels`}</h3>
+      <p class="sub">Built by ${escapeHtml(p.provider)}${cost}. Nothing exists yet. Change any name, drop
+        anything you don't want, then build it.</p>
+      ${fell}
+      ${p.notes ? `<p class="hint">${escapeHtml(p.notes)}</p>` : ''}
+      <div id="lqChannels" style="margin-top:14px"></div>
+      ${repairs}
+      <div class="row" style="gap:10px;margin-top:18px;flex-wrap:wrap;align-items:center">
+        <button class="primary" id="lqBuild">Build it</button>
+        <button class="sm" id="lqDiscard">Throw it away</button>
+        <span class="hint" id="lqBuildNote" style="margin:0">Adds new channels. Your existing ones are not touched.</span>
+      </div>
+    </div>`;
+
+  paintLineupChannels();
+  $('#lqBuild').onclick = commitLineup;
+  $('#lqDiscard').onclick = () => { lineupPlan = null; host.style.display = 'none'; host.innerHTML = ''; };
+  host.style.display = '';
+  host.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function paintLineupChannels() {
+  $('#lqChannels').innerHTML = lineupPlan.channels.map((c, i) => `
+    <div class="rule-row" style="align-items:flex-start;gap:12px">
+      <div style="flex:1;min-width:0">
+        <input data-lqname="${i}" value="${escapeHtml(c.name)}" maxlength="20"
+               style="width:100%;max-width:280px;font:700 15px var(--sans)">
+        <div class="sub" style="margin-top:4px">
+          ${c.sources.length} source${c.sources.length === 1 ? '' : 's'} ·
+          ${escapeHtml(c.ordering.replace('_', ' '))}${c.ads ? ' · commercials' : ''}${c.rules.length ? ` · ${c.rules.length} timed rule${c.rules.length === 1 ? '' : 's'}` : ''}
+        </div>
+        <div class="hint" style="margin-top:6px">${escapeHtml(c.rationale || '')}</div>
+      </div>
+      <button class="sm" data-lqdrop="${i}" title="Leave this one out">Drop</button>
+    </div>`).join('');
+
+  $$('[data-lqname]').forEach((el) => {
+    el.oninput = () => { lineupPlan.channels[Number(el.dataset.lqname)].name = el.value; };
+  });
+  $$('[data-lqdrop]').forEach((el) => {
+    el.onclick = () => {
+      lineupPlan.channels.splice(Number(el.dataset.lqdrop), 1);
+      if (!lineupPlan.channels.length) {
+        lineupPlan = null; $('#lqReview').style.display = 'none'; $('#lqReview').innerHTML = '';
+        return toast('Nothing left in that lineup');
+      }
+      paintLineupChannels();
+    };
+  });
+}
+
+async function planLineup(scope) {
+  lineupScope = scope;
+  const btn = scope === 'channel' ? $('#lqWishGo') : $('#lqPlan');
+  const label = btn.textContent;
+  const wish = $('#lqWish').value.trim();
+  if (scope === 'channel' && !wish) return toast('Describe the channel first', true);
+
+  btn.disabled = true;
+  // Say what is happening. A model call takes ten seconds or so, and a button
+  // that just goes dead reads as a broken app — invariant #7's reasoning applies
+  // to the config UI too, even though this is not the television.
+  btn.textContent = 'Reading your library…';
+  try {
+    const res = await api('/api/lineup/plan', {
+      method: 'POST',
+      body: { provider: $('#lqProvider').value, scope, wish, answers: lineupAnswers() },
+    });
+    renderLineupReview(res);
+  } catch (err) {
+    toast(err.message, true);
+  } finally {
+    btn.disabled = false; btn.textContent = label;
+  }
+}
+
+async function commitLineup() {
+  const btn = $('#lqBuild');
+  btn.disabled = true;
+  btn.textContent = 'Building…';
+  // Caching every source is the slow part, and on a big lineup it is a genuine
+  // minute or two. Tell them why they are waiting rather than spinning silently.
+  $('#lqBuildNote').textContent = 'Reading every show on these channels, then scheduling two weeks ahead.';
+  try {
+    const res = await api('/api/lineup/commit', {
+      method: 'POST', body: { proposal: lineupPlan, answers: lineupAnswers() },
+    });
+    const total = res.channels.reduce((n, c) => n + c.programs, 0);
+    toast(`${res.channels.length} channel${res.channels.length === 1 ? '' : 's'} on the air — ${total.toLocaleString()} programs scheduled`);
+
+    // A channel with nothing on it is dead air, and finding that out by tuning
+    // to it is the worst way. Say it here, plainly.
+    if (res.empty?.length) {
+      toast(`Nothing playable on: ${res.empty.join(', ')}. Check those sources.`, true);
+    }
+    if (res.failed?.length) {
+      toast(`${res.failed.length} source${res.failed.length === 1 ? '' : 's'} wouldn't load from your server`, true);
+    }
+
+    lineupPlan = null;
+    $('#lqReview').style.display = 'none';
+    $('#lqReview').innerHTML = '';
+    await refreshLineupStatus();
+    await loadStatus();
+  } catch (err) {
+    toast(err.message, true);
+    btn.disabled = false; btn.textContent = 'Build it';
+  }
+}
+
+$('#lqProvider').onchange = syncProviderUI;
+$('#lqPlan').onclick = () => planLineup('lineup');
+$('#lqWishGo').onclick = () => planLineup('channel');
+$('#lqWish').onkeydown = (e) => { if (e.key === 'Enter') planLineup('channel'); };
+
+$('#lqKeySave').onclick = async () => {
+  const key = $('#lqKey').value.trim();
+  if (!key) return toast('Paste a key first', true);
+  const btn = $('#lqKeySave');
+  btn.disabled = true; btn.textContent = 'Checking…';
+  try {
+    await api('/api/lineup/key', { method: 'POST', body: { key } });
+    $('#lqKey').value = '';
+    toast('Key saved and working');
+    await refreshLineupStatus();
+  } catch (err) {
+    toast(err.message, true);
+  } finally { btn.disabled = false; btn.textContent = 'Save'; }
+};
+
+$('#lqKeyClear').onclick = async () => {
+  await api('/api/lineup/key', { method: 'POST', body: { key: '' } });
+  $('#lqKey').value = '';
+  toast('Key removed from this device');
+  refreshLineupStatus();
+};
+
+$('#lqRollback').onclick = async () => {
+  const { removed } = await api('/api/lineup/rollback', { method: 'POST' });
+  toast(removed ? `Removed ${removed} channel${removed === 1 ? '' : 's'}` : 'Nothing left to undo');
+  await refreshLineupStatus();
+  await loadStatus();
+};
+
+$('#lqForget').onclick = async () => {
+  const { removed } = await api('/api/lineup/forget-tags', { method: 'POST' });
+  toast(removed ? `Forgot ${removed} tag${removed === 1 ? '' : 's'}` : 'No tags to forget');
+};
+
+syncProviderUI();
+refreshLineupStatus();

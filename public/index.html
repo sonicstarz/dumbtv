@@ -25,6 +25,7 @@
   <nav class="rail">
     <h2>OPERATE</h2>
     <button class="navlink active" data-view="channels">Channels <span class="badge" id="navChannels"></span></button>
+    <button class="navlink" data-view="lineup">Build a Lineup</button>
     <button class="navlink" data-view="packs">Channel Packs</button>
     <button class="navlink" data-view="guide">Guide</button>
     <button class="navlink" data-view="schedule">Schedule</button>
@@ -63,6 +64,128 @@
     </section>
 
     <!-- ---------------- channel packs ---------------- -->
+
+    <!-- ---------------- build a lineup ---------------- -->
+    <section class="view" id="view-lineup">
+      <h2 class="title">Build a Lineup</h2>
+      <p class="lede">Answer a few questions about what you want on the air. dumbTV reads your library, groups it into channels, and shows you the result before anything is created. Nothing is changed until you say build.</p>
+
+      <div class="card">
+        <h3>What are you building?</h3>
+        <div class="row" style="gap:16px;flex-wrap:wrap;align-items:flex-start">
+          <div class="field" style="min-width:240px">
+            <label>THE POINT OF IT</label>
+            <select id="lqPurpose">
+              <option value="nostalgia">Nostalgia — the TV I grew up with</option>
+              <option value="background">Background — something always on</option>
+              <option value="kids">Kids — safe to leave running</option>
+              <option value="discovery">Discovery — surface things I forgot I had</option>
+            </select>
+          </div>
+          <div class="field" style="min-width:200px">
+            <label>HOW MANY CHANNELS</label>
+            <select id="lqCount">
+              <option value="3">A handful — 3</option>
+              <option value="5" selected>A few — 5</option>
+              <option value="8">A proper lineup — 8</option>
+              <option value="12">A dial full — 12</option>
+            </select>
+          </div>
+          <div class="field" style="min-width:200px">
+            <label>A DAILY RHYTHM</label>
+            <select id="lqRhythm">
+              <option value="no">No — same all day</option>
+              <option value="light" selected>Light — mornings differ from evenings</option>
+              <option value="yes-strong">Strong — a real daypart schedule</option>
+            </select>
+          </div>
+          <div class="field" style="min-width:200px">
+            <label>COMMERCIALS</label>
+            <select id="lqAds">
+              <option value="no">None</option>
+              <option value="only-retro" selected>On the retro channels only</option>
+              <option value="yes">Everywhere</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="field" style="margin-top:16px">
+          <label>THINGS YOU LOVE <span style="color:var(--dim);font-weight:400">— comma separated, in your own words</span></label>
+          <input id="lqLoves" placeholder="animation, westerns, sitcoms I've seen a hundred times" style="width:100%">
+        </div>
+        <div class="field" style="margin-top:12px">
+          <label>THINGS TO KEEP OFF <span style="color:var(--dim);font-weight:400">— genres that should never appear</span></label>
+          <input id="lqNever" placeholder="horror, war" style="width:100%">
+        </div>
+        <p class="hint">Exclusions are enforced after the fact, not just asked for — anything matching is stripped from every channel before you see the result.</p>
+      </div>
+
+      <div class="card">
+        <h3>Who builds it</h3>
+        <div class="field" style="max-width:520px">
+          <select id="lqProvider">
+            <option value="rule-based">dumbTV itself — free, instant, no account</option>
+            <option value="claude">Claude — reads your whole library and names things properly</option>
+          </select>
+        </div>
+        <p class="hint" id="lqProviderHint">Groups your library by genre and era using rules that run on this machine. Nothing leaves the device.</p>
+
+        <div id="lqKeyBox" style="display:none;margin-top:18px;padding-top:18px;border-top:1px solid var(--rule)">
+          <p class="sub" id="lqKeyStatus">—</p>
+          <div class="field field-row">
+            <div style="flex:1;min-width:280px">
+              <label>ANTHROPIC API KEY</label>
+              <input id="lqKey" type="password" placeholder="sk-ant-…" style="width:100%" autocomplete="off">
+            </div>
+            <button class="primary" id="lqKeySave">Save</button>
+            <button class="sm" id="lqKeyClear" style="display:none">Remove</button>
+          </div>
+          <p class="hint">
+            You need your own key. Make one at
+            <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener">console.anthropic.com</a>
+            — sign in, then <em>API keys → Create key</em>. You'll need a few dollars of credit on the account
+            (<a href="https://console.anthropic.com/settings/billing" target="_blank" rel="noopener">billing</a>).
+            A lineup costs about <span class="mono">$0.02</span>.
+          </p>
+          <p class="hint">
+            The key is stored on this device only. It is never synced, never written to a log, and is left out
+            of config exports on purpose — export a config, hand it to a friend, and your key does not go with it.
+            It is sent to <span class="mono">api.anthropic.com</span> and nowhere else, only when you press Plan.
+          </p>
+        </div>
+      </div>
+
+      <div class="row" style="gap:12px;align-items:center;flex-wrap:wrap">
+        <button class="primary" id="lqPlan">Plan a lineup</button>
+        <span class="hint" id="lqPlanNote" style="margin:0">Nothing is created yet — you'll see it first.</span>
+      </div>
+
+      <div class="card" style="margin-top:22px">
+        <h3>Or just describe one channel</h3>
+        <div class="field field-row">
+          <div style="flex:1;min-width:300px">
+            <label>WHAT SHOULD BE ON IT</label>
+            <input id="lqWish" placeholder="a rainy sunday afternoon when you don't want to think" style="width:100%">
+          </div>
+          <button class="sm" id="lqWishGo">Make it</button>
+        </div>
+        <p class="hint">One channel, built from whatever in your library fits the description. Same review step.</p>
+      </div>
+
+      <!-- the result. hidden until there is one. -->
+      <div id="lqReview" style="display:none"></div>
+
+      <div class="card" id="lqLast" style="display:none">
+        <h3>Last build</h3>
+        <p class="sub" id="lqLastNote">—</p>
+        <div class="row" style="gap:10px;flex-wrap:wrap">
+          <button class="sm" id="lqRollback">Undo it</button>
+          <button class="sm" id="lqForget">Forget the tags it added</button>
+        </div>
+        <p class="hint">Undo removes only the channels that build created. Anything you made yourself is never touched.</p>
+      </div>
+    </section>
+
     <section class="view" id="view-packs">
       <h2 class="title">Channel Packs</h2>
       <p class="hint">Curated public-domain channels — no Plex needed. Install one and it's on the air.</p>
@@ -132,7 +255,7 @@
       <div class="card">
         <h3>Import from Plex</h3>
         <p class="sub">Point dumbTV at a Plex library of commercials and it pulls them straight into the ad pool — nothing to copy onto the device. Make a library of ad clips in Plex, pick it here, and enable “Run commercials” on your channels.</p>
-        <div class="field" style="display:flex; gap:8px; align-items:flex-end; flex-wrap:wrap">
+        <div class="field field-row" style="gap:8px">
           <div style="flex:1; min-width:200px">
             <label>PLEX LIBRARY</label>
             <select id="adSection" style="width:100%"><option value="">Link Plex first…</option></select>
@@ -220,7 +343,7 @@
       <p class="lede">Content claims time with rules. dumbTV places them highest-priority first, then fills the gaps. <b>Solid</b> = you placed it. <span class="hatched-key">Hatched</span> = dumbTV filled it.</p>
 
       <div class="card">
-        <div class="field" style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap">
+        <div class="field field-row">
           <div><label>CHANNEL</label><select id="schChannel"></select></div>
           <button class="sm" id="schPreview">Preview 7 days</button>
           <button class="primary" id="schApply">Apply changes</button>
@@ -265,7 +388,7 @@
               </select>
             </div>
             <div class="field"><label>DAYS (0=Sun … 6=Sat, comma separated)</label><input id="rDays" placeholder="6"></div>
-            <div class="field" style="display:flex;gap:10px">
+            <div class="field field-row">
               <div><label>START (HH:MM)</label><input id="rStart" placeholder="08:00" style="width:120px"></div>
               <div><label>DURATION (min)</label><input id="rDur" type="number" placeholder="180" style="width:140px"></div>
             </div>
@@ -274,7 +397,7 @@
               <input id="rTags" placeholder="cartoon, 1940s" list="tagList">
               <datalist id="tagList"></datalist>
             </div>
-            <div class="field" style="display:flex;gap:10px;align-items:center">
+            <div class="field field-row centred" style="flex-wrap:nowrap">
               <label class="check" style="margin:0">
                 <input type="checkbox" id="rTagAll"> Must have ALL of those tags, not just one
               </label>
@@ -288,7 +411,7 @@
           </div>
           <div id="rAirdate" style="display:none">
             <div class="field"><label>SHOW</label><select id="rAirSource"></select></div>
-            <div class="field" style="display:flex;gap:10px">
+            <div class="field field-row">
               <div><label>MODE</label><select id="rMode">
                 <option value="original_weekday">Its original weekday (weekly)</option>
                 <option value="anniversary">On its original date (anniversary)</option>
@@ -305,7 +428,7 @@
             <div class="field" id="rPinEpisodeWrap"><label>EPISODE</label><select id="rPinEpisode"><option value="">Loading…</option></select></div>
             <p class="hint">Pin a single episode (or a movie) to an exact time — a holiday special, a series premiere at 8pm sharp.</p>
           </div>
-          <div class="field" style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap">
+          <div class="field field-row">
             <div><label>ACTIVE FROM (optional)</label><input id="rEffFrom" type="date" style="width:170px"></div>
             <div><label>ACTIVE TO (optional)</label><input id="rEffTo" type="date" style="width:170px"></div>
             <div style="flex:1;min-width:220px">
@@ -368,7 +491,7 @@
       <div class="card">
         <h3>PIN</h3>
         <p class="sub" id="pinStatus">—</p>
-        <div class="field" style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap">
+        <div class="field field-row">
           <div><label id="pinLabel">SET A PIN (4–6 digits)</label><input id="pinInput" inputmode="numeric" maxlength="6" placeholder="••••" style="width:140px"></div>
           <button class="primary" id="pinSave">Save</button>
           <button class="sm" id="pinLogout" style="display:none">Log out</button>
@@ -379,7 +502,7 @@
       <div class="card">
         <h3>Timezone</h3>
         <p class="sub" id="tzStatus">—</p>
-        <div class="field" style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap">
+        <div class="field field-row">
           <div style="flex:1;min-width:220px"><label>IANA TIMEZONE</label><input id="tzInput" placeholder="America/New_York" style="width:100%"></div>
           <button class="primary" id="tzSave">Save</button>
           <button class="sm" id="tzOS">Use this device’s</button>
@@ -444,7 +567,7 @@
       <div class="card">
         <h3>Backup &amp; restore</h3>
         <p class="sub">Save the whole lineup — channels, sources, and rules — as one JSON. No token or PIN is included.</p>
-        <div class="field" style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+        <div class="field field-row centred">
           <button class="primary" id="cfgExport">Export config</button>
           <label class="sm" style="cursor:pointer;padding:8px 12px;border:1px solid var(--line);border-radius:6px">Import config…<input id="cfgImport" type="file" accept="application/json" style="display:none"></label>
         </div>

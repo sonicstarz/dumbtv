@@ -771,3 +771,69 @@ button.sm.kid.on { border-color: var(--phosphor); color: var(--phosphor); }
 .loading-row { display:flex; align-items:center; gap:10px; color:var(--dim); padding:20px; font-family:var(--mono); font-size:13px; }
 .spin { width:16px; height:16px; border:2px solid var(--line); border-top-color:var(--phosphor); border-radius:50%; animation:spin .8s linear infinite; flex:0 0 auto; }
 @keyframes spin { to { transform:rotate(360deg); } }
+
+/* ---------- vibe dials (L-V1 control panel) ----------
+   The web UI is the only place a look is configured, so this panel is the whole
+   surface for the feature. */
+.vibe-knob { margin-bottom: 14px; }
+.vibe-knob label {
+  display: flex; justify-content: space-between; align-items: baseline; gap: 10px;
+  font: 600 11px var(--mono); letter-spacing: .08em; text-transform: uppercase;
+  color: var(--dim); margin-bottom: 5px;
+}
+.vibe-knob label b { color: var(--amber); font-variant-numeric: tabular-nums; }
+.vibe-knob input[type=range] { width: 100%; accent-color: var(--amber); }
+.vibe-knob.off { opacity: .5; }
+.vibe-hint, .vibe-na {
+  display: block; font-family: var(--sans); font-size: 11.5px;
+  color: var(--dim); margin-top: 3px; line-height: 1.35;
+}
+.vibe-na { color: var(--tally); }
+
+/* The preview uses the SAME layer recipe as the television — see
+   paintVibePreview(). A second implementation would drift. */
+.vibe-preview-wrap { margin-top: 18px; }
+.vibe-preview {
+  position: relative; overflow: hidden; margin-top: 6px;
+  aspect-ratio: 16 / 9; border: 1px solid var(--line); background: #101018;
+  /* Something with edges and colour, so scanlines and fringing are legible
+     against it — a flat swatch would hide exactly what is being tuned. */
+  background-image:
+    repeating-linear-gradient(115deg, #2b3a8f 0 34px, #16205a 34px 68px),
+    radial-gradient(circle at 30% 35%, #f2b134 0 12%, transparent 12.5%),
+    radial-gradient(circle at 68% 62%, #e8e4d9 0 9%, transparent 9.5%);
+  filter: saturate(calc(1 + var(--vibe-bleed, 0) * .7))
+          drop-shadow(calc(var(--vibe-chroma, 0) * -2px) 0 0 rgba(255,0,0,.5))
+          drop-shadow(calc(var(--vibe-chroma, 0) *  2px) 0 0 rgba(0,255,255,.5));
+}
+.vibe-preview.crop43 { aspect-ratio: 4 / 3; max-width: 62%; }
+.vibe-preview::before {   /* scanlines */
+  content: ''; position: absolute; inset: 0; z-index: 2;
+  background: repeating-linear-gradient(to bottom,
+    rgba(0,0,0,.9) 0 1px, transparent 1px 3px);
+  opacity: var(--vibe-scan, 0);
+}
+.vibe-preview::after {    /* vignette */
+  content: ''; position: absolute; inset: 0; z-index: 3;
+  background: radial-gradient(ellipse at center,
+    transparent 45%, rgba(0,0,0,.55) 88%, rgba(0,0,0,.9) 100%);
+  opacity: var(--vibe-vig, 0);
+}
+/* Grain: a generated speckle whose CELL SIZE is the coarseness knob, so the
+   preview shows the difference between fine film grain and chunky tape noise
+   rather than just "more of it". */
+.vibe-preview .pv-bars {
+  position: absolute; left: 0; right: 0; height: 22%; z-index: 4;
+  background: linear-gradient(to bottom, transparent,
+    rgba(255,255,255,.12), rgba(255,255,255,.18), rgba(255,255,255,.12), transparent);
+  opacity: var(--vibe-bars, 0);
+  animation: pvroll 7s linear infinite;
+}
+@keyframes pvroll { from { top: 100%; } to { top: -22%; } }
+.vibe-preview .pv-dead { position: absolute; inset: 0; z-index: 5; }
+.vibe-preview .pv-dead u {
+  position: absolute; width: 2px; height: 2px; background: #000;
+}
+@media (prefers-reduced-motion: reduce) {
+  .vibe-preview .pv-bars { animation: none; top: 40%; }
+}

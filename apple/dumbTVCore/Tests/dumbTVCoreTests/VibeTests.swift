@@ -10,6 +10,17 @@ final class VibeTests: XCTestCase {
         XCTAssertFalse(Vibe.off.isActive)
     }
 
+    /// New knobs must be in the presets on BOTH sides or a preset means two
+    /// different looks depending on which engine drew it.
+    func testPresetsCarryTheNewKnobs() {
+        XCTAssertEqual(Vibe.presets["vhs"]!.grainSize, 2.5)
+        XCTAssertEqual(Vibe.presets["vhs"]!.bars, 0.25, accuracy: 0.0001)
+        XCTAssertEqual(Vibe.presets["vhs"]!.chromaShift, 0.35, accuracy: 0.0001)
+        XCTAssertEqual(Vibe.presets["rough"]!.grainSize, 3.5)
+        XCTAssertEqual(Vibe.presets["crt"]!.bars, 0)
+        XCTAssertEqual(Vibe.presets["off"]!.grainSize, 1)
+    }
+
     /// Preset values are copied from src/vibe.js. If someone edits one side,
     /// this is what says so.
     func testPresetsMatchTheNodeValues() {
@@ -30,6 +41,32 @@ final class VibeTests: XCTestCase {
         XCTAssertEqual(rough.scanlines, 0.30, accuracy: 0.0001)
 
         XCTAssertFalse(Vibe.presets["off"]!.isActive)
+    }
+
+    /// The two knobs Apple cannot render must round-trip and be reported
+    /// honestly, not dropped — the web UI still stores them, the browser TV
+    /// still draws them, and the panel labels them per platform.
+    func testPixelKnobsSurviveEvenThoughAppleIgnoresThem() {
+        let v = Vibe.parse(#"{"bleed":0.4,"chromaShift":0.6}"#)
+        XCTAssertEqual(v?.bleed, 0.4)
+        XCTAssertEqual(v?.chromaShift, 0.6)
+        XCTAssertFalse(v!.isActive)   // neither draws here, so the stack stays off
+    }
+
+    /// grainSize is a MULTIPLIER (1–4), not a 0–1 intensity, and it must default
+    /// to 1. A document written before the knob existed has to come back as fine
+    /// grain — zero would be an invisible bug rather than a look.
+    func testGrainSizeDefaultsToOneNotZero() {
+        XCTAssertEqual(Vibe.parse(#"{"grain":0.3}"#)?.grainSize, 1)
+        XCTAssertEqual(Vibe.fromAny(["grain": 0.3])?.grainSize, 1)
+        XCTAssertEqual(Vibe(grainSize: 0).grainSize, 1)
+        XCTAssertEqual(Vibe(grainSize: 99).grainSize, 4)
+        XCTAssertEqual(Vibe(grainSize: 2.5).grainSize, 2.5)
+    }
+
+    func testHumBarActivatesTheOverlay() {
+        // bars IS renderable here, unlike bleed/chromaShift.
+        XCTAssertTrue(Vibe(bars: 0.3).isActive)
     }
 
     func testClamping() {

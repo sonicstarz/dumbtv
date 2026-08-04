@@ -77,14 +77,20 @@ export function createStaticField(canvas, opts = {}) {
   let frame = 0;
   let last = 0;
   let stopAt = 0;                    // 0 = run until stopped
+  let scale = 1;                     // grain coarseness — see fit()
   let onDone = null;
 
   function fit() {
     // Match the backing store to the displayed size, capped — there is no point
     // rendering noise at retina density, and it costs real fill rate.
+    //
+    // GRAIN SIZE IS THIS DIVISOR. A smaller backing store stretched over the
+    // same element by the compositor, with smoothing off, is exactly chunkier
+    // noise — fine film grain at 1, coarse tape noise at 4 — and it costs LESS
+    // to draw rather than more. Cheaper than generating tiles per size.
     const r = canvas.getBoundingClientRect();
-    const w = Math.max(1, Math.min(1280, Math.round(r.width)));
-    const h = Math.max(1, Math.min(720, Math.round(r.height)));
+    const w = Math.max(1, Math.round(Math.min(1280, r.width) / scale));
+    const h = Math.max(1, Math.round(Math.min(720, r.height) / scale));
     if (canvas.width !== w || canvas.height !== h) { canvas.width = w; canvas.height = h; }
   }
 
@@ -150,6 +156,13 @@ export function createStaticField(canvas, opts = {}) {
     stop,
     burst,
     setIntensity(v) { intensity = Math.max(0, Math.min(1, v)); },
+    /** How coarse the noise is (1 = fine, 4 = chunky). See fit(). */
+    setScale(v) {
+      const next = Math.max(1, Math.min(4, Number(v) || 1));
+      if (next === scale) return;
+      scale = next;
+      fit();          // resize now rather than waiting for the next painted frame
+    },
     destroy() { stop(); tiles.length = 0; },
   };
 }

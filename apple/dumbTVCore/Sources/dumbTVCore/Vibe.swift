@@ -21,10 +21,12 @@ import Foundation
 /// ── what Apple can and cannot do ────────────────────────────────────────────
 /// Everything here is COMPOSITING — layers drawn over the picture — so it works
 /// with VLCKit's video output untouched, exactly like the CSS overlays do in the
-/// browser. `bleed` is the exception: nudging chroma means touching the decoded
-/// pixels, and VLCKit owns those. It stays a no-op on Apple until the V2 Metal
-/// tier (P5), and the web UI labels it accordingly rather than offering a knob
-/// that silently does nothing.
+/// browser. `bleed` and `chromaShift` are the exceptions: nudging chroma or
+/// splitting colour channels means touching the DECODED PIXELS, and VLCKit owns
+/// those. Both stay no-ops on Apple until the V2 Metal tier (P5), and the web UI
+/// labels those two knobs "not on Apple TV yet" rather than offering sliders
+/// that silently do nothing on the device you are watching.
+/// (`VIBE_PIXEL_KNOBS` in src/vibe.js is the same list, for the UI.)
 public struct Vibe: Codable, Hashable, Sendable {
     /// Pillarbox to 4:3 — the phase notes call this the single biggest
     /// "it looks right" win, and it is one rule.
@@ -37,17 +39,31 @@ public struct Vibe: Codable, Hashable, Sendable {
     public var grain: Double
     /// Count of fixed stuck pixels, 0–12.
     public var deadPixels: Int
+    /// 1–4, how COARSE the static is (1 = fine film grain, 4 = chunky tape).
+    /// Separate from `grain`, which is how much of it there is.
+    public var grainSize: Double
     /// 0–1, chroma bleed. **Not rendered on Apple** — see the note above.
     public var bleed: Double
+    /// 0–1, the rolling hum bar that drifts up a badly-earthed set.
+    public var bars: Double
+    /// 0–1, colour fringing. **Not rendered on Apple** — same reason as `bleed`.
+    public var chromaShift: Double
 
     public init(crop43: Bool = false, scanlines: Double = 0, vignette: Double = 0,
-                grain: Double = 0, deadPixels: Int = 0, bleed: Double = 0) {
+                grain: Double = 0, grainSize: Double = 1, deadPixels: Int = 0,
+                bleed: Double = 0, bars: Double = 0, chromaShift: Double = 0) {
         self.crop43 = crop43
         self.scanlines = Self.clamp01(scanlines)
         self.vignette = Self.clamp01(vignette)
         self.grain = Self.clamp01(grain)
+        // A multiplier, not an intensity, so it clamps to its own range and
+        // defaults to 1 — a grain size of zero is an invisible bug, not a look,
+        // and a document predating this knob must come back as fine grain.
+        self.grainSize = grainSize.isFinite ? max(1, min(4, grainSize)) : 1
         self.deadPixels = max(0, min(12, deadPixels))
         self.bleed = Self.clamp01(bleed)
+        self.bars = Self.clamp01(bars)
+        self.chromaShift = Self.clamp01(chromaShift)
     }
 
     /// Every knob at the value that means "do nothing".
@@ -59,19 +75,24 @@ public struct Vibe: Codable, Hashable, Sendable {
     public static let presets: [String: Vibe] = [
         "off": .off,
         // A tidy set in good condition — the look most people mean by "CRT".
-        "crt": Vibe(crop43: true, scanlines: 0.22, vignette: 0.35, grain: 0.05, deadPixels: 0, bleed: 0.15),
+        "crt": Vibe(crop43: true, scanlines: 0.22, vignette: 0.35, grain: 0.05, grainSize: 1,
+                    deadPixels: 0, bleed: 0.15, bars: 0, chromaShift: 0.1),
         // A tape that has been through the machine a few hundred times.
-        "vhs": Vibe(crop43: true, scanlines: 0.14, vignette: 0.30, grain: 0.16, deadPixels: 2, bleed: 0.35),
+        "vhs": Vibe(crop43: true, scanlines: 0.14, vignette: 0.30, grain: 0.16, grainSize: 2.5,
+                    deadPixels: 2, bleed: 0.35, bars: 0.25, chromaShift: 0.35),
         // A set in the corner of a bar with a bent aerial.
-        "rough": Vibe(crop43: true, scanlines: 0.30, vignette: 0.50, grain: 0.30, deadPixels: 6, bleed: 0.45),
+        "rough": Vibe(crop43: true, scanlines: 0.30, vignette: 0.50, grain: 0.30, grainSize: 3.5,
+                      deadPixels: 6, bleed: 0.45, bars: 0.5, chromaShift: 0.5),
     ]
 
     /// Does this vibe do anything at all? Used to skip the whole overlay stack,
     /// so an unstyled channel costs nothing per frame.
     public var isActive: Bool {
-        crop43 || scanlines > 0 || vignette > 0 || grain > 0 || deadPixels > 0
-        // `bleed` deliberately excluded: it renders nothing here, so a vibe that
-        // sets only bleed must not switch the overlay on to draw an empty layer.
+        crop43 || scanlines > 0 || vignette > 0 || grain > 0 || deadPixels > 0 || bars > 0
+        // `bleed` and `chromaShift` deliberately excluded: they render nothing
+        // here (they need the decoded pixels, which VLCKit owns — V2/Metal
+        // work), so a vibe setting only those must not switch the overlay stack
+        // on to draw an empty layer.
     }
 
     /// First non-nil scope wins, most-specific first — the same shape as
@@ -105,7 +126,8 @@ public struct Vibe: Codable, Hashable, Sendable {
     /// controls, and its preset dropdown compares against `vibePresets`.
     public var asDictionary: [String: Any] {
         ["crop43": crop43, "scanlines": scanlines, "vignette": vignette,
-         "grain": grain, "deadPixels": deadPixels, "bleed": bleed]
+         "grain": grain, "grainSize": grainSize, "deadPixels": deadPixels,
+         "bleed": bleed, "bars": bars, "chromaShift": chromaShift]
     }
 
     /// Coerce a decoded-JSON value from a request body, the way `normalizeVibe`
@@ -120,9 +142,12 @@ public struct Vibe: Codable, Hashable, Sendable {
             if let v = d[k] as? NSNumber { return v.doubleValue }
             return 0
         }
+        // grainSize defaults to 1, not 0 — see the initialiser.
+        let size = d["grainSize"] == nil ? 1 : num("grainSize")
         return Vibe(crop43: (d["crop43"] as? Bool) ?? ((d["crop43"] as? NSNumber)?.boolValue ?? false),
                     scanlines: num("scanlines"), vignette: num("vignette"), grain: num("grain"),
-                    deadPixels: Int(num("deadPixels").rounded()), bleed: num("bleed"))
+                    grainSize: size, deadPixels: Int(num("deadPixels").rounded()),
+                    bleed: num("bleed"), bars: num("bars"), chromaShift: num("chromaShift"))
     }
 
     /// Fixed positions for stuck pixels, as percentages of the picture.
@@ -151,7 +176,7 @@ public struct Vibe: Codable, Hashable, Sendable {
     // expected to grow knobs (grain size, hum bars, chroma shift) and an older
     // build must keep rendering the ones it does know.
     private enum CodingKeys: String, CodingKey {
-        case crop43, scanlines, vignette, grain, deadPixels, bleed
+        case crop43, scanlines, vignette, grain, grainSize, deadPixels, bleed, bars, chromaShift
     }
 
     public init(from decoder: Decoder) throws {
@@ -161,7 +186,10 @@ public struct Vibe: Codable, Hashable, Sendable {
             scanlines: (try? c.decodeIfPresent(Double.self, forKey: .scanlines)).flatMap { $0 } ?? 0,
             vignette: (try? c.decodeIfPresent(Double.self, forKey: .vignette)).flatMap { $0 } ?? 0,
             grain: (try? c.decodeIfPresent(Double.self, forKey: .grain)).flatMap { $0 } ?? 0,
+            grainSize: (try? c.decodeIfPresent(Double.self, forKey: .grainSize)).flatMap { $0 } ?? 1,
             deadPixels: (try? c.decodeIfPresent(Int.self, forKey: .deadPixels)).flatMap { $0 } ?? 0,
-            bleed: (try? c.decodeIfPresent(Double.self, forKey: .bleed)).flatMap { $0 } ?? 0)
+            bleed: (try? c.decodeIfPresent(Double.self, forKey: .bleed)).flatMap { $0 } ?? 0,
+            bars: (try? c.decodeIfPresent(Double.self, forKey: .bars)).flatMap { $0 } ?? 0,
+            chromaShift: (try? c.decodeIfPresent(Double.self, forKey: .chromaShift)).flatMap { $0 } ?? 0)
     }
 }

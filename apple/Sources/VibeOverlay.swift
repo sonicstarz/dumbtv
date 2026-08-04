@@ -24,7 +24,8 @@ struct VibeOverlay: View {
             ZStack {
                 if vibe.scanlines > 0 { Scanlines().opacity(vibe.scanlines) }
                 if vibe.vignette > 0 { vignetteLayer.opacity(vibe.vignette) }
-                if vibe.grain > 0 { Grain(intensity: vibe.grain) }
+                if vibe.grain > 0 { Grain(intensity: vibe.grain, coarseness: vibe.grainSize) }
+                if vibe.bars > 0 { HumBar().opacity(vibe.bars) }
                 if vibe.deadPixels > 0 { deadPixelLayer }
             }
             .frame(width: rect.width, height: rect.height)
@@ -80,6 +81,32 @@ private struct Scanlines: View {
     }
 }
 
+/// The bright band that drifts up a badly-earthed set. One gradient on a slow
+/// loop — the compositor owns the motion, so it costs nothing per frame.
+private struct HumBar: View {
+    var body: some View {
+        GeometryReader { geo in
+            let h = geo.size.height * 0.22
+            TimelineView(.animation) { timeline in
+                // Position derived from the clock rather than an animation on
+                // state: the overlay is rebuilt whenever the vibe changes, and a
+                // state-driven animation would restart the roll on every drag of
+                // a slider.
+                let t = timeline.date.timeIntervalSinceReferenceDate
+                    .truncatingRemainder(dividingBy: 7) / 7
+                LinearGradient(
+                    colors: [.clear, .white.opacity(0.10), .white.opacity(0.16),
+                             .white.opacity(0.10), .clear],
+                    startPoint: .top, endPoint: .bottom)
+                    .frame(height: h)
+                    // Bottom to top: mains hum rolls upward on a 50/60 Hz set.
+                    .offset(y: geo.size.height - CGFloat(t) * (geo.size.height + h))
+            }
+        }
+        .blendMode(.plusLighter)
+    }
+}
+
 /// Film/tape grain: a small noise tile, re-offset a few times a second.
 ///
 /// Deliberately NOT redrawn per frame at 60 Hz. Real grain reads as motion at
@@ -88,6 +115,9 @@ private struct Scanlines: View {
 /// One tile is generated once and simply moved.
 private struct Grain: View {
     let intensity: Double
+    /// 1 = fine film grain, 4 = chunky tape noise. Scales the TILE, so coarser
+    /// grain is not more work — the same 96×96 texture drawn larger.
+    var coarseness: Double = 1
 
     /// Generated once per process. 96×96 of static, tiled — big enough that the
     /// repeat is invisible under motion, small enough to be free.
@@ -123,14 +153,18 @@ private struct Grain: View {
                 // rhythm. Derived from the timeline instant rather than a stored
                 // counter, so nothing accumulates while the view is off screen.
                 let t = Int(timeline.date.timeIntervalSinceReferenceDate * 12)
-                let dx = CGFloat((t &* 37) % Int(Self.side)) - Self.side
-                let dy = CGFloat((t &* 53) % Int(Self.side)) - Self.side
+                let step = Self.side * CGFloat(max(1, min(4, coarseness)))
+                let dx = CGFloat((t &* 37) % Int(step)) - step
+                let dy = CGFloat((t &* 53) % Int(step)) - step
                 Self.tile
                     .resizable(resizingMode: .tile)
                     // Oversized by exactly one tile so the offset can never drag
                     // an edge into view.
-                    .frame(width: geo.size.width + Self.side,
-                           height: geo.size.height + Self.side)
+                    .frame(width: (geo.size.width + step) / CGFloat(coarseness),
+                           height: (geo.size.height + step) / CGFloat(coarseness))
+                    // Scale AFTER tiling: the texture is magnified, which is what
+                    // makes the speckle coarser rather than merely denser.
+                    .scaleEffect(CGFloat(coarseness), anchor: .topLeading)
                     .offset(x: dx, y: dy)
             }
         }

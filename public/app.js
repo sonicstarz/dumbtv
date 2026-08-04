@@ -48,6 +48,121 @@ function vibeNameOf(v) {
   return '';
 }
 
+// ── the vibe dials ──────────────────────────────────────────────────────────
+//
+// The web UI is the ONLY place a look is configured — the apps render it and
+// expose no controls (owner, 2026-08-03). So this panel is the whole surface
+// and has to stand on its own: presets as starting points, a dial for every
+// knob, a live preview, and honesty about which knobs the device you are
+// actually watching can do.
+
+/** Every dial, in the order they read as a sentence about the picture. */
+const VIBE_KNOBS = [
+  { key: 'crop43', label: '4:3 crop', kind: 'toggle',
+    hint: 'Pillarbox to the shape a television actually was.' },
+  { key: 'scanlines', label: 'Scanlines', min: 0, max: 1, step: 0.01 },
+  { key: 'vignette', label: 'Vignette', min: 0, max: 1, step: 0.01,
+    hint: 'The corners of a tube were never as bright as the middle.' },
+  { key: 'grain', label: 'Static — amount', min: 0, max: 1, step: 0.01 },
+  { key: 'grainSize', label: 'Static — coarseness', min: 1, max: 4, step: 0.1,
+    hint: 'Fine film grain at 1, chunky tape noise at 4.' },
+  { key: 'bars', label: 'Rolling hum bar', min: 0, max: 1, step: 0.01,
+    hint: 'The bright band that drifts up a badly-earthed set.' },
+  { key: 'deadPixels', label: 'Dead pixels', min: 0, max: 12, step: 1,
+    hint: 'Fixed spots. They never move — a stuck pixel that wanders is not a stuck pixel.' },
+  { key: 'bleed', label: 'Colour bleed', min: 0, max: 1, step: 0.01, pixel: true },
+  { key: 'chromaShift', label: 'Colour fringing', min: 0, max: 1, step: 0.01, pixel: true,
+    hint: 'A red ghost left, a cyan ghost right — a misconverged composite chain.' },
+];
+
+/** Is the box we are configuring an Apple device? It cannot do the pixel knobs. */
+const vibeOnApple = () => !!state.status && state.status.platform !== 'node';
+
+/**
+ * Render the dials for `vibe` (a full document) and call `onChange` on every
+ * drag. Used for the global default and, with a different target, per channel.
+ */
+function renderVibeKnobs(host, vibe, onChange) {
+  const v = { ...(state.vibePresets?.off || {}), ...(vibe || {}) };
+  const apple = vibeOnApple();
+
+  host.innerHTML = VIBE_KNOBS.map((k) => {
+    // `bleed` and `chromaShift` need the decoded pixels, and VLCKit owns those
+    // on Apple — that is V2/Metal work. Say so next to the knob that means it,
+    // rather than offering a slider that silently does nothing on the very
+    // device the person is watching.
+    const dead = k.pixel && apple;
+    const note = dead
+      ? '<span class="vibe-na">not on Apple TV yet</span>'
+      : (k.hint ? `<span class="vibe-hint">${escapeHtml(k.hint)}</span>` : '');
+    if (k.kind === 'toggle') {
+      return `<div class="vibe-knob">
+        <label><input type="checkbox" data-vk="${k.key}" ${v[k.key] ? 'checked' : ''}> ${escapeHtml(k.label)}</label>
+        ${note}
+      </div>`;
+    }
+    return `<div class="vibe-knob${dead ? ' off' : ''}">
+      <label for="vk_${k.key}">${escapeHtml(k.label)}<b data-vkout="${k.key}">${fmtKnob(k, v[k.key])}</b></label>
+      <input id="vk_${k.key}" type="range" data-vk="${k.key}"
+             min="${k.min}" max="${k.max}" step="${k.step}" value="${Number(v[k.key]) || k.min}">
+      ${note}
+    </div>`;
+  }).join('') + `<div class="vibe-preview-wrap">
+      <span class="vibe-hint">Preview</span>
+      <div class="vibe-preview" id="vibePreview"><i class="pv-bars"></i><i class="pv-dead"></i></div>
+    </div>`;
+
+  const read = () => {
+    const out = { ...v };
+    host.querySelectorAll('[data-vk]').forEach((el) => {
+      out[el.dataset.vk] = el.type === 'checkbox' ? el.checked : Number(el.value);
+    });
+    return out;
+  };
+
+  host.querySelectorAll('[data-vk]').forEach((el) => {
+    // `input`, not `change`: the point is watching it move as you drag.
+    el.addEventListener('input', () => {
+      const next = read();
+      const k = VIBE_KNOBS.find((x) => x.key === el.dataset.vk);
+      const out = host.querySelector(`[data-vkout="${el.dataset.vk}"]`);
+      if (out && k) out.textContent = fmtKnob(k, next[k.key]);
+      paintVibePreview(host, next);
+      onChange(next);
+    });
+  });
+  paintVibePreview(host, v);
+}
+
+const fmtKnob = (k, val) =>
+  k.step >= 1 ? String(Math.round(Number(val) || 0)) : (Number(val) || 0).toFixed(2);
+
+/**
+ * The live swatch. Deliberately the SAME CSS the television uses, driven by the
+ * same variables — a preview that renders the look a second way would be a
+ * second implementation to keep honest, and the first time they drifted nobody
+ * would notice until it was on a real screen.
+ */
+function paintVibePreview(host, v) {
+  const el = host.querySelector('#vibePreview');
+  if (!el) return;
+  el.style.setProperty('--vibe-scan', v.scanlines);
+  el.style.setProperty('--vibe-vig', v.vignette);
+  el.style.setProperty('--vibe-bars', v.bars);
+  el.style.setProperty('--vibe-grain', v.grain);
+  el.style.setProperty('--vibe-grain-size', `${(v.grainSize || 1) * 2}px`);
+  el.style.setProperty('--vibe-chroma', v.chromaShift);
+  el.style.setProperty('--vibe-bleed', v.bleed);
+  el.classList.toggle('crop43', !!v.crop43);
+  const dead = el.querySelector('.pv-dead');
+  // Same fixed spot sequence as the television, so the preview shows the actual
+  // pixels you will get rather than a decorative approximation.
+  const spots = [[17, 23], [62, 11], [38, 77], [84, 44], [9, 58], [71, 89],
+                 [46, 31], [93, 67], [28, 6], [55, 95], [77, 19], [12, 41]];
+  dead.innerHTML = spots.slice(0, Math.round(v.deadPixels) || 0)
+    .map(([x, y]) => `<u style="left:${x}%;top:${y}%"></u>`).join('');
+}
+
 function mins(ms) {
   return Math.round(ms / 60000);
 }
@@ -429,7 +544,10 @@ async function loadSettings() {
   } catch {}
   state.vibeDefault = cfg.vibeDefault || null;
   const dv = $('#dispVibe');
-  if (dv) dv.value = vibeNameOf(cfg.vibeDefault) || 'off';
+  // A stored look that matches no preset is Custom, not "off" — the old code
+  // fell back to 'off' and so a dialled-in look displayed as if it were absent.
+  if (dv) dv.value = cfg.vibeDefault ? (vibeNameOf(cfg.vibeDefault) || 'custom') : 'off';
+  mountVibeTuner();
 
   try {
     const llm = await api('/api/llm/status');
@@ -458,10 +576,46 @@ $('#dispCaptions').addEventListener('change', async (e) => {
   await api('/api/settings', { method: 'POST', body: { captions: e.target.checked ? 1 : 0 } });
   toast(e.target.checked ? 'Captions on.' : 'Captions off.');
 });
+/**
+ * Push the global look. Debounced, because this fires on every pixel of a
+ * slider drag and each POST reaches every television on the network — the
+ * change is meant to feel live, not to hammer the box.
+ */
+let vibePushTimer = null;
+function pushVibeDefault(v) {
+  state.vibeDefault = v;
+  clearTimeout(vibePushTimer);
+  vibePushTimer = setTimeout(async () => {
+    try { await api('/api/settings', { method: 'POST', body: { vibeDefault: v } }); }
+    catch (e) { toast(e.message, true); }
+  }, 220);
+}
+
+/** Build the dials for the global default and keep the preset select honest. */
+function mountVibeTuner() {
+  const host = $('#vibeKnobs');
+  if (!host) return;
+  renderVibeKnobs(host, state.vibeDefault, (next) => {
+    pushVibeDefault(next);
+    // Dragging anything makes the look Custom — unless it happens to land back
+    // exactly on a preset, in which case say so rather than lying about it.
+    const sel = $('#dispVibe');
+    if (sel) sel.value = vibeNameOf(next) || 'custom';
+  });
+}
+
 $('#dispVibe')?.addEventListener('change', async (e) => {
+  // "Custom" is what the dials produce; picking it from the list should open
+  // them rather than overwrite the look with a preset.
+  if (e.target.value === 'custom') {
+    const t = $('#vibeTuner');
+    if (t) t.open = true;
+    return;
+  }
   const preset = state.vibePresets?.[e.target.value] ?? null;
   await api('/api/settings', { method: 'POST', body: { vibeDefault: preset } });
   state.vibeDefault = preset;
+  mountVibeTuner();          // dials follow the preset you just picked
   toast(`Default look: ${e.target.selectedOptions[0].textContent.split('—')[0].trim()}.`);
 });
 $('#tzSave').addEventListener('click', async () => {
@@ -1179,15 +1333,17 @@ function openSettings(channelId, opts = {}) {
         <div class="row">
           <div class="field" style="flex:1">
             <label>LOOK</label>
-            <select id="fVibe" data-current="${escapeHtml(vibeNameOf(c.vibe))}">
+            <select id="fVibe" data-current="${escapeHtml(c.vibe ? (vibeNameOf(c.vibe) || 'custom') : '')}">
               <option value="">Use the default look</option>
               <option value="off">Off — clean picture</option>
               <option value="crt">CRT — a tidy set in good condition</option>
               <option value="vhs">VHS — a tape that's been played a lot</option>
               <option value="rough">Rough — bent aerial, bar in the corner</option>
+              <option value="custom">Custom — dial it in below</option>
             </select>
           </div>
         </div>
+        <div id="fVibeKnobs"></div>
         <p class="hint">
           4:3 cropping, scanlines, vignette, grain and dead pixels — all drawn
           over the picture, so nothing is re-encoded and playback is untouched.
@@ -1213,6 +1369,27 @@ function openSettings(channelId, opts = {}) {
   // Show the channel's current look. A channel with no vibe of its own stays on
   // "use the default", which is the honest reading of NULL.
   $('#fVibe', back).value = $('#fVibe', back).dataset.current || '';
+  // Per-channel dials. `back._vibe` is what the save reads, so the dials are the
+  // source of truth for a custom look and the select only picks a starting point.
+  back._vibe = c.vibe ?? null;
+  const chanKnobs = $('#fVibeKnobs', back);
+  const showChanKnobs = () => {
+    const v = $('#fVibe', back).value;
+    // Nothing to dial when inheriting: the global default owns the look, and
+    // showing dials that write nowhere would be a lie.
+    chanKnobs.style.display = v === '' ? 'none' : '';
+    if (v === '') return;
+    const base = v === 'custom'
+      ? (back._vibe ?? state.vibeDefault ?? state.vibePresets?.off)
+      : state.vibePresets?.[v];
+    back._vibe = { ...base };
+    renderVibeKnobs(chanKnobs, back._vibe, (next) => {
+      back._vibe = next;
+      $('#fVibe', back).value = vibeNameOf(next) || 'custom';
+    });
+  };
+  $('#fVibe', back).addEventListener('change', showChanKnobs);
+  showChanKnobs();
   blurb();
 
   // Bedtime quick-presets fill the time inputs (and highlight the active one).
@@ -1269,7 +1446,9 @@ function openSettings(channelId, opts = {}) {
           // L-V1: '' means inherit the global default (stored as NULL).
           vibe: (() => {
             const v = $('#fVibe', back).value;
-            return v === '' ? null : (state.vibePresets?.[v] ?? null);
+            if (v === '') return null;                 // inherit the global default
+            if (v === 'custom') return back._vibe ?? null;   // whatever the dials say
+            return state.vibePresets?.[v] ?? null;
           })(),
           maxAdsPerBreak: Number($('#fMaxAds', back).value),
           adTags: $('#fTags', back).value,

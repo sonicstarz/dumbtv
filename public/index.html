@@ -405,8 +405,18 @@
               <option value="crt">CRT — a tidy set in good condition</option>
               <option value="vhs">VHS — a tape that's been played a lot</option>
               <option value="rough">Rough — bent aerial, bar in the corner</option>
+              <option value="custom">Custom — dial it in below</option>
             </select>
           </div>
+          <!-- The dials. A preset is a starting point; drag anything and the
+               look becomes Custom. Every television on the network follows this
+               unless a channel overrides it. -->
+          <details id="vibeTuner" style="margin-top:4px">
+            <summary style="cursor:pointer;font:600 12px var(--mono);letter-spacing:.08em;color:var(--dim)">
+              DIAL IT IN
+            </summary>
+            <div id="vibeKnobs" style="margin-top:14px"></div>
+          </details>
           <label style="display:flex;gap:8px;align-items:center;font-family:var(--sans);font-size:14px;color:var(--tape)">
             <input id="dispCaptions" type="checkbox"> Show captions
           </label>

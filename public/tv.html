@@ -196,10 +196,34 @@ body.crop43 #snow {
   height: min(100%, calc(100vw * 3 / 4));
   left: 50%; top: 50%; transform: translate(-50%, -50%);
 }
-/* Chroma bleed: nudge saturation the way a composite signal did. Deliberately
-   not a blur — blurring the picture to fake an analog chain costs real quality
-   for a small effect, and that trade belongs in the shader tier. */
+/* Chroma bleed + colour fringing. Both touch the PICTURE rather than sitting
+   over it, which is why they are the two knobs Apple cannot do (VLCKit owns its
+   surface) — see VIBE_PIXEL_KNOBS in src/vibe.js. Deliberately not a blur:
+   blurring the picture to fake an analog chain costs real quality for a small
+   effect, and that trade belongs in the shader tier.
+   The drop-shadows are a cheap RGB fringe — a red ghost left, a cyan ghost
+   right, exactly what a misconverged composite chain did. */
 body.vibe-bleed #video { filter: saturate(calc(1 + var(--vibe-bleed, 0) * .7)); }
+body.vibe-chroma #video {
+  filter:
+    saturate(calc(1 + var(--vibe-bleed, 0) * .7))
+    drop-shadow(calc(var(--vibe-chroma, 0) * -2px) 0 0 rgba(255,0,0,.5))
+    drop-shadow(calc(var(--vibe-chroma, 0) *  2px) 0 0 rgba(0,255,255,.5));
+}
+
+/* Rolling hum bar: the bright band that drifts up a badly-earthed set. One
+   gradient on a slow linear loop — no per-frame work, the compositor owns it. */
+#vibe .bars {
+  position: absolute; left: 0; right: 0; height: 22%;
+  background: linear-gradient(to bottom,
+    transparent, rgba(255,255,255,.10), rgba(255,255,255,.16), rgba(255,255,255,.10), transparent);
+  opacity: var(--vibe-bars, 0);
+  animation: humroll 7s linear infinite;
+}
+@keyframes humroll { from { top: 100%; } to { top: -22%; } }
+/* A drifting band is exactly the kind of motion vestibular sensitivity flags,
+   and it carries no information — so it holds still rather than rolling. */
+@media (prefers-reduced-motion: reduce) { #vibe .bars { animation: none; top: 40%; } }
 
 /* ---- channel bug (K-B1) ----
    Inside the CRT safe area, low contrast, never over the banner. Real bugs are
@@ -281,6 +305,7 @@ body.vibe-bleed #video { filter: saturate(calc(1 + var(--vibe-bleed, 0) * .7)); 
   <!-- Vibe V1 (L-V1): the no-shader CRT/VHS layer. Pure overlay, so it costs
        the video pipeline nothing and works identically in every browser. -->
   <div id="vibe" aria-hidden="true">
+    <div class="bars"></div>
     <div class="scan"></div>
     <div class="vig"></div>
     <div class="dead" id="vibeDead"></div>

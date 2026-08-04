@@ -107,7 +107,8 @@ function applyDisplay() {
 // Resolution is deliberately a list, most-specific first, so adding a per-ITEM
 // scope later is one more argument rather than a rewrite — that is the open
 // question the model is built to survive. See src/vibe.js.
-const VIBE_OFF = { crop43: false, scanlines: 0, vignette: 0, grain: 0, deadPixels: 0, bleed: 0 };
+const VIBE_OFF = { crop43: false, scanlines: 0, vignette: 0, grain: 0, grainSize: 1,
+                   deadPixels: 0, bleed: 0, bars: 0, chromaShift: 0 };
 
 function resolveVibe(...scopes) {
   const out = { ...VIBE_OFF };
@@ -116,7 +117,8 @@ function resolveVibe(...scopes) {
 }
 
 const vibeActive = (v) =>
-  v.crop43 || v.scanlines > 0 || v.vignette > 0 || v.grain > 0 || v.deadPixels > 0 || v.bleed > 0;
+  v.crop43 || v.scanlines > 0 || v.vignette > 0 || v.grain > 0
+  || v.deadPixels > 0 || v.bleed > 0 || v.bars > 0 || v.chromaShift > 0;
 
 let deadPixelCount = -1;
 
@@ -127,9 +129,12 @@ function applyVibe(channelVibe) {
 
   body.classList.toggle('crop43', !!v.crop43);
   body.classList.toggle('vibe-bleed', v.bleed > 0);
+  body.classList.toggle('vibe-chroma', v.chromaShift > 0);
   body.style.setProperty('--vibe-scan', v.scanlines);
   body.style.setProperty('--vibe-vig', v.vignette);
   body.style.setProperty('--vibe-bleed', v.bleed);
+  body.style.setProperty('--vibe-bars', v.bars);
+  body.style.setProperty('--vibe-chroma', v.chromaShift);
   el.classList.toggle('on', vibeActive(v));
 
   // Dead pixels are FIXED: a stuck pixel that wanders is not a stuck pixel.
@@ -147,6 +152,9 @@ function applyVibe(channelVibe) {
   // renderer exists rather than three separate noise implementations.
   if (v.grain > 0 && !state.guideOpen) {
     snow.setIntensity(v.grain * 0.5);   // 1.0 grain is a bad picture, not a blizzard
+    // Size is separate from amount: fine film grain and chunky tape noise are
+    // different looks at the same density.
+    snow.setScale?.(v.grainSize || 1);
     snow.start();
   } else if (!state.snowBusy) {
     snow.stop();

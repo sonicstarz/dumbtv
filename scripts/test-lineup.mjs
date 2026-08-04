@@ -210,5 +210,79 @@ check('an empty proposal is fatal, not an empty lineup', () => {
   assert.ok(fatal);
 });
 
+// ── 6. the privacy policy is not stale ─────────────────────────────────────
+//
+// The policy said "That's all. dumbTV makes no other network calls" while the
+// app was already downloading packs from archive.org. It drifted because
+// nothing connected the sentence to the code. This does.
+console.log('\nthe privacy policy matches the code');
+
+const policy = fs.readFileSync(new URL('../docs/privacy-policy.md', import.meta.url), 'utf8');
+const site = fs.readFileSync(new URL('../site/privacy.html', import.meta.url), 'utf8');
+
+// Every host the source actually talks to. Localhost and the user's own server
+// are not third parties, so they are not policy matters.
+const IGNORE = /^(localhost|127\.|10\.|192\.168\.|0\.0\.0\.0)/;
+const srcHosts = new Set();
+const walk = (dir) => {
+  for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
+    const f = path.join(dir, e.name);
+    if (e.isDirectory()) { walk(f); continue; }
+    if (!/\.(js|mjs|swift)$/.test(e.name)) continue;
+    for (const m of fs.readFileSync(f, 'utf8').matchAll(/https?:\/\/([a-zA-Z0-9._-]+)/g)) {
+      if (!IGNORE.test(m[1])) srcHosts.add(m[1]);
+    }
+  }
+};
+walk(new URL('../src', import.meta.url).pathname);
+
+// Hosts that are referenced but never contacted — documentation links, XMLTV
+// generator attribution, licence URLs. Named individually so adding one is a
+// deliberate act rather than a widened pattern.
+const NOT_CONTACTED = new Set(['www.gnu.org', 'code.videolan.org', 'www.anthropic.com']);
+
+check('every host the code contacts is named in the policy', () => {
+  const missing = [...srcHosts].filter((h) => {
+    if (NOT_CONTACTED.has(h)) return false;
+    const bare = h.replace(/^www\./, '');
+    // images-assets.nasa.gov is documented under its user-facing name.
+    const alias = bare.replace('images-assets.nasa.gov', 'images.nasa.gov');
+    return !policy.includes(bare) && !policy.includes(alias);
+  });
+  assert.deepEqual(missing, [], `not in docs/privacy-policy.md: ${missing.join(', ')}`);
+});
+
+check('the published page names them too', () => {
+  for (const h of ['plex.tv', 'archive.org', 'dumbtv.app', 'api.anthropic.com']) {
+    assert.ok(site.includes(h), `site/privacy.html is missing ${h}`);
+  }
+});
+
+check('the policy makes the same key promises the UI does', () => {
+  const ui = fs.readFileSync(new URL('../public/index.html', import.meta.url), 'utf8');
+  for (const claim of ['never synced', 'never written to a log', 'config exports']) {
+    assert.ok(ui.includes(claim), `the UI stopped claiming "${claim}"`);
+    assert.ok(policy.includes(claim), `the policy stopped claiming "${claim}"`);
+  }
+});
+
+check('no placeholder survived into either policy file', () => {
+  // Both files, not just the markdown — the published page is the one people
+  // actually read, and it carried its own copy of the same unset date.
+  const holes = [
+    ...(policy.match(/\[[A-Z][A-Z ]{3,}[^\]]*\]/g) || []),
+    ...(site.match(/\[[A-Z][A-Z ]{3,}[^\]]*\]/g) || []),
+  ];
+  // CONTACT EMAIL is the one KNOWN hole: it needs a mailbox that actually
+  // receives mail, which is the owner's call, not something to invent here.
+  // Apple requires a working privacy contact, so this must be filled before
+  // submission — delete this exclusion the moment it is.
+  const outstanding = holes.filter((h) => !h.includes('CONTACT EMAIL'));
+  if (holes.length !== outstanding.length) {
+    console.log('      ⚠ still to fill before submission: the privacy contact email');
+  }
+  assert.deepEqual(outstanding, [], 'unfilled placeholders');
+});
+
 console.log(`\n${pass} checks passed\n`);
 fs.rmSync(tmp, { recursive: true, force: true });

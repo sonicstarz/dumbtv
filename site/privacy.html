@@ -40,7 +40,7 @@
   <div style="max-width: 820px; margin: 0 auto; padding: clamp(28px, 5vw, 56px) clamp(18px, 5vw, 40px) clamp(32px, 5vw, 56px);">
     <p style="font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace; font-size: 12px; letter-spacing: 0.26em; color: #f2b134; margin: 0 0 14px;">PRIVACY POLICY</p>
     <h1 style="font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace; font-weight: 700; font-size: clamp(28px, 5vw, 44px); line-height: 1.1; color: #ffffff; margin: 0 0 10px;">dumbTV is built to collect nothing.</h1>
-    <p style="margin: 0; font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace; font-size: 12.5px; letter-spacing: 0.1em; color: #b9c2f0;">LAST UPDATED: [DATE — set on publish]</p>
+    <p style="margin: 0; font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace; font-size: 12.5px; letter-spacing: 0.1em; color: #b9c2f0;">LAST UPDATED: 4 AUGUST 2026</p>
   </div>
 </div>
 
@@ -70,8 +70,24 @@
       <li><strong>plex.tv</strong> — only if you link a Plex account, to complete the standard sign-in (PIN) flow. This is a direct connection between your device and Plex; we are not in the middle.</li>
       <li style="margin-top: 8px;"><strong>archive.org</strong> (and, for the SPACE channel, <strong>images.nasa.gov</strong>) — only if you install one of the built-in content packs. Your device downloads those public-domain films straight from the source. We are not in the middle, there is no account, and nothing is reported back to us.</li>
       <li style="margin-top: 8px;"><strong>dumbtv.app</strong> — only when you <em>open the Channel Packs page</em>, to fetch the current list of available packs. Not on launch, not on a schedule, and never in the background: if you never open that page, dumbTV never contacts us at all. The request carries no identifier — it is a plain download of a public file, and dumbTV works without it using the copy built into the app.</li>
+      <li style="margin-top: 8px;"><strong>api.anthropic.com</strong> — only if you set up the AI lineup builder with your own API key, and only at the moment you press <em>Plan a lineup</em>. Never on launch, never on a schedule, never in the background. What this sends is described in full below.</li>
     </ol>
     <p style="margin: 0; font-size: 16.5px; line-height: 1.7;">That's all. dumbTV makes no other network calls — no analytics, no telemetry, no crash reporting, no check-in of any kind.</p>
+  </section>
+
+
+  <section style="margin-bottom: 40px; border-top: 2px solid #f2b134; padding-top: 20px;">
+    <h2 style="font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace; font-size: 18px; letter-spacing: 0.08em; color: #f2b134; margin: 0 0 14px;">The AI lineup builder</h2>
+    <p style="margin: 0 0 14px; font-size: 16.5px; line-height: 1.7;">dumbTV can build a channel lineup for you. There are two ways it does that, and they are not the same on privacy.</p>
+    <p style="margin: 0 0 14px; font-size: 16.5px; line-height: 1.7;"><strong>By default, nothing leaves your device.</strong> dumbTV's own builder groups your library by genre and era using rules that run locally. It is free, it needs no account, and it makes no network call at all. If you never switch away from it, this section does not apply to you.</p>
+    <p style="margin: 0 0 14px; font-size: 16.5px; line-height: 1.7;">The other option sends your library to <strong>Anthropic</strong> (the makers of Claude) to get a better lineup back. This only happens if you deliberately choose it <em>and</em> paste in your own Anthropic API key. When you press <em>Plan a lineup</em>, and only then, dumbTV sends:</p>
+    <ul style="margin: 0 0 14px; padding-left: 24px; font-size: 16.5px; line-height: 1.75;">
+      <li style="margin-bottom: 8px;"><strong>A list of the titles in your library</strong> — the names of your shows and films, and roughly how many episodes each has.</li>
+      <li><strong>The answers you gave</strong> on that page — what you like, what to keep off, how many channels you want.</li>
+    </ul>
+    <p style="margin: 0 0 14px; font-size: 16.5px; line-height: 1.7;">It does <strong>not</strong> send your video files, your viewing history, your Plex or Jellyfin credentials, your server address, your IP-identifying account details, or anything about who you are. There is no account and no identifier attached to the request.</p>
+    <p style="margin: 0 0 14px; font-size: 16.5px; line-height: 1.7;"><strong>Your API key stays on that one device.</strong> It is never synced to another device, never written to a log, and is deliberately left out of config exports — export your setup and hand it to a friend, and your key does not travel with it. It is sent to api.anthropic.com and nowhere else.</p>
+    <p style="margin: 0; font-size: 16.5px; line-height: 1.7;">The request goes <strong>directly from your device to Anthropic under your own key</strong>. We are not in the middle, we never see it, and we operate no server that it passes through. What Anthropic does with it is governed by their policies — see the <a href="https://www.anthropic.com/legal/privacy" target="_blank" rel="noopener">Anthropic Privacy Policy</a> and <a href="https://www.anthropic.com/legal/consumer-terms" target="_blank" rel="noopener">their terms</a>. Because it is your key and your account, that relationship is between you and them.</p>
   </section>
 
   <section style="margin-bottom: 40px; border-top: 2px solid #f2b134; padding-top: 20px;">

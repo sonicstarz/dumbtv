@@ -89,6 +89,8 @@
               <option value="5" selected>A few — 5</option>
               <option value="8">A proper lineup — 8</option>
               <option value="12">A dial full — 12</option>
+              <option value="20">A cable box — 20</option>
+              <option value="40">The whole headend — 40</option>
             </select>
           </div>
           <div class="field" style="min-width:200px">
@@ -107,6 +109,41 @@
               <option value="yes">Everywhere</option>
             </select>
           </div>
+        </div>
+
+        <div class="row" style="gap:16px;flex-wrap:wrap;align-items:flex-start;margin-top:16px">
+          <div class="field" style="min-width:220px">
+            <label>WHEN IT'S FROM</label>
+            <select id="lqEra">
+              <option value="any" selected>Anything in my library</option>
+              <option value="vintage">Older — before 1980</option>
+              <option value="modern">Newer — 1980 onwards</option>
+            </select>
+          </div>
+          <div class="field" style="min-width:220px">
+            <label>CHANNEL SHAPE</label>
+            <select id="lqDepth">
+              <option value="deep">Deep — fewer channels, more on each</option>
+              <option value="balanced" selected>Balanced</option>
+              <option value="narrow">Specific — more channels, tighter themes</option>
+            </select>
+          </div>
+          <div class="field" style="min-width:220px">
+            <label>ONE SHOW ALL DAY</label>
+            <select id="lqMarathons">
+              <option value="love">Love it — give shows their own channels</option>
+              <option value="some" selected>Sometimes, when a show is big enough</option>
+              <option value="never">Never — always mix it up</option>
+            </select>
+          </div>
+        </div>
+        <div class="row" style="gap:20px;flex-wrap:wrap;margin-top:14px">
+          <label style="display:flex;gap:8px;align-items:center;font-family:var(--sans);font-size:14px;color:var(--tape)">
+            <input id="lqShowChannels" type="checkbox" checked> Let a big show have its own channel
+          </label>
+          <label style="display:flex;gap:8px;align-items:center;font-family:var(--sans);font-size:14px;color:var(--tape)">
+            <input id="lqPackChannels" type="checkbox" checked> Give each installed pack its own channel
+          </label>
         </div>
 
         <div class="field" style="margin-top:16px">

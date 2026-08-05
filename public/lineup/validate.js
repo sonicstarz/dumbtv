@@ -100,7 +100,10 @@ export function validateProposal(proposal, digest, opts = {}) {
     let name = fitName(String(raw.name || '').trim().toUpperCase().replace(/\s+/g, ' '), repairs);
     if (!name) { name = `CHANNEL ${out.length + 1}`; repairs.push('a channel had no name'); }
     if (seenNames.has(name)) {
-      const base = name.slice(0, 17);
+      // Cut at a word boundary here too. A hard slice(0,17) produced
+      // "CLASSIC PRIME TIM 2" and "CLASSIC LAUGH TRA 2" — the same mid-word
+      // chop fitName exists to avoid, reintroduced two lines later.
+      const base = trimToWord(name, 17);
       let n = 2;
       while (seenNames.has(`${base} ${n}`)) n++;
       repairs.push(`renamed duplicate "${name}" → "${base} ${n}"`);
@@ -186,13 +189,32 @@ function clampInt(v, lo, hi, dflt) {
  * looks like the model's fault forever; a listed repair is something the review
  * screen can show and the person can fix in the box provided.
  */
+/**
+ * Words that must not be the last thing on a channel name.
+ *
+ * Cutting at a word boundary is necessary and not sufficient: real show titles
+ * gave "THE ADVENTURES OF" and "MARVEL'S THE", which are grammatically
+ * suspended — they read as though the sign painter ran out of board. Dropping a
+ * trailing article or preposition costs nothing and fixes it.
+ */
+const DANGLING = new Set(['THE', 'A', 'AN', 'OF', 'AND', 'OR', 'TO', 'IN', 'ON', 'FOR', 'WITH']);
+
+function trimToWord(name, limit) {
+  if (name.length <= limit) return name;
+  const cut = name.slice(0, limit + 1);
+  let out = cut.slice(0, cut.lastIndexOf(' ')).trim();
+  // Peel dangling words off the end, but never down to nothing.
+  const words = out.split(' ');
+  while (words.length > 1 && DANGLING.has(words[words.length - 1])) words.pop();
+  out = words.join(' ');
+  // If the word-boundary cut left too little to read as a name (one very long
+  // word), a hard cut is the lesser evil.
+  return out.length >= 6 ? out : name.slice(0, limit);
+}
+
 function fitName(name, repairs) {
   if (name.length <= 20) return name;
-  const cut = name.slice(0, 21);
-  const atSpace = cut.slice(0, cut.lastIndexOf(' ')).trim();
-  // Only keep the word-boundary cut if enough survives to still read as a name;
-  // otherwise a hard 20 is the lesser evil (one very long word).
-  const out = atSpace.length >= 6 ? atSpace : name.slice(0, 20);
+  const out = trimToWord(name, 20);
   repairs.push(`shortened "${name}" → "${out}" to fit the guide`);
   return out;
 }

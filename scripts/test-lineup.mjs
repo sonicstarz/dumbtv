@@ -273,6 +273,68 @@ check('the rule-based planner produces a usable lineup with no AI at all', () =>
   assert.ok(planned.proposal.channels.length >= 2);
 });
 
+check('it scales to 40 channels by splitting, and stops when it cannot', () => {
+  // There are only ~9 genre neighbourhoods, so without splitting the planner
+  // could never exceed nine however many you asked for — 40 quietly produced 8.
+  // Splitting has to be honest, though: a small library must NOT be shredded
+  // into forty channels of two titles.
+  for (const n of [8, 16, 40]) {
+    const p = planRuleBased(digest, { ...answers, channelCountN: n });
+    assert.ok(p.channels.length <= n, `asked ${n}, got ${p.channels.length}`);
+    assert.ok(p.channels.every((c) => c.sources.length >= 1));
+  }
+  const big = {
+    shows: Array.from({ length: 60 }, (_, i) =>
+      ({ key: `bs${i}`, title: `Show ${i}`, year: 1955 + i % 45, genres: [G[i % G.length]], episodes: 15 + i * 2 })),
+    movies: Array.from({ length: 200 }, (_, i) =>
+      ({ key: `bm${i}`, title: `Film ${i}`, year: 1935 + i % 75, genres: [G[i % G.length]] })),
+    packs: [], existingChannels: [], counts: {}, missingGenres: 0,
+  };
+  const forty = planRuleBased(big, { ...answers, never: [], channelCountN: 40 });
+  assert.equal(forty.channels.length, 40, 'a 260-title library should support 40');
+  // …and the lineup must stay VARIED. The first cut took the biggest show every
+  // round, turning a request for 16 into 12 single-show channels — a shelf, not
+  // a dial. Single-show channels are capped at a third.
+  const solo = forty.channels.filter((c) => c.sources.length === 1).length;
+  assert.ok(solo <= 40 / 3 + 1, `${solo} of 40 channels are a single show`);
+});
+
+check('a split channel gets a name a person would use', () => {
+  const lib = {
+    shows: Array.from({ length: 30 }, (_, i) =>
+      ({ key: `ns${i}`, title: 'Gunsmoke', year: 1960 + i, genres: ['Western'], episodes: 40 + i * 4 })),
+    movies: Array.from({ length: 60 }, (_, i) =>
+      ({ key: `nm${i}`, title: `Film ${i}`, year: 1940 + i, genres: ['Western'] })),
+    packs: [], existingChannels: [], counts: {}, missingGenres: 0,
+  };
+  const names = planRuleBased(lib, { ...answers, never: [], channelCountN: 8 }).channels.map((c) => c.name);
+  // Mechanical naming produced "SHOW:S39 CHANNEL" — a database row with the
+  // lights on. A channel that IS one show is named after the show.
+  assert.ok(!names.some((n) => n.includes(':')), `raw group key leaked into a name: ${names}`);
+  assert.ok(names.includes('GUNSMOKE'), `expected a show channel, got ${names}`);
+  // And no mid-word chop: "CLASSIC THE PLAYHOUSE" used to become "CLASSIC THE PLAYHOUS".
+  assert.ok(!names.some((n) => /\sTHE$|[A-Z]{3}$/.test(n) && n.length === 20 && !n.endsWith('S')),
+    `looks mid-word cut: ${names}`);
+});
+
+check('the new decisions actually change the lineup', () => {
+  const base = { ...answers, never: [], channelCountN: 10 };
+  const vintage = planRuleBased(digest, { ...base, era: 'vintage' });
+  const modern = planRuleBased(digest, { ...base, era: 'modern' });
+  const vYears = vintage.channels.flatMap((c) => c.sources.map((s) => s.key));
+  assert.notDeepEqual(vYears, modern.channels.flatMap((c) => c.sources.map((s) => s.key)),
+    'era made no difference');
+  // marathons:never must never produce a marathon channel
+  const noMarathon = planRuleBased(digest, { ...base, marathons: 'never' });
+  assert.ok(!noMarathon.channels.some((c) => c.ordering === 'marathon'));
+  // packs off means no pack channels
+  const withPacks = { ...digest, packs: [{ key: 'pack:x', title: 'X', genres: [], year: 1960, items: 5 }] };
+  assert.ok(!planRuleBased(withPacks, { ...base, packChannels: false })
+    .channels.some((c) => c.sources.some((s) => s.key.startsWith('pack:'))));
+  assert.ok(planRuleBased(withPacks, { ...base, packChannels: true })
+    .channels.some((c) => c.sources.some((s) => s.key.startsWith('pack:'))));
+});
+
 check('exclusions are ENFORCED, not merely requested', () => {
   const horror = new Set([...movies, ...shows].filter((x) => x.genres.includes('Horror')).map((x) => x.ratingKey));
   assert.ok(horror.size > 0, 'the fixture has no horror to exclude');

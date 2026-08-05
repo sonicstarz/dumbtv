@@ -43,7 +43,84 @@
 
 
 /** Channel-count bands, from the questionnaire's Q8. */
-const COUNT_BANDS = { 'a-few': 5, 'a-dial-full': 10, 'cable-box': 16 };
+const COUNT_BANDS = { 'a-few': 5, 'a-dial-full': 10, 'cable-box': 16, 'headend': 40 };
+
+/**
+ * Reach a requested channel count by SPLITTING, in order of how good the split
+ * is. Without this the planner could never exceed the number of genre
+ * neighbourhoods it knows about — about nine — so asking for forty quietly
+ * produced eight, which is not a smaller version of what you asked for, it is a
+ * different answer.
+ *
+ * The order matters. A channel that is one show is a real channel — it is how
+ * a marathon network works, and it is the split a person would make first. Only
+ * when the shows are used up does it fall back to cutting a genre by era, and
+ * then to separating films from series. When nothing can be split honestly it
+ * STOPS: forty channels out of a library that supports twelve would mean twelve
+ * good ones and twenty-eight of three titles each.
+ */
+function splitToTarget(groups, target, opts = {}) {
+  const minPerChannel = opts.minPerChannel ?? 4;
+  // Cap how much of the lineup can be one-show channels. Without this the
+  // splitter takes the biggest show every round — asking for 16 produced four
+  // genre channels and TWELVE single shows, which is a shelf, not a dial.
+  // A third is enough to give the big shows their own homes and still leave a
+  // lineup that varies.
+  const showBudget = opts.showChannels === false ? 0 : Math.max(1, Math.floor(target / 3));
+  let showsMade = 0;
+  let guard = 0;
+
+  while (groups.size < target && guard++ < 200) {
+    // Biggest first — splitting the largest group costs the least.
+    const candidates = [...groups.entries()]
+      .filter(([, list]) => list.length >= minPerChannel * 2)
+      .sort((a, b) => b[1].length - a[1].length);
+    if (!candidates.length) break;
+
+    let didSplit = false;
+    for (const [key, list] of candidates) {
+      // 1 — a big show becomes its own channel.
+      if (opts.showChannels !== false && showsMade < showBudget) {
+        const big = list
+          .filter((t) => t.type === 'show' && (t.episodes || 0) >= 12)
+          .sort((a, b) => (b.episodes || 0) - (a.episodes || 0))[0];
+        if (big && list.length > minPerChannel) {
+          groups.set(`show:${big.key}`, [big]);
+          groups.set(key, list.filter((t) => t.key !== big.key));
+          showsMade++;
+          didSplit = true;
+          break;
+        }
+      }
+      // 2 — cut the genre in half by era, at its own median.
+      const years = list.map((t) => t.year).filter(Boolean).sort((a, b) => a - b);
+      if (years.length >= minPerChannel * 2) {
+        const mid = years[Math.floor(years.length / 2)];
+        const older = list.filter((t) => (t.year ?? mid) < mid);
+        const newer = list.filter((t) => (t.year ?? mid) >= mid);
+        if (older.length >= minPerChannel && newer.length >= minPerChannel) {
+          groups.delete(key);
+          groups.set(`${key}|early`, older);
+          groups.set(`${key}|late`, newer);
+          didSplit = true;
+          break;
+        }
+      }
+      // 3 — films on one channel, series on another.
+      const films = list.filter((t) => t.type === 'movie');
+      const series = list.filter((t) => t.type === 'show');
+      if (films.length >= minPerChannel && series.length >= minPerChannel) {
+        groups.delete(key);
+        groups.set(`${key}|films`, films);
+        groups.set(`${key}|series`, series);
+        didSplit = true;
+        break;
+      }
+    }
+    if (!didSplit) break;   // nothing left that can be split honestly
+  }
+  return groups;
+}
 
 /**
  * Genres that mean roughly the same thing for the purpose of "do these belong
@@ -84,8 +161,43 @@ const NAMES = {
   music: () => 'THE JUKEBOX',
 };
 
-const channelName = (group, era) =>
-  (NAMES[group] ? NAMES[group](era) : `${group.toUpperCase()} CHANNEL`).slice(0, 20);
+/**
+ * Name a channel from the group key that produced it.
+ *
+ * The splitter invents keys — `show:s39`, `western|early`, `comedy|films` — and
+ * naming them mechanically gave "SHOW:S39 CHANNEL", which is a database row
+ * with the lights on. Each split shape gets read back into something a person
+ * would call it:
+ *
+ *   show:<key>       →  the show's own title. A channel that IS one show is
+ *                       named after the show — that is what a marathon network
+ *                       does, and the only honest name for it.
+ *   <genre>|early    →  CLASSIC <genre name>          (the older half)
+ *   <genre>|late     →  <genre name>                  (the newer half keeps it)
+ *   <genre>|films    →  <genre name> PICTURES
+ *   <genre>|series   →  <genre name>
+ */
+function channelName(group, era, list = []) {
+  if (group.startsWith('show:')) {
+    const t = list[0]?.title;
+    if (t) return t.toUpperCase();
+  }
+  const [base, variant] = group.split('|');
+  const stem = NAMES[base] ? NAMES[base](era) : base.toUpperCase();
+  // Drop a leading article before prefixing: "CLASSIC THE PLAYHOUSE" is not
+  // English, and at 21 characters it also got cut to "CLASSIC THE PLAYHOUS".
+  const bare = stem.replace(/^THE /, '');
+  switch (variant) {
+    case 'early':  return `CLASSIC ${bare}`;
+    case 'films':  return `${bare} PICTURES`;
+    case 'late':
+    case 'series': return stem;
+    default:       return NAMES[base] ? stem : `${stem} CHANNEL`;
+  }
+  // No .slice() here on purpose — the validator's fitName cuts at a WORD
+  // boundary and reports the cut as a repair, which is strictly better than a
+  // silent mid-word chop.
+}
 
 /**
  * Plan a lineup.
@@ -95,14 +207,26 @@ const channelName = (group, era) =>
  * @returns {object} a LineupProposal (docs/ai-lineup-builder.md §5)
  */
 export function planRuleBased(digest, answers = {}) {
-  const maxChannels = COUNT_BANDS[answers.channelCount] ?? 8;
+  // The EXPLICIT number wins. This used to read only the band, so the web UI's
+  // channelCountN was collected, sent, and ignored — asking for 12 got you the
+  // 'a-dial-full' 10, and asking for 40 got you 16.
+  const maxChannels = answers.channelCountN ?? COUNT_BANDS[answers.channelCount] ?? 8;
   const never = new Set((answers.never || []).map(normGenre));
   const loves = new Set((answers.loves || []).map(normGenre));
 
   const titles = [
     ...digest.shows.map((s) => ({ ...s, type: 'show' })),
     ...digest.movies.map((m) => ({ ...m, type: 'movie' })),
-  ].filter((t) => !(t.genres || []).some((g) => never.has(normGenre(g))));
+  ].filter((t) => !(t.genres || []).some((g) => never.has(normGenre(g))))
+    // ERA. A hard filter, not a nudge — someone who says "the TV I grew up
+    // with" and gets a channel of 2019 prestige drama has been ignored. Titles
+    // with no year survive either way; a missing year is not evidence.
+    .filter((t) => {
+      if (!t.year) return true;
+      if (answers.era === 'vintage') return t.year < 1980;
+      if (answers.era === 'modern') return t.year >= 1980;
+      return true;
+    });
 
   // Group by genre neighbourhood. A title with no genre at all falls back to its
   // decade, which is a fact we always have — this is exactly where the
@@ -127,6 +251,17 @@ export function planRuleBased(digest, answers = {}) {
     if (!groups.has(target)) groups.set(target, []);
     groups.get(target).push(...thin);
   }
+
+  // Split until there are enough groups to satisfy the request. Packs already
+  // become their own channels below, so leave room for them rather than
+  // splitting the library to the full number and then trimming packs off.
+  const packSlots = answers.packChannels === false ? 0 : (digest.packs || []).length;
+  splitToTarget(groups, Math.max(1, maxChannels - packSlots), {
+    showChannels: answers.showChannels !== false,
+    // "Deep" means fewer, fuller channels; "narrow" tolerates thinner ones to
+    // hit a bigger number. The floor is what stops 40 channels of three titles.
+    minPerChannel: answers.depth === 'narrow' ? 3 : answers.depth === 'deep' ? 8 : 4,
+  });
 
   // Rank: what the person said they love first, then sheer weight of material —
   // a channel needs enough to not repeat within an evening.
@@ -155,8 +290,14 @@ export function planRuleBased(digest, answers = {}) {
     // a marathon, it is a big show on a normal channel. Require it to carry
     // most of the weight AND the group to be genuinely episodic.
     const biggest = episodic.slice().sort((a, b) => (b.episodes || 0) - (a.episodes || 0))[0];
+    // MARATHON TOLERANCE. Some people want a channel that is one show all day;
+    // some find it claustrophobic. 'never' refuses outright, 'love' takes a
+    // third of the weight rather than half.
+    const marathonShare = answers.marathons === 'love' ? 0.34
+                        : answers.marathons === 'never' ? 2      // unreachable
+                        : 0.5;
     const dominant = biggest && (biggest.episodes || 0) >= 20
-      && (biggest.episodes || 0) >= totalWeight * 0.5 ? biggest : null;
+      && (biggest.episodes || 0) >= totalWeight * marathonShare ? biggest : null;
 
     // Ordering follows the material, not a preference:
     //   marathon  — one show is most of what this channel has
@@ -168,8 +309,10 @@ export function planRuleBased(digest, answers = {}) {
 
     const movieCount = list.length - episodic.length;
     return {
-      name: channelName(group, era),
-      rationale: dominant
+      name: channelName(group, era, list),
+      rationale: group.startsWith('show:')
+        ? `${list[0]?.title ?? 'One show'}, all day — ${list[0]?.episodes ?? 0} episodes on a loop.`
+        : dominant
         ? `${dominant.title} is most of this channel at ${dominant.episodes} episodes — the rest rides along.`
         : `${list.length} ${group} titles${movieCount && episodic.length
             ? ` — ${episodic.length} shows and ${movieCount} films`
@@ -197,7 +340,7 @@ export function planRuleBased(digest, answers = {}) {
   // nothing: planning against two preloaded packs returned "only 0 usable
   // channels survived validation", which is what a new owner would have met on
   // first run. Verified on the tvOS simulator.
-  const packChannels = (digest.packs || [])
+  const packChannels = (answers.packChannels === false ? [] : (digest.packs || []))
     .filter((p) => !(answers.kids && p.kidSafe === false))
     .map((p) => ({
       name: String(p.title || 'PACK').toUpperCase(),

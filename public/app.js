@@ -2388,8 +2388,15 @@ function lineupAnswers() {
     rhythm: $('#lqRhythm').value,
     ads: $('#lqAds').value,
     channelCountN: n,
-    channelCount: n <= 3 ? 'a-handful' : n <= 5 ? 'a-few' : n <= 8 ? 'a-lineup' : 'a-dial-full',
+    channelCount: n <= 3 ? 'a-handful' : n <= 5 ? 'a-few' : n <= 8 ? 'a-lineup'
+                : n <= 12 ? 'a-dial-full' : n <= 20 ? 'cable-box' : 'headend',
     airdates: 'where-it-fits',
+    // The decisions that change the SHAPE of the lineup rather than its size.
+    era: $('#lqEra').value,
+    depth: $('#lqDepth').value,
+    marathons: $('#lqMarathons').value,
+    showChannels: $('#lqShowChannels').checked,
+    packChannels: $('#lqPackChannels').checked,
   };
 }
 

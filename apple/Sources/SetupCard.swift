@@ -11,6 +11,11 @@ import CoreImage.CIFilterBuiltins
 /// where there is no keyboard to press S on.
 struct SetupCard: View {
     let url: String
+    /// Type/size scale. 1 on a phone held at arm's length; the first-run card
+    /// passes its TV scale so this doesn't stay phone-sized on a television —
+    /// which is exactly what it did in build 25, leaving a legible card with an
+    /// illegible QR panel glued to the middle of it.
+    var z: CGFloat = 1
     /// Opens native Setup. Supplied everywhere the card is the user's first
     /// contact; omitted when the card is already being shown INSIDE Setup.
     var onOpenSetup: (() -> Void)? = nil
@@ -22,19 +27,19 @@ struct SetupCard: View {
     var onDismiss: (() -> Void)? = nil
 
     var body: some View {
-        HStack(alignment: .center, spacing: 16) {
+        HStack(alignment: .center, spacing: 16 * z) {
             if let qr = Self.qr(url) {
                 qr.interpolation(.none).resizable()
-                    .frame(width: 104, height: 104)
-                    .padding(8).background(.white)
+                    .frame(width: 104 * z, height: 104 * z)
+                    .padding(8 * z).background(.white)
                     .clipShape(RoundedRectangle(cornerRadius: 6))
             }
-            VStack(alignment: .leading, spacing: 6) {
+            VStack(alignment: .leading, spacing: 6 * z) {
                 Text("SET UP dumbTV")
-                    .font(Palette.meta(.subheadline, .bold))
+                    .font(Palette.meta(15 * z, .bold))
                     .foregroundStyle(Palette.amber)
                 Text("Open this on your phone or laptop:")
-                    .font(Palette.meta(.caption))
+                    .font(Palette.meta(12 * z))
                     .foregroundStyle(Palette.dim)
                     .fixedSize(horizontal: false, vertical: true)
                 // On phone/tablet/Mac the config lives on THIS device, so make the
@@ -42,7 +47,7 @@ struct SetupCard: View {
                 // there's no browser, so it stays plain text to scan with a phone.)
                 #if os(tvOS)
                 Text(url)
-                    .font(Palette.meta(.callout, .bold))
+                    .font(Palette.meta(16 * z, .bold))
                     .foregroundStyle(.white)
                     .lineLimit(2).minimumScaleFactor(0.5)
                     .fixedSize(horizontal: false, vertical: true)
@@ -51,7 +56,7 @@ struct SetupCard: View {
                     Link(destination: link) {
                         HStack(spacing: 6) {
                             Text(url)
-                                .font(Palette.meta(.callout, .bold))
+                                .font(Palette.meta(16 * z, .bold))
                                 .lineLimit(2).minimumScaleFactor(0.5)
                                 .fixedSize(horizontal: false, vertical: true)
                             Image(systemName: "arrow.up.right.square")
@@ -59,7 +64,7 @@ struct SetupCard: View {
                         .foregroundStyle(Palette.amber)
                     }
                     Text("Tap to open the setup page")
-                        .font(Palette.meta(.caption2))
+                        .font(Palette.meta(11 * z))
                         .foregroundStyle(Palette.dim)
                         .fixedSize(horizontal: false, vertical: true)
                 }
@@ -83,7 +88,7 @@ struct SetupCard: View {
                 if let onOpenSetup {
                     Button(action: onOpenSetup) {
                         Text("— or SET UP ON THIS DEVICE")
-                            .font(Palette.meta(.caption, .bold))
+                            .font(Palette.meta(12 * z, .bold))
                             .foregroundStyle(Palette.amber)
                     }
                     .padding(.top, 4)
@@ -95,14 +100,14 @@ struct SetupCard: View {
                     // dial UI at all, so this told most users to do something
                     // impossible. The ⚙ row in the guide works everywhere.
                     Text("Open the ⚙ row at the top of the guide to bring this back.")
-                        .font(Palette.meta(.caption2))
+                        .font(Palette.meta(11 * z))
                         .foregroundStyle(Palette.dim)
                         .fixedSize(horizontal: false, vertical: true)
                         .padding(.top, 2)
                 }
             }
         }
-        .padding(18)
+        .padding(18 * z)
         .background(.black.opacity(0.74))
         .clipShape(RoundedRectangle(cornerRadius: 8))
         #if !os(tvOS)

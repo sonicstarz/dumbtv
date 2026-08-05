@@ -91,6 +91,16 @@ struct TVView: View {
 
     /// SELECT / click / centre press. One place, so the Button and the macOS
     /// keyboard path cannot drift.
+    /// How much bigger the QR/URL card needs to be on a television. It is read
+    /// from a sofa like everything else here, and at 1 it was phone-sized.
+    private var cardScale: CGFloat {
+        #if os(tvOS)
+        return 1.9
+        #else
+        return 1
+        #endif
+    }
+
     private func selectPressed() {
         // Setup owns SELECT while it is up — its own buttons handle their own.
         if setupShowing { return }
@@ -485,7 +495,7 @@ struct TVView: View {
                 if engine.setupCardVisible, !engine.setupCardDismissed,
                    !engine.showFirstRun, let url = configURL {
                     HStack {
-                        SetupCard(url: url,
+                        SetupCard(url: url, z: cardScale,
                                   onOpenSetup: setup == nil ? nil : { setupOpen = true },
                                   showChannelHint: true,
                                   onDismiss: { engine.setupCardDismissed = true })
@@ -582,7 +592,7 @@ struct TVView: View {
                     // Channel 00 is the documented permanent way back, so the
                     // native path has to be offered here too — otherwise the only
                     // route in on iOS disappears once the first-run card is gone.
-                    SetupCard(url: url,
+                    SetupCard(url: url, z: cardScale,
                               onOpenSetup: setup == nil ? nil : { setupOpen = true })
                     // F7: the storage provenance shows even when everything is
                     // WORKING. A tmp-directory reset leaves the store open and the

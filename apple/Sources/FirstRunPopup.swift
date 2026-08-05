@@ -36,6 +36,25 @@ struct FirstRunPopup: View {
         }
     }
 
+    /// TYPE SCALE, PER PLATFORM — and the reason the last build's fix missed.
+    ///
+    /// Build 25 made the card physically bigger and left the type where it was,
+    /// so it read as a large box of small print. The numbers below were written
+    /// for a phone held at arm's length; a television is read from a sofa.
+    ///
+    /// `s` is already ~1.35 on a 1080-point tvOS screen, so 13pt body was
+    /// landing at ~17pt. Apple's own guidance puts readable tvOS body text near
+    /// 29pt. 1.9× takes body to ~33pt and the title to ~87pt, which is the
+    /// difference between squinting and reading.
+    ///
+    /// Layout still uses `s`. Only TYPE takes this multiplier — growing the
+    /// padding by the same factor would push the card past the safe area.
+    #if os(tvOS)
+    private var f: CGFloat { s * 1.9 }
+    #else
+    private var f: CGFloat { s }
+    #endif
+
     private var pages: [Page] { Page.forThisPlatform }
     private var isLast: Bool { page >= pages.count - 1 }
 
@@ -51,7 +70,7 @@ struct FirstRunPopup: View {
     /// where the root view owns SELECT — see the note at the call site.
     private var nextLabel: some View {
         Text(isLast ? "DONE" : "NEXT")
-            .font(Palette.meta(15 * s, .bold)).tracking(3)
+            .font(Palette.meta(17 * f, .bold)).tracking(3)
             .foregroundStyle(.black)
             .padding(.horizontal, 38 * s).padding(.vertical, 12 * s)
             .background(Palette.amber)
@@ -72,11 +91,11 @@ struct FirstRunPopup: View {
                 }
 
                 // Page dots, so it's obvious this is a short sequence.
-                HStack(spacing: 7 * s) {
+                HStack(spacing: 11 * s) {
                     ForEach(pages.indices, id: \.self) { i in
                         Circle()
                             .fill(i == page ? Palette.amber : Palette.dim.opacity(0.4))
-                            .frame(width: 7 * s, height: 7 * s)
+                            .frame(width: 11 * s, height: 11 * s)
                     }
                 }
 
@@ -101,7 +120,7 @@ struct FirstRunPopup: View {
                 #endif
             }
             .padding(34 * s)
-            .frame(maxWidth: 720 * s)
+            .frame(maxWidth: 1000 * s)
             .background(Palette.band)
             .overlay(RoundedRectangle(cornerRadius: 8).stroke(Palette.amber.opacity(0.4), lineWidth: 2))
             .clipShape(RoundedRectangle(cornerRadius: 8))
@@ -114,15 +133,18 @@ struct FirstRunPopup: View {
     // MARK: - pages
 
     private var welcomePage: some View {
-        VStack(spacing: 14 * s) {
+        VStack(spacing: 18 * s) {
             Text("dumbTV")
-                .font(Palette.display(34 * s)).foregroundStyle(Palette.amber).tracking(2)
+                .font(Palette.display(38 * f)).foregroundStyle(Palette.amber).tracking(2)
             Text("IT'S ALREADY ON")
-                .font(Palette.meta(13 * s, .bold)).foregroundStyle(Palette.dim).tracking(4)
+                .font(Palette.meta(15 * f, .bold)).foregroundStyle(.black).tracking(5)
+                .padding(.horizontal, 16 * s).padding(.vertical, 6 * s)
+                .background(Palette.amber)
+                .clipShape(RoundedRectangle(cornerRadius: 3))
             para("Channels are already playing behind this card. dumbTV is a television, not an app you have to set up before it does anything.")
             para("What's on is what's on. You join a show part-way through, the way you used to.")
             Text("No pause. That's the point.")
-                .font(Palette.meta(14 * s, .bold)).foregroundStyle(Palette.amber)
+                .font(Palette.meta(16 * f, .bold)).foregroundStyle(Palette.amber)
                 .multilineTextAlignment(.center)
                 .padding(.top, 2 * s)
         }
@@ -131,11 +153,11 @@ struct FirstRunPopup: View {
     /// iOS only. The system permission prompt fires moments after launch, and
     /// denying it breaks setup entirely — so say what's coming and why.
     private var localNetworkPage: some View {
-        VStack(spacing: 14 * s) {
+        VStack(spacing: 18 * s) {
             Image(systemName: "wifi")
-                .font(.system(size: 34 * s, weight: .bold)).foregroundStyle(Palette.amber)
+                .font(.system(size: 40 * f, weight: .bold)).foregroundStyle(Palette.amber)
             Text("ALLOW LOCAL NETWORK")
-                .font(Palette.display(22 * s)).foregroundStyle(.white)
+                .font(Palette.display(26 * f)).foregroundStyle(.white)
                 .multilineTextAlignment(.center)
             para("iOS is about to ask whether dumbTV can find and connect to devices on your network. Tap **Allow**.")
             dim("That's how the TV reaches your Plex or Jellyfin server and shows its setup page on your phone or laptop. Without it, setup can't connect.")
@@ -143,11 +165,11 @@ struct FirstRunPopup: View {
     }
 
     private var setupPage: some View {
-        VStack(spacing: 14 * s) {
+        VStack(spacing: 18 * s) {
             Text("ADD YOUR OWN CHANNELS")
-                .font(Palette.meta(13 * s, .bold)).foregroundStyle(Palette.dim).tracking(3)
+                .font(Palette.meta(15 * f, .bold)).foregroundStyle(Palette.amber).tracking(3)
             if let configURL {
-                SetupCard(url: configURL)
+                SetupCard(url: configURL, z: f / 1.35)
                 dim("Scan that, or open the address on a phone or laptop, to build channels from Plex, Jellyfin, or your own files.")
             } else {
                 para("Open the setup page from another device on your network to build channels from Plex, Jellyfin, or your own files.")
@@ -157,10 +179,11 @@ struct FirstRunPopup: View {
                 ForEach(Self.controls, id: \.0) { key, what in
                     HStack(alignment: .top, spacing: 10 * s) {
                         Text(key)
-                            .font(Palette.meta(12 * s, .bold)).foregroundStyle(Palette.amber)
-                            .frame(width: 118 * s, alignment: .leading)
+                            .font(Palette.meta(13 * f, .bold)).foregroundStyle(Palette.amber)
+                            .frame(width: 210 * s, alignment: .leading)
+                            .fixedSize(horizontal: false, vertical: true)
                         Text(what)
-                            .font(Palette.meta(12 * s)).foregroundStyle(Palette.tape)
+                            .font(Palette.meta(13 * f)).foregroundStyle(Palette.tape)
                     }
                 }
             }
@@ -200,13 +223,13 @@ struct FirstRunPopup: View {
 
     private func para(_ t: String) -> some View {
         Text(.init(t))
-            .font(Palette.meta(13 * s)).foregroundStyle(Palette.tape)
+            .font(Palette.meta(14 * f)).foregroundStyle(Palette.tape)
             .multilineTextAlignment(.center)
             .fixedSize(horizontal: false, vertical: true)
     }
     private func dim(_ t: String) -> some View {
         Text(.init(t))
-            .font(Palette.meta(11.5 * s)).foregroundStyle(Palette.dim)
+            .font(Palette.meta(12.5 * f)).foregroundStyle(Palette.dim)
             .multilineTextAlignment(.center)
             .fixedSize(horizontal: false, vertical: true)
     }

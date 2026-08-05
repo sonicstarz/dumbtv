@@ -473,6 +473,77 @@ final class SetupModel: ObservableObject {
     /// Bulk curation, per-item overrides, excludes and rules stay on the web UI —
     /// the bar here is "device in hand, you get to a watchable channel", not
     /// "replace the config app".
+    // MARK: - Starter lineup (first-run card)
+
+    /// How the starter build is going, for the card to draw. Nil when idle.
+    struct StarterProgress { var done: Int; var total: Int; var label: String }
+
+    /// Build a preset lineup from the library, end to end.
+    ///
+    /// Same endpoints the web builder uses and the same ones `createChannel`
+    /// above uses — enumerate the sections, then POST /api/channels and
+    /// /api/channels/:id/sources per channel. Nothing here is a special path;
+    /// the card is just a different set of decisions reaching the same API.
+    ///
+    /// Returns the channels it actually made. A template with too little to
+    /// fill it is skipped rather than shipped as three titles on a loop.
+    @discardableResult
+    func buildStarterLineup(_ preset: StarterLineup.Preset,
+                            onProgress: @escaping (StarterProgress) -> Void) async -> [String] {
+        error = nil; notice = nil
+        onProgress(.init(done: 0, total: 1, label: "Reading your library…"))
+
+        // Every section, flattened. Asking for the wrong type returns nothing at
+        // all, so each section is queried as what it actually is.
+        var items: [StarterLineup.Item] = []
+        await loadLibraries()
+        for lib in libraries {
+            guard let r = await call("GET", "/api/library/sections/\(lib.id)/items",
+                                     query: ["type": lib.type]) else { continue }
+            for i in (r["items"] as? [[String: Any]]) ?? [] {
+                guard let rk = i["ratingKey"] as? String else { continue }
+                items.append(.init(ratingKey: rk,
+                                   title: (i["title"] as? String) ?? rk,
+                                   type: lib.type,
+                                   year: i["year"] as? Int,
+                                   genres: ((i["genres"] as? [String]) ?? []).map { $0.lowercased() }))
+            }
+        }
+        guard !items.isEmpty else {
+            error = "Couldn't read anything from your server. Link it first, or try again."
+            return []
+        }
+
+        let plan = StarterLineup.assign(items, preset.templates())
+        guard !plan.isEmpty else {
+            error = "Nothing in your library fits that lineup. Try THE WHOLE DIAL."
+            return []
+        }
+
+        var made: [String] = []
+        for (i, entry) in plan.enumerated() {
+            let (t, picked) = entry
+            onProgress(.init(done: i, total: plan.count, label: t.name))
+            guard let ch = await call("POST", "/api/channels",
+                                      ["name": t.name,
+                                       "orderingMode": t.ordering,
+                                       "adsEnabled": preset.ads && t.retro]) else { continue }
+            let id = num(ch["id"])
+            guard id > 0 else { continue }
+            let payload: [[String: Any]] = picked.map {
+                ["ratingKey": $0.ratingKey, "sourceType": $0.type, "title": $0.title]
+            }
+            // Adding sources also caches each show's episodes and generates the
+            // schedule — skip it and the channel exists and plays nothing.
+            if await call("POST", "/api/channels/\(id)/sources", ["items": payload]) != nil {
+                made.append(t.name)
+            }
+        }
+        onProgress(.init(done: plan.count, total: plan.count, label: ""))
+        await refresh()
+        return made
+    }
+
     func createChannel(name: String, number: Int, library: PickLibrary,
                        ordering: String) async -> Bool {
         error = nil; notice = nil

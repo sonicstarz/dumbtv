@@ -19,19 +19,31 @@ struct FirstRunPopup: View {
     /// can page through it too — on tvOS the SELECT press arrives at the root
     /// view, not at this button.
     @Binding var page: Int
+    /// Native setup, so the card can link a server and build channels itself
+    /// rather than pointing at a phone. Nil when the backend didn't open, in
+    /// which case those pages say so instead of pretending.
+    var model: SetupModel? = nil
+    /// Which tile the remote has highlighted on a chooser page. Owned by the
+    /// parent because on tvOS the ROOT view reads the remote — a Button here
+    /// would be a second focusable and bring back the double-press bug.
+    @Binding var choice: Int
+    /// Progress while the starter lineup is being built.
+    @Binding var building: SetupModel.StarterProgress?
+    /// Channels the build actually made, so the last page can report.
+    @Binding var built: [String]
     /// Called when the user finishes the last page. Persists `first_run_done`.
     let onDone: () -> Void
 
     /// Which pages exist on this platform. Only iOS throws a local-network
     /// permission prompt, so only iOS gets the page that explains it.
     private enum Page: CaseIterable {
-        case welcome, localNetwork, setup
+        case welcome, localNetwork, link, lineup, setup
 
         static var forThisPlatform: [Page] {
             #if os(iOS)
-            return [.welcome, .localNetwork, .setup]
+            return [.welcome, .localNetwork, .link, .lineup, .setup]
             #else
-            return [.welcome, .setup]
+            return [.welcome, .link, .lineup, .setup]
             #endif
         }
     }
@@ -62,6 +74,15 @@ struct FirstRunPopup: View {
     /// "next" means "done".
     static var pageCount: Int { Page.forThisPlatform.count }
 
+    /// Which page index is which, so TVView can route SELECT without knowing
+    /// the enum. The page list differs by platform, so this cannot be a constant.
+    static func isLinkPage(_ i: Int) -> Bool {
+        Page.forThisPlatform[safe: i] == .link
+    }
+    static func isLineupPage(_ i: Int) -> Bool {
+        Page.forThisPlatform[safe: i] == .lineup
+    }
+
     private func advance() {
         if isLast { onDone() } else { withAnimation(.easeInOut(duration: 0.2)) { page += 1 } }
     }
@@ -87,6 +108,8 @@ struct FirstRunPopup: View {
                 switch pages[min(page, pages.count - 1)] {
                 case .welcome:      welcomePage
                 case .localNetwork: localNetworkPage
+                case .link:         linkPage
+                case .lineup:       lineupPage
                 case .setup:        setupPage
                 }
 
@@ -164,6 +187,90 @@ struct FirstRunPopup: View {
         }
     }
 
+    /// LINK A SERVER, on the card. The PIN flow is the same one native Setup
+    /// runs — SetupModel.startPlexLink — against the same /api/plex/pin
+    /// endpoints the web UI uses. Nothing is duplicated; the card just calls it.
+    private var linkPage: some View {
+        VStack(spacing: 18 * s) {
+            Text("CONNECT YOUR LIBRARY")
+                .font(Palette.meta(15 * f, .bold)).foregroundStyle(Palette.amber).tracking(3)
+            if let m = model, m.plexLinked {
+                Image(systemName: "checkmark.circle.fill")
+                    .font(.system(size: 44 * f, weight: .bold)).foregroundStyle(Palette.amber)
+                Text((m.plexServerName?.isEmpty == false) ? "Connected to \(m.plexServerName!)" : "Connected")
+                    .font(Palette.display(24 * f)).foregroundStyle(.white)
+                para("Your own shows and films are available. Next, pick a lineup and dumbTV will build the channels.")
+            } else if let m = model, let code = m.pinCode, !code.isEmpty {
+                Text(code)
+                    .font(Palette.display(56 * f)).foregroundStyle(Palette.amber).tracking(8)
+                para("Go to **plex.tv/link** on your phone or laptop and enter that code.")
+                dim("Waiting… this page moves on by itself once it connects.")
+            } else {
+                Image(systemName: "tv.and.mediabox")
+                    .font(.system(size: 40 * f, weight: .bold)).foregroundStyle(Palette.amber)
+                para("dumbTV plays what you already own. Connect Plex and it builds channels out of your library.")
+                dim(model == nil
+                    ? "Setup isn't available on this device — use the address on the last page."
+                    : "Press SELECT to get a code. Or press → to skip and do it later.")
+            }
+        }
+    }
+
+    /// PICK A LINEUP. Tiles, not typing — this is a television and the remote
+    /// has no keyboard. Each preset is a fixed set of channel templates
+    /// (StarterLineup), filled from whatever the library actually has.
+    private var lineupPage: some View {
+        VStack(spacing: 16 * s) {
+            if let b = building {
+                Text("BUILDING YOUR LINEUP")
+                    .font(Palette.meta(15 * f, .bold)).foregroundStyle(Palette.amber).tracking(3)
+                Text(b.label.isEmpty ? "Finishing…" : b.label)
+                    .font(Palette.display(30 * f)).foregroundStyle(.white)
+                    .lineLimit(1).minimumScaleFactor(0.6)
+                ProgressView(value: Double(b.done), total: Double(max(1, b.total)))
+                    .tint(Palette.amber)
+                    .frame(maxWidth: 460 * s)
+                dim("Reading each show and scheduling two weeks ahead. This takes a moment.")
+            } else if !built.isEmpty {
+                Text("\(built.count) CHANNELS ON THE AIR")
+                    .font(Palette.meta(15 * f, .bold)).foregroundStyle(Palette.amber).tracking(3)
+                Text(built.prefix(8).joined(separator: " · "))
+                    .font(Palette.meta(15 * f)).foregroundStyle(Palette.tape)
+                    .multilineTextAlignment(.center)
+                    .fixedSize(horizontal: false, vertical: true)
+                dim("Press → to finish. You can add, rename or delete any of them later.")
+            } else {
+                Text("PICK A LINEUP")
+                    .font(Palette.meta(15 * f, .bold)).foregroundStyle(Palette.amber).tracking(3)
+                dim("← → to choose · SELECT to build it")
+                HStack(spacing: 12 * s) {
+                    ForEach(Array(StarterLineup.presets.enumerated()), id: \.element.id) { i, p in
+                        VStack(spacing: 7 * s) {
+                            Text(p.title)
+                                .font(Palette.meta(14 * f, .bold))
+                                .foregroundStyle(i == choice ? .black : Palette.amber)
+                                .tracking(1.5)
+                            Text(p.blurb)
+                                .font(Palette.meta(11.5 * f))
+                                .foregroundStyle(i == choice ? .black.opacity(0.75) : Palette.dim)
+                                .multilineTextAlignment(.center)
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
+                        .padding(.horizontal, 12 * s).padding(.vertical, 14 * s)
+                        .frame(maxWidth: .infinity, minHeight: 128 * s)
+                        .background(i == choice ? Palette.amber : Color.white.opacity(0.06))
+                        .overlay(RoundedRectangle(cornerRadius: 5)
+                            .stroke(Palette.amber.opacity(i == choice ? 0 : 0.35), lineWidth: 2))
+                        .clipShape(RoundedRectangle(cornerRadius: 5))
+                    }
+                }
+                if model?.plexLinked != true {
+                    dim("No server connected — these will be built from installed packs only.")
+                }
+            }
+        }
+    }
+
     private var setupPage: some View {
         VStack(spacing: 18 * s) {
             Text("ADD YOUR OWN CHANNELS")
@@ -233,4 +340,12 @@ struct FirstRunPopup: View {
             .multilineTextAlignment(.center)
             .fixedSize(horizontal: false, vertical: true)
     }
+}
+
+
+private extension Array {
+    /// Bounds-safe index. The card's page binding is clamped everywhere it is
+    /// read, but these helpers are called from the root's input path where an
+    /// out-of-range value would be a crash rather than a wrong screen.
+    subscript(safe i: Int) -> Element? { indices.contains(i) ? self[i] : nil }
 }

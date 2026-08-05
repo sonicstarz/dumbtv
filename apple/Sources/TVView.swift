@@ -60,6 +60,12 @@ struct TVView: View {
     /// pattern as DUMBTV_START_GUIDE / DUMBTV_START_SETUP.
     @State private var firstRunPage =
         Int(ProcessInfo.processInfo.environment["DUMBTV_FIRSTRUN_PAGE"] ?? "") ?? 0
+    /// Which starter-lineup tile is highlighted on the card's chooser page.
+    /// Lives here, not in the card, because the ROOT view reads the remote —
+    /// a Button inside the card would be a second focusable (docs/tvos-input.md).
+    @State private var firstRunChoice = 0
+    @State private var firstRunBuilding: SetupModel.StarterProgress?
+    @State private var firstRunBuilt: [String] = []
 
     /// Is the Setup overlay up? Every root input handler checks this and stands
     /// down. Without it the overlay drew on screen while the remote carried on
@@ -123,7 +129,7 @@ struct TVView: View {
         // Setup owns SELECT while it is up — its own buttons handle their own.
         if setupShowing { return }
         // The first-run card pages before anything else.
-        if firstRunAdvance() { return }
+        if firstRunSelect() { return }
         if engine.guideOpen { engine.guideSelect() } else { engine.toggleGuide() }
     }
 
@@ -273,9 +279,16 @@ struct TVView: View {
             // (B25-1). Up/down stay swallowed — there is nothing above or below.
             if engine.showFirstRun {
                 switch direction {
-                case .right: _ = firstRunAdvance()
-                case .left:  firstRunBack()
-                default:     break
+                // On the lineup chooser, ← → pick a tile instead of paging —
+                // there is nowhere else for them to go and a chooser you cannot
+                // steer is a picture of a chooser.
+                case .right:
+                    if firstRunOnChooser { firstRunChoice = min(firstRunChoice + 1, StarterLineup.presets.count - 1) }
+                    else { _ = firstRunAdvance() }
+                case .left:
+                    if firstRunOnChooser { firstRunChoice = max(firstRunChoice - 1, 0) }
+                    else { firstRunBack() }
+                default: break
                 }
                 return
             }
@@ -394,7 +407,9 @@ struct TVView: View {
     }
 
     private func firstRun(s: CGFloat) -> some View {
-        FirstRunPopup(configURL: configURL, s: s, page: $firstRunPage) {
+        FirstRunPopup(configURL: configURL, s: s, page: $firstRunPage,
+                      model: setup, choice: $firstRunChoice,
+                      building: $firstRunBuilding, built: $firstRunBuilt) {
             engine.finishFirstRun()
         }
     }
@@ -409,6 +424,39 @@ struct TVView: View {
     /// Page the first-run card forward from the remote/keyboard, finishing on the
     /// last page. Returns true if it consumed the press, so the caller knows not
     /// to also change channel or open the guide behind the card.
+    /// Is the card showing the lineup chooser, with a choice still to make?
+    /// (While building, or once built, ← → go back to paging.)
+    private var firstRunOnChooser: Bool {
+        engine.showFirstRun && FirstRunPopup.isLineupPage(firstRunPage)
+            && firstRunBuilding == nil && firstRunBuilt.isEmpty
+    }
+
+    /// SELECT on the card. Two pages do something other than turn:
+    /// the link page asks Plex for a code, and the chooser builds the lineup.
+    /// Everything else pages forward, which is what it always did.
+    private func firstRunSelect() -> Bool {
+        guard engine.showFirstRun else { return false }
+        if FirstRunPopup.isLinkPage(firstRunPage), let m = setup, !m.plexLinked, m.pinCode == nil {
+            Task { await m.startPlexLink() }
+            return true
+        }
+        if firstRunOnChooser, let m = setup {
+            let preset = StarterLineup.presets[min(firstRunChoice, StarterLineup.presets.count - 1)]
+            firstRunBuilding = .init(done: 0, total: 1, label: "")
+            Task {
+                let made = await m.buildStarterLineup(preset) { p in
+                    Task { @MainActor in firstRunBuilding = p }
+                }
+                await MainActor.run {
+                    firstRunBuilding = nil
+                    firstRunBuilt = made
+                }
+            }
+            return true
+        }
+        return firstRunAdvance()
+    }
+
     private func firstRunAdvance() -> Bool {
         guard engine.showFirstRun else { return false }
         if firstRunPage >= FirstRunPopup.pageCount - 1 {

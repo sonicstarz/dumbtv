@@ -101,6 +101,24 @@ struct TVView: View {
         #endif
     }
 
+    /// ONE curve for the guide transition, shared by the picture and the guide
+    /// surface — and the reason they used to disagree.
+    ///
+    /// The video rect animated over 0.25s of easeInOut. The guide/watch swap
+    /// was a bare if/else with no animation on it at all, so the guide SNAPPED
+    /// in while the picture glided. That is the owner's "the animation on the
+    /// video content is slower than the guide animation": it wasn't slower, it
+    /// was the only one animating.
+    ///
+    /// A spring rather than easeInOut, because the report also asked for
+    /// something less linear — "more logarithmic". easeInOut ramps up and down
+    /// symmetrically, which reads as mechanical; a well-damped spring leaves
+    /// quickly and settles slowly, which is the deceleration being described.
+    /// No bounce: this is a television, not a toy.
+    private var guideMotion: Animation {
+        .spring(response: 0.42, dampingFraction: 0.86)
+    }
+
     private func selectPressed() {
         // Setup owns SELECT while it is up — its own buttons handle their own.
         if setupShowing { return }
@@ -128,8 +146,8 @@ struct TVView: View {
                     .position(x: r.midX, y: r.midY)
                     .opacity(engine.onSetupChannel ? 0 : 1)
                     .allowsHitTesting(false)
-                    .animation(.easeInOut(duration: 0.25), value: engine.guideOpen)
-                    .animation(.easeInOut(duration: 0.25), value: guideSlot)
+                    .animation(guideMotion, value: engine.guideOpen)
+                    .animation(guideMotion, value: guideSlot)
                 // L-V1 — the CRT/VHS layers, over the picture and UNDER the
                 // chrome, matching the browser TV's z-order. Scanlines across
                 // guide text would be unreadable at 480 lines, which is exactly
@@ -140,7 +158,7 @@ struct TVView: View {
                 // not the programme.
                 if !engine.onSetupChannel && !engine.guideOpen {
                     VibeOverlay(vibe: engine.vibe, rect: r)
-                        .animation(.easeInOut(duration: 0.25), value: guideSlot)
+                        .animation(guideMotion, value: guideSlot)
                 }
             }
 
@@ -154,7 +172,12 @@ struct TVView: View {
                     // the setup screen (the guide opened invisibly), which is why
                     // "double-tap/select for the guide" appeared to do nothing.
                     if engine.guideOpen {
+                        // Up from the bottom, the way a set-top guide arrives —
+                        // and the direction the owner suggested. Paired with the
+                        // picture shrinking into its slot on the SAME curve, the
+                        // two movements now read as one gesture.
                         guideLayout(s: s)
+                            .transition(.move(edge: .bottom).combined(with: .opacity))
                     } else if engine.onSetupChannel {
                         setupChannelLayout(s: s)
                     } else {
@@ -168,6 +191,7 @@ struct TVView: View {
                     }
                 }
                 .animation(.easeInOut(duration: 0.25), value: engine.showFirstRun)
+                .animation(guideMotion, value: engine.guideOpen)
             }
         }
         .coordinateSpace(name: tvSpace)
@@ -728,7 +752,12 @@ struct TVView: View {
                 // 0.34 → 0.30. The guide below wanted more room and this block
                 // had it: the video slot is aspect-fitted, so the panel beside it
                 // was carrying the slack.
-                .frame(height: geo.size.height * 0.30)
+                // 0.30 → 0.26. The owner's report: "the top above the guide has
+                // a bunch of black deadspace, it's okay for some, but there's
+                // too much up there." The block is a thumbnail beside a panel
+                // with three short lines in it — most of its height was empty,
+                // and every point of it was a point the guide didn't have.
+                .frame(height: geo.size.height * 0.26)
                 .padding(.horizontal, 16 * s)
                 .padding(.top, 14 * s)
 

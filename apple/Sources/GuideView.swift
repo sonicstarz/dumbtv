@@ -15,10 +15,14 @@ struct GuideView: View {
         VStack(spacing: 0) {
             Rectangle().fill(Palette.amber).frame(height: 3)   // the web TV's border-top
             header
+            // Was 16pt of horizontal padding INSIDE a safe area that already
+            // insets ~5% — dead margin on both sides of a grid that wanted the
+            // width. 4pt keeps the blocks off the very edge without donating a
+            // column to nothing.
             GuideGrid(engine: engine, windowStart: engine.guideWindowStart, s: s)
-                .padding(.horizontal, 16 * s)
-                .padding(.top, 10 * s)
-                .padding(.bottom, 10 * s)
+                .padding(.horizontal, 4 * s)
+                .padding(.top, 8 * s)
+                .padding(.bottom, 4 * s)
         }
         .background(
             LinearGradient(colors: [Palette.prevue1, Palette.prevue2],
@@ -65,6 +69,24 @@ struct GuideView: View {
             Text(hhmm(engine.wallClock))
                 .font(Palette.digits(14 * s, .semibold))
                 .foregroundStyle(Palette.amber)
+            // SETUP, top right. Selection index -1, unchanged — UP from channel
+            // 0 lands here and SELECT opens it, the same as when this was a row
+            // in the grid. Moving it up here gives the grid a whole row back and
+            // puts the wheel where a settings control is looked for.
+            HStack(spacing: 7 * s) {
+                Image(systemName: "gearshape.fill")
+                    .font(.system(size: 17 * s))
+                Text("SETUP").font(Palette.meta(13 * s, .semibold)).tracking(2)
+            }
+            .foregroundStyle(engine.guideSelection == -1 ? .black : Palette.amber)
+            .padding(.horizontal, 12 * s).padding(.vertical, 5 * s)
+            .background(engine.guideSelection == -1 ? Palette.amber : Color.white.opacity(0.06))
+            .clipShape(RoundedRectangle(cornerRadius: 4))
+            .padding(.leading, 22 * s)
+            .contentShape(Rectangle())
+            .onTapGesture { engine.guideSelection = -1; engine.guideSelect() }
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel("Setup and channel packs. Select to open.")
         }
         .font(Palette.meta(14 * s, .semibold))
         .padding(.horizontal, 20 * s).padding(.vertical, 9 * s)
@@ -96,50 +118,19 @@ private struct GuideGrid: View {
     // Grown for build 25. The old 78pt row existed to fit a legend and a taller
     // top block that are both gone now; at living-room distance it left the
     // channel art at 34×50, which is a thumbnail, not an identity.
-    private var gutter: CGFloat { 150 * s }
-    private var rowH: CGFloat { 104 * s }
+    // Reclaiming the dead space the owner flagged on all four sides. The gutter
+    // grows so the channel identity (artwork + number + name) is the focal point
+    // it was asked to be, and the row grows with it.
+    private var gutter: CGFloat { 210 * s }
+    private var rowH: CGFloat { 124 * s }
     private var headerH: CGFloat { 30 * s }
-    private let cols = 3   // 30-min columns across the 90-min span
+    private let cols = 5   // 30-min columns across the 2.5-hour span
 
     private func x(_ t: Millis, lane: CGFloat) -> CGFloat {
         gutter + CGFloat(Double(t - windowStart) / Double(guideSpanMs)) * lane
     }
     private func colX(_ i: Int, lane: CGFloat) -> CGFloat {
         gutter + CGFloat(i) / CGFloat(cols) * lane
-    }
-
-    /// The channel-00 SETUP row that sits above the real channels in the grid.
-    private func setupRow(lane: CGFloat) -> some View {
-        let selected = engine.guideSelection == -1
-        return HStack(spacing: 0) {
-            ZStack {
-                // A gear, not a channel number. This row no longer tunes to
-                // channel 00 — it opens Setup — and on a remote the wheel is the
-                // thing people look for. The number stayed as "00" long after
-                // the row stopped being a channel.
-                VStack(spacing: 4 * s) {
-                    Image(systemName: "gearshape.fill")
-                        .font(.system(size: 27 * s)).foregroundStyle(Palette.amber)
-                    Text("SETUP").font(Palette.meta(11 * s, .semibold))
-                        .foregroundStyle(Palette.ice).tracking(1.5)
-                }
-                if engine.onSetupChannel {
-                    Image(systemName: "play.fill")
-                        .font(.system(size: 13 * s)).foregroundStyle(Palette.amber)
-                        .frame(maxWidth: .infinity, alignment: .leading).padding(.leading, 4 * s)
-                }
-            }
-            .frame(width: gutter)
-            ZStack(alignment: .leading) {
-                Text("CHANNEL PACKS — download public-domain channels to this device")
-                    .font(Palette.meta(15 * s)).foregroundStyle(Palette.peri)
-                    .padding(.leading, 12 * s).lineLimit(1)
-            }
-            .frame(width: lane, alignment: .leading)
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(selected ? Palette.amber.opacity(0.22)
-                    : engine.onSetupChannel ? Palette.amber.opacity(0.10) : Color.clear)
     }
 
     var body: some View {
@@ -168,17 +159,13 @@ private struct GuideGrid: View {
                 ScrollViewReader { proxy in
                     ScrollView(.vertical, showsIndicators: false) {
                         VStack(spacing: 0) {
-                            // SETUP row — always first, so Setup stays reachable
-                            // from the guide forever, on every platform. On tvOS
-                            // this is the ONLY way in: the root view owns focus,
-                            // so a Button on the setup card can never be pressed.
-                            setupRow(lane: lane)
-                                .frame(height: rowH)
-                                .id(-1)
-                                .contentShape(Rectangle())
-                                .onTapGesture { engine.guideSelection = -1; engine.guideSelect() }
-                                .accessibilityElement(children: .ignore)
-                                .accessibilityLabel("Channel packs. Download public-domain channels to this device. Select to open.")
+                            // The SETUP row used to live here, costing a full
+                            // row of the one screen the owner wanted more room
+                            // in. It is a gear in the header now (top right,
+                            // where a settings control belongs) and still holds
+                            // selection index -1, so UP from channel 0 reaches
+                            // it exactly as before — it simply highlights up
+                            // there instead of taking grid space down here.
                             ForEach(engine.guideProgramRows()) { row in
                                 let airing = row.programs.first { now >= $0.startUtc && now < $0.endUtc }
                                 GuideGridRow(row: row, gutter: gutter, lane: lane, windowStart: windowStart,
@@ -262,8 +249,10 @@ private struct GuideGridRow: View {
     var isTuning: Bool = false
 
     /// The art tile fills the gutter, inset just enough to breathe.
+    // The artwork is the focal point (B25-5) and the gutter got wider, so it
+    // grows with it — 134×108 rather than 134×88 at the old 150pt gutter.
     private var artW: CGFloat { gutter - 16 * s }
-    private var artH: CGFloat { 88 * s }
+    private var artH: CGFloat { 108 * s }
 
     /// Stands in for missing or still-loading artwork.
     ///
@@ -279,7 +268,7 @@ private struct GuideGridRow: View {
             LinearGradient(colors: [Palette.prevue1, Palette.prevue2],
                            startPoint: .topLeading, endPoint: .bottomTrailing)
             Text(String(format: "%02d", row.number))
-                .font(Palette.display(38 * s))
+                .font(Palette.display(48 * s))
                 .foregroundStyle(Palette.amber.opacity(0.92))
                 .minimumScaleFactor(0.5).lineLimit(1)
                 .padding(.bottom, 14 * s)   // clear of the ident line below
@@ -417,8 +406,16 @@ private struct ProgramBlock: View {
     /// is what the bigger build-25 type made visible.
     private var narrow: Bool { width < 165 * s }
 
+    /// Below THIS there is no room for a title at all, and trying anyway
+    /// produced the picket fence of "Ear ly…" / "Ea r…" the tighter axis made
+    /// obvious. A block this short is a tick mark on the timeline: it still
+    /// shows its extent and its now-highlight, it just doesn't pretend to
+    /// carry a label. The channel gutter says what the channel is.
+    private var tiny: Bool { width < 62 * s }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 4 * s) {
+            if !tiny {
             Text(title)
                 .font(Palette.meta(narrow ? 14 * s : 18 * s, .semibold))
                 .foregroundStyle(.white)
@@ -426,7 +423,8 @@ private struct ProgramBlock: View {
                 // truncating, and the taller build-25 row has the space for it.
                 .lineLimit(narrow ? 2 : 1)
                 .minimumScaleFactor(0.8)
-            if !subtitle.isEmpty && !narrow {
+            }
+            if !subtitle.isEmpty && !narrow && !tiny {
                 Text(subtitle)
                     .font(Palette.meta(14 * s))
                     .foregroundStyle(Palette.peri).lineLimit(1)

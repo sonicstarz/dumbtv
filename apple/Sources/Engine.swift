@@ -47,7 +47,19 @@ func hhmm(_ ms: Millis) -> String {
 }
 
 /// The visible span of the grid guide (90 min → 3 half-hour columns).
-let guideSpanMs: Millis = 90 * 60 * 1000
+/// How much schedule the guide shows at once.
+///
+/// 90 minutes → 3 hours on the owner's device report: "the physical pixel
+/// distance between our 30min chunks is too much, there's a lot of dead space
+/// because of that". At 90 minutes a half-hour block was ~530pt wide on a
+/// 1080-point screen, so a 24-minute programme was a mostly-empty slab. Three
+/// two and a half hours narrows every column by 40% and shows 66% more
+/// schedule — the thing a guide is actually for.
+///
+/// Not three hours, which was tried first: it made 24-minute episodes read
+/// beautifully and turned a pack of 3-minute cartoons into a picket fence of
+/// "Ear ly…". 150 minutes is where both are legible.
+let guideSpanMs: Millis = 150 * 60 * 1000
 
 /// The once-a-second loop that makes reality match the schedule — the Swift
 /// counterpart of `src/player/engine.js`. Re-derives from the clock, never a timer.

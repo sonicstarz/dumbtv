@@ -41,6 +41,11 @@ final class SetupModel: ObservableObject {
     /// Content packs — the reason Setup matters on a device with no media server
     /// at all. Public-domain channels, downloaded straight to the box.
     @Published var packs: [Pack] = []
+    /// Free space on the device, as the server measured it. Shown next to the
+    /// pack list so a 2.9 GB download can be judged before it is started rather
+    /// than after thirty seconds and an opaque failure.
+    @Published var storageFree: String = ""
+    @Published var storageFreeBytes: Int = 0
 
     struct Pack: Identifiable, Hashable {
         let id: String
@@ -258,6 +263,10 @@ final class SetupModel: ObservableObject {
     func loadPacks() async {
         guard let r = await call("GET", "/api/packs") else { return }
         let raw = (r["packs"] as? [[String: Any]]) ?? []
+        if let st = r["storage"] as? [String: Any] {
+            storageFree = (st["free"] as? String) ?? ""
+            storageFreeBytes = (st["freeBytes"] as? Int) ?? 0
+        }
         packs = raw.compactMap { p in
             guard let id = p["id"] as? String else { return nil }
             let prog = p["progress"] as? [String: Any]

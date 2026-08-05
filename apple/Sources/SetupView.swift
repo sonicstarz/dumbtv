@@ -297,6 +297,11 @@ struct SetupView: View {
     private var packsSection: some View {
         VStack(alignment: .leading, spacing: 14 * z) {
             sectionTitle("\(packsStep) · CHANNEL PACKS")
+            if !model.storageFree.isEmpty {
+                Text("\(model.storageFree) free on this device")
+                    .font(Palette.meta(15 * z))
+                    .foregroundStyle(Palette.dim)
+            }
             Text("Public-domain channels, downloaded straight to this device. No server, no account.")
                 .font(f(11)).foregroundStyle(Palette.peri)
                 .fixedSize(horizontal: false, vertical: true)

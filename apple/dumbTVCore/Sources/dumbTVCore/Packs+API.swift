@@ -181,7 +181,13 @@ extension ConfigAPI {
                            itemCount: media.count,
                            runtimeMs: media.reduce(Millis(0)) { $0 + $1.durationMs }, downloadBytes: 0))
         }
-        return .ok(["packs": out])
+        // Free space, alongside the packs, so a screen offering a 2.9 GB
+        // download can say whether it will fit BEFORE anyone presses it. The
+        // owner's Apple TV reported "http(500)" after thirty seconds on Popeye
+        // with no way to tell a transient archive.org blip from a full disk.
+        return .ok(["packs": out,
+                    "storage": ["freeBytes": PackSpace.availableBytes(),
+                                "free": PackSpace.human(PackSpace.availableBytes())]])
     }
 
     func packCreateChannel(_ id: String, _ req: Request) -> Response {
@@ -215,6 +221,15 @@ extension ConfigAPI {
             let dir = ConfigAPI.downloadedPacksDir().appendingPathComponent(id, isDirectory: true)
             try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
             do {
+                // CHECK THE SPACE FIRST. Bosko is 1.9 GB and Popeye is 2.9 GB;
+                // finding out they don't fit after thirty seconds of downloading
+                // — and being told "http(500)" — is the worst version of this.
+                if bytesTotal > 0 {
+                    let free = PackSpace.availableBytes()
+                    if Int64(bytesTotal) + PackSpace.headroomBytes > free {
+                        throw PackError.noSpace(needs: Int64(bytesTotal), free: free)
+                    }
+                }
                 var bytesDone = 0
                 for (i, it) in entry.items.enumerated() {
                     let dest = dir.appendingPathComponent(it.file)
@@ -224,10 +239,44 @@ extension ConfigAPI {
                     let complete = existing != nil && (it.bytes == nil || abs((existing ?? 0) - (it.bytes ?? 0)) < 65536)
                     if !complete {
                         guard let src = URL(string: it.url) else { throw PackError.badURL }
-                        let (tmp, resp) = try await URLSession.shared.download(from: src)
-                        if let http = resp as? HTTPURLResponse, http.statusCode >= 400 { throw PackError.http(http.statusCode) }
-                        try? FileManager.default.removeItem(at: dest)
-                        try FileManager.default.moveItem(at: tmp, to: dest)
+                        // RETRY TRANSIENT FAILURES. archive.org answers 500/503
+                        // under load often enough that a single attempt is not a
+                        // download strategy — one blip killed a 22-file pack at
+                        // file 1 and reported "http(500)". Both packs that failed
+                        // on the owner's Apple TV serve fine on a retry.
+                        //
+                        // Bounded and backed off: three tries, 2s then 6s. Not a
+                        // loop that hammers a public archive we don't pay for.
+                        var lastError: Error?
+                        for attempt in 0..<3 {
+                            if attempt > 0 {
+                                try await Task.sleep(nanoseconds: UInt64(attempt * 4 - 2) * 1_000_000_000)
+                                progress.set(id, PackProgress(state: "downloading", done: i, total: total,
+                                                              error: "retrying \(it.title)…",
+                                                              bytesDone: bytesDone, bytesTotal: bytesTotal,
+                                                              startedAt: startedAt))
+                            }
+                            do {
+                                let (tmp, resp) = try await URLSession.shared.download(from: src)
+                                if let http = resp as? HTTPURLResponse, http.statusCode >= 400 {
+                                    let e = PackError.http(http.statusCode)
+                                    // 4xx is about the file, not the weather —
+                                    // retrying a 404 just wastes the person's time.
+                                    if http.statusCode < 500 { throw e }
+                                    lastError = e
+                                    continue
+                                }
+                                try? FileManager.default.removeItem(at: dest)
+                                try FileManager.default.moveItem(at: tmp, to: dest)
+                                lastError = nil
+                                break
+                            } catch let e as PackError {
+                                throw e
+                            } catch {
+                                lastError = error   // network dropped — worth another go
+                            }
+                        }
+                        if let lastError { throw lastError }
                     }
                     bytesDone += it.bytes ?? ((try? FileManager.default.attributesOfItem(atPath: dest.path)[.size] as? Int) ?? 0) ?? 0
                     progress.set(id, PackProgress(state: "downloading", done: i + 1, total: total, error: nil,
@@ -246,7 +295,8 @@ extension ConfigAPI {
                 progress.set(id, PackProgress(state: "installed", done: total, total: total, error: nil,
                                               bytesDone: bytesTotal, bytesTotal: bytesTotal, startedAt: startedAt))
             } catch {
-                progress.set(id, PackProgress(state: "error", done: 0, total: total, error: "\(error)",
+                let message = (error as? LocalizedError)?.errorDescription ?? "\(error)"
+                progress.set(id, PackProgress(state: "error", done: 0, total: total, error: message,
                                               bytesTotal: bytesTotal, startedAt: startedAt))
             }
         }
@@ -254,7 +304,61 @@ extension ConfigAPI {
     }
 }
 
-enum PackError: Error { case badURL, http(Int) }
+enum PackError: LocalizedError {
+    case badURL
+    case http(Int)
+    case noSpace(needs: Int64, free: Int64)
+
+    /// What the television actually shows. The raw enum description leaked to
+    /// the screen as "http(500)", which tells someone holding a remote nothing
+    /// about what to do next.
+    var errorDescription: String? {
+        switch self {
+        case .badURL:
+            return "That download link is malformed."
+        case .http(let code) where code >= 500:
+            return "archive.org is having trouble right now (\(code)). Nothing wrong on your end — try again in a few minutes."
+        case .http(404):
+            return "That file is no longer on archive.org."
+        case .http(let code):
+            return "The download failed (\(code))."
+        case .noSpace(let needs, let free):
+            return "Not enough space. This pack needs \(PackSpace.human(needs)) and there is \(PackSpace.human(free)) free."
+        }
+    }
+}
+
+/// Free space, and how to say it out loud.
+enum PackSpace {
+    /// Space the system will actually let us use.
+    ///
+    /// `volumeAvailableCapacityForImportantUsage` is the honest number — it
+    /// counts space reclaimable from purgeable caches — but it is UNAVAILABLE ON
+    /// tvOS, which is precisely the platform with 32 GB and an aggressive cache
+    /// policy. There, `systemFreeSize` is what there is.
+    static func availableBytes() -> Int64 {
+        let url = ConfigAPI.downloadedPacksDir()
+        #if !os(tvOS)
+        if let v = try? url.resourceValues(forKeys: [.volumeAvailableCapacityForImportantUsageKey]),
+           let n = v.volumeAvailableCapacityForImportantUsage { return n }
+        #endif
+        if let a = try? FileManager.default.attributesOfFileSystem(forPath: url.path),
+           let n = a[.systemFreeSize] as? NSNumber { return n.int64Value }
+        return 0
+    }
+
+    static func human(_ bytes: Int64) -> String {
+        let f = ByteCountFormatter()
+        f.countStyle = .file
+        f.allowedUnits = [.useGB, .useMB]
+        return f.string(fromByteCount: max(0, bytes))
+    }
+
+    /// Keep a floor free. A device with literally zero bytes left misbehaves in
+    /// ways that have nothing to do with us, and a pack that exactly fills the
+    /// disk is not a success.
+    static let headroomBytes: Int64 = 500 * 1024 * 1024
+}
 
 // PackManifest needs to encode (install writes pack.json) — its members are all
 // Codable already; conformance is declared on the struct in Packs.swift.

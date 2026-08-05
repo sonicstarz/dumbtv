@@ -209,6 +209,22 @@ private struct GuideGrid: View {
                         guard sel >= -1 else { return }
                         withAnimation { proxy.scrollTo(sel, anchor: .center) }
                     }
+                    // OPEN THE GUIDE ON THE CHANNEL YOU ARE WATCHING.
+                    //
+                    // `guideOpen`'s didSet already points guideSelection at the
+                    // current channel — but it does that BEFORE this ScrollView
+                    // exists, so the .onChange above never fires for it and the
+                    // guide opened parked at the top of the list. On a long
+                    // lineup that means arriving somewhere you weren't, and
+                    // scrolling back to find yourself.
+                    //
+                    // No animation: this is the guide's starting position, not a
+                    // movement, and animating it would read as a lurch on open.
+                    .onAppear {
+                        let sel = engine.guideSelection
+                        guard sel >= -1 else { return }
+                        proxy.scrollTo(sel, anchor: .center)
+                    }
                 }
                 // Column gridlines + the red now-line, over the scrolling rows.
                 .overlay(alignment: .topLeading) {

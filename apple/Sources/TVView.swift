@@ -204,6 +204,31 @@ struct TVView: View {
         .focusable(!setupShowing)
         .focused($tvFocused)
         .onAppear { tvFocused = true }
+        // SELF-HEALING FOCUS. This is the fifth build of "single click does
+        // nothing, double click works", and the previous four all looked for a
+        // second focusable — correctly, that WAS the cause in builds 21-24, and
+        // there isn't one any more (FirstRunPopup hands tvOS a plain label, the
+        // control-row Buttons are #if !os(tvOS)).
+        //
+        // The remaining cause is simpler and was never addressed: focus was
+        // claimed in exactly two places, .onAppear and Setup-close, and NOTHING
+        // re-claimed it. Every guide toggle, banner reveal and first-run page
+        // turn mutates state that rebuilds this ZStack, and any of those can
+        // drop focus. Once dropped it never came back on its own, so the next
+        // press was spent re-acquiring it — for the rest of the session.
+        //
+        // Reclaiming on loss makes the failure self-correcting instead of
+        // permanent. The async hop avoids mutating @FocusState from inside its
+        // own change notification.
+        .onChange(of: tvFocused) { focused in
+            guard !focused, !setupShowing else { return }
+            DispatchQueue.main.async { tvFocused = true }
+        }
+        // Setup is the ONE thing allowed to hold focus instead. When it closes,
+        // take it straight back rather than waiting for a press to do it.
+        .onChange(of: setupShowing) { showing in
+            if !showing { DispatchQueue.main.async { tvFocused = true } }
+        }
         .onMoveCommand { direction in
             // Setup owns the remote while it is up.
             if setupShowing { return }
@@ -229,9 +254,17 @@ struct TVView: View {
                 @unknown default: break
                 }
             } else {
+                // DOWN GOES DOWN, on the picture exactly as in the guide.
+                //
+                // These were mapped the cable-box way — UP for a higher channel
+                // NUMBER — which is defensible in isolation and wrong next to
+                // our own guide, where higher numbers are further DOWN the list.
+                // Pressing down therefore moved down the guide and up the dial,
+                // and the same press did opposite things on two screens.
+                // The guide is the model; the picture follows it.
                 switch direction {
-                case .up:    engine.channelUp()
-                case .down:  engine.channelDown()
+                case .up:    engine.channelDown()      // up the list = lower number
+                case .down:  engine.channelUp()        // down the list = higher number
                 case .left, .right: engine.blocked()   // no seeking on live TV
                 @unknown default: break
                 }
@@ -239,7 +272,15 @@ struct TVView: View {
         }
         // Esc / Menu closes the guide. While Setup is open, SetupView's own
         // .onExitCommand closes Setup instead — don't also act on it here.
-        .onExitCommand { if !setupShowing, engine.guideOpen { engine.guideOpen = false } }
+        // MENU/BACK. In the guide it closes the guide. On the picture it now
+        // OPENS the guide rather than doing nothing — "back" from a channel
+        // should land you in the menu you came from, which is what every set-top
+        // box does and what the remote's shape implies. tvOS would otherwise
+        // background the app, which is a hard exit from a television.
+        .onExitCommand {
+            if setupShowing { return }
+            if engine.guideOpen { engine.guideOpen = false } else { engine.toggleGuide() }
+        }
         #endif
 
         #if os(tvOS)

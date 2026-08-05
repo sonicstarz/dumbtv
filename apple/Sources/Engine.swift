@@ -756,7 +756,13 @@ final class Engine: ObservableObject {
     /// How long the banner stays up. Back-to-back showBanner() calls (tune() runs
     /// one, sync() runs another) used to kill it outright; now the second call
     /// simply restarts this window.
-    let bannerSeconds: Double = 5.0
+    /// How long the channel-info card stays up.
+    ///
+    /// 5s → 8s on the owner's device report: five is enough to read a title you
+    /// are expecting and not enough to read one you aren't, and the card is the
+    /// only place the programme name, time and channel appear at all. Eight is
+    /// still short of a nuisance and it is one number to turn if that changes.
+    let bannerSeconds: Double = 8.0
 
     private func startTicking() {
         status = ""
